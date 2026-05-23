@@ -4,7 +4,7 @@
 
 ```text
 stacx/
-├── AGENTS.md
+├── CLAUDE.md
 ├── README.md
 ├── docs/
 ├── packages/

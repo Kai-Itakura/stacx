@@ -54,7 +54,7 @@
 
 ## AI エージェント利用
 
-このプロジェクトは AI エージェント（Claude Code, Cursor 等）と協働して開発します。エージェント向けの情報は [`AGENTS.md`](AGENTS.md) に集約されています。
+このプロジェクトは AI エージェント（Claude Code, Cursor 等）と協働して開発します。エージェント向けの情報は [`CLAUDE.md`](CLAUDE.md) に集約されています。
 
 ## ライセンス
 

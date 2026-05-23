@@ -1,4 +1,4 @@
-# AGENTS.md - StacX
+# CLAUDE.md - StacX
 
 このファイルは AI エージェント（Claude Code, Cursor 等）が StacX プロジェクトの全体像を素早く把握するためのものです。詳細は `docs/` 配下の各ドキュメントを参照してください。
 

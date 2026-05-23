@@ -104,7 +104,7 @@ Conventional Commits を採用:
 
 - `feat: クイックメモ画面を追加`
 - `fix: STAR エディタで保存が効かない問題を修正`
-- `docs: AGENTS.md に開発フローを追記`
+- `docs: CLAUDE.md に開発フローを追記`
 - `refactor: 認証ミドルウェアを共通化`
 - `chore: drizzle-kit を更新`
 
