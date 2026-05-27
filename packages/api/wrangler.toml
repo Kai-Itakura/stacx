@@ -1,0 +1,14 @@
+name = "stacx-api"
+main = "src/index.ts"
+compatibility_date = "2026-05-01"
+
+[vars]
+APP_BASE_URL = "http://localhost:5173"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "stacx-db"
+database_id = ""  # `wrangler d1 create stacx-db` で発行された ID をここに記録
+
+[dev]
+port = 8787
