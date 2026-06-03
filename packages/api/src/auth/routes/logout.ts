@@ -1,5 +1,5 @@
-import { getCookie } from "hono/cookie";
 import type { Context } from "hono";
+import { getCookie } from "hono/cookie";
 import type { AppEnv } from "../../types";
 import { clearSessionCookie, sessionCookieName } from "../cookie";
 import { deleteSession } from "../session";

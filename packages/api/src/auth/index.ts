@@ -1,6 +1,6 @@
+import { Hono } from "hono";
 import { getCookie } from "hono/cookie";
 import { createMiddleware } from "hono/factory";
-import { Hono } from "hono";
 import type { AppEnv } from "../types";
 import { sessionCookieName } from "./cookie";
 import { callbackHandler } from "./routes/callback";

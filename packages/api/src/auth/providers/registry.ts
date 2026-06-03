@@ -17,7 +17,7 @@ const factories: Record<ProviderId, (env: ProviderEnv) => Provider> = {
 
 /** 文字列が実装済み ProviderId かを判定する（ルートパラメータの検証用）。 */
 export function isProviderId(value: string): value is ProviderId {
-  return Object.prototype.hasOwnProperty.call(factories, value);
+  return Object.hasOwn(factories, value);
 }
 
 /** 指定 Provider を環境変数から構築する。 */

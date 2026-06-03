@@ -1,15 +1,15 @@
-import { getCookie } from "hono/cookie";
 import type { Context } from "hono";
+import { getCookie } from "hono/cookie";
 import type { AppEnv } from "../../types";
 import { loginWithIdentity } from "../account";
 import {
+  clearTempCookies,
   OAUTH_STATE_COOKIE,
   OAUTH_VERIFIER_COOKIE,
-  clearTempCookies,
   setSessionCookie,
 } from "../cookie";
-import type { IdentityProfile } from "../providers/types";
 import { getProvider, isProviderId } from "../providers/registry";
+import type { IdentityProfile } from "../providers/types";
 
 function redirectToLoginError(c: Context<AppEnv>, code: string) {
   const url = new URL("/login", c.env.APP_BASE_URL);

@@ -27,7 +27,11 @@ export type IssuedSession = {
  * 事前 SELECT は新規/既存の判定ヒントにすぎず、一意性の最終保証は
  * user_identities の UNIQUE(provider, provider_sub) に置く。
  */
-export async function loginWithIdentity(db: DB, profile: IdentityProfile, meta: SessionMeta): Promise<IssuedSession> {
+export async function loginWithIdentity(
+  db: DB,
+  profile: IdentityProfile,
+  meta: SessionMeta,
+): Promise<IssuedSession> {
   const now = new Date();
   const expiresAt = new Date(now.getTime() + SESSION_TTL_MS);
   const sessionId = generateSessionId();
