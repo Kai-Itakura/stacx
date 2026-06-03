@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createGoogleProvider } from "../../src/auth/providers/google";
+import { createGoogleProvider } from "./google";
 
 const provider = createGoogleProvider({
   GOOGLE_CLIENT_ID: "test-id",

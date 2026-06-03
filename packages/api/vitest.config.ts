@@ -23,6 +23,22 @@ export default defineWorkersConfig(async () => {
           },
         },
       },
+      coverage: {
+        // workerd 内では v8 provider が動かないため istanbul を使う。
+        provider: "istanbul" as const,
+        reporter: ["text", "html"],
+        include: ["src/**/*.ts"],
+        exclude: ["src/**/*.test.ts", "src/db/migrations/**"],
+        // 現状値の少し下を床にしたラチェット。新規コードがテストを伴わず
+        // 入ると下回って CI が落ちる。IdP への通信を伴う verify / callback
+        // 成功分岐は意図的に未カバーのため branch は低めに設定。
+        thresholds: {
+          statements: 80,
+          functions: 80,
+          lines: 80,
+          branches: 45,
+        },
+      },
     },
   };
 });

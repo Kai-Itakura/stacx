@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { sessionCookieName } from "../../src/auth/cookie";
+import { sessionCookieName } from "./cookie";
 
 describe("sessionCookieName", () => {
   it("本番(https)は __Host- プレフィックス付き", () => {

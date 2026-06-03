@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { generateSessionId } from "../../src/auth/session";
+import { generateSessionId } from "./session";
 
 describe("generateSessionId", () => {
   it("32 バイト = 64 桁の hex", () => {

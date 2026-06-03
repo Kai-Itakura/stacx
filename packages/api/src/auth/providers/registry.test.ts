@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getProvider, isProviderId } from "../../src/auth/providers/registry";
+import { getProvider, isProviderId } from "./registry";
 
 const env = {
   GOOGLE_CLIENT_ID: "id",
