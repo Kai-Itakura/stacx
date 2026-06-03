@@ -10,13 +10,13 @@ sequenceDiagram
     U->>B: ログインボタン a href="/api/auth/login/google"
     B->>API: GET /api/auth/login/google
     API->>API: generateState() / generateCodeVerifier()<br/>createAuthorizationURL(state, verifier, [openid,email,profile])
-    API-->>B: 302 to Google authorize URL<br/>Set-Cookie: oauth_state / oauth_code_verifier / oauth_provider<br/>(httpOnly, Lax, 10分)
+    API-->>B: 302 to Google authorize URL<br/>Set-Cookie: oauth_state / oauth_code_verifier<br/>(httpOnly, Secure, Lax, 10分)
     B->>G: 認可エンドポイントへ
     U->>G: ログイン and 同意
     G-->>B: 302 to /api/auth/callback/google?code,state
 
     Note over U,G: (2) コールバック（Cookieを書く=ブラウザがapi直叩き）
-    B->>API: GET /api/auth/callback/google?code,state<br/>Cookie: oauth_state / verifier / provider
+    B->>API: GET /api/auth/callback/google?code,state<br/>Cookie: oauth_state / oauth_code_verifier
     API->>API: Cookieのstate == URLのstate ?<br/>不一致 → 400（CSRF防御）
     API->>G: validateAuthorizationCode(code, verifier)
     G-->>API: OAuth2Tokens（id_token 同梱）
