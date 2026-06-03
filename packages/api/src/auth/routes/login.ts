@@ -15,5 +15,5 @@ export async function loginHandler(c: Context<AppEnv>) {
   const url = provider.createAuthorizationURL(state, codeVerifier);
 
   setTempCookies(c, state, codeVerifier);
-  return c.redirect(url.toString());
+  return c.redirect(url);
 }

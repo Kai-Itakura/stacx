@@ -14,7 +14,7 @@ import { getProvider, isProviderId } from "../providers/registry";
 function redirectToLoginError(c: Context<AppEnv>, code: string) {
   const url = new URL("/login", c.env.APP_BASE_URL);
   url.searchParams.set("error", code);
-  return c.redirect(url.toString());
+  return c.redirect(url);
 }
 
 /** GET /api/auth/callback/:provider — code を検証し Session を発行する。 */
@@ -47,5 +47,5 @@ export async function callbackHandler(c: Context<AppEnv>) {
   });
 
   setSessionCookie(c, issued.id, issued.expiresAt);
-  return c.redirect(new URL("/", c.env.APP_BASE_URL).toString());
+  return c.redirect(new URL("/", c.env.APP_BASE_URL));
 }

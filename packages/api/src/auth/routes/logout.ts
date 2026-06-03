@@ -11,5 +11,5 @@ export async function logoutHandler(c: Context<AppEnv>) {
     await deleteSession(c.var.db, sessionId);
   }
   clearSessionCookie(c);
-  return c.redirect(new URL("/", c.env.APP_BASE_URL).toString());
+  return c.redirect(new URL("/", c.env.APP_BASE_URL));
 }
