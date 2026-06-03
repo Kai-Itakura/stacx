@@ -1,9 +1,9 @@
-import path from "node:path";
 import { defineWorkersConfig, readD1Migrations } from "@cloudflare/vitest-pool-workers/config";
 
 export default defineWorkersConfig(async () => {
-  // Drizzle のマイグレーションを読み、テスト用 D1 へ適用する（setup ファイルで実行）。
-  const migrations = await readD1Migrations(path.join(import.meta.dirname, "src/db/migrations"));
+  // Node 型に依存しないよう、標準の import.meta.url から migrations パスを導出する。
+  const migrationsPath = new URL("./src/db/migrations", import.meta.url).pathname;
+  const migrations = await readD1Migrations(migrationsPath);
 
   return {
     test: {
