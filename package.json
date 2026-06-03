@@ -8,7 +8,9 @@
     "dev:api": "pnpm --filter @stacx/api dev",
     "dev:web": "pnpm --filter @stacx/web dev",
     "build": "pnpm -r build",
-    "lint": "pnpm -r lint",
+    "lint": "biome lint .",
+    "format": "biome format --write .",
+    "check": "biome check --write .",
     "typecheck": "pnpm -r typecheck",
     "test": "pnpm -r test"
   },
@@ -22,5 +24,8 @@
       "onFail": "download"
     }
   },
-  "type": "module"
+  "type": "module",
+  "devDependencies": {
+    "@biomejs/biome": "^2.4.16"
+  }
 }
