@@ -43,9 +43,34 @@ export const sessions = sqliteTable("sessions", {
   ipAddress: text("ip_address"),
 });
 
+export const projects = sqliteTable("projects", {
+  id: text("id").primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  // 日付は他テーブルと揃えて epoch ミリ秒で保持する。end_date が null なら「進行中」。
+  startDate: integer("start_date", { mode: "timestamp_ms" }).notNull(),
+  endDate: integer("end_date", { mode: "timestamp_ms" }),
+  summary: text("summary"),
+  teamSize: integer("team_size"),
+  role: text("role"),
+  workStyle: text("work_style"),
+  createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
+  updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull(),
+});
+
 export const usersRelations = relations(users, ({ many }) => ({
   identities: many(userIdentities),
   sessions: many(sessions),
+  projects: many(projects),
+}));
+
+export const projectsRelations = relations(projects, ({ one }) => ({
+  user: one(users, {
+    fields: [projects.userId],
+    references: [users.id],
+  }),
 }));
 
 export const userIdentitiesRelations = relations(userIdentities, ({ one }) => ({
@@ -65,3 +90,4 @@ export const sessionsRelations = relations(sessions, ({ one }) => ({
 export type User = typeof users.$inferSelect;
 export type UserIdentity = typeof userIdentities.$inferSelect;
 export type Session = typeof sessions.$inferSelect;
+export type Project = typeof projects.$inferSelect;

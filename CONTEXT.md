@@ -31,3 +31,17 @@ _Avoid_: 自動マージ (auto-merge)
 **provider_sub**:
 IdP 側で発行される、その IdP 内で不変かつ一意なユーザー識別子。OIDC の `sub` クレーム由来。`(provider, provider_sub)` の組で Identity を一意に特定する。
 _Avoid_: provider user id, external id
+
+### プロジェクト・メモ
+
+**Project** (プロジェクト):
+業務上の案件・関与の単位。`projects` テーブルの 1 行に対応し、所有 User に紐づく。期間（開始日と、空なら「進行中」を表す終了日）・役割・業務形態などのコンテキストを持ち、Memo が紐づく器になる。
+_Avoid_: 案件 (case)、ワークスペース
+
+**進行中** (ongoing):
+終了日 (`end_date`) が未設定の Project の状態。クイック・インテークでデフォルト選択され、UI 上でハイライトされる。
+_Avoid_: アクティブ (active) — 論理削除の有無と紛らわしいため
+
+**Memo** (メモ / 1 分メモ):
+業務中に最小手数で記録する学び・成果・技術的判断の単位。`memos` テーブルの 1 行に対応し、必ず 1 つの Project に紐づく。後段で STAR ログへ昇華される素材。
+_Avoid_: ノート (note)、エントリ (entry)
