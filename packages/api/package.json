@@ -17,6 +17,7 @@
     "db:migrate:remote": "wrangler d1 migrations apply stacx-db --remote"
   },
   "dependencies": {
+    "@hono/zod-validator": "^0.8.0",
     "arctic": "^3.0.0",
     "drizzle-orm": "^0.36.0",
     "hono": "^4.6.0",
