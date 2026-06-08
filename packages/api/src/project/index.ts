@@ -2,8 +2,8 @@ import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 import { authMiddleware } from "../auth/index";
 import type { AppEnv } from "../types";
-import { badRequestFromZod, createProjectSchema, updateProjectSchema } from "./parse";
 import { createProject, deleteProject, getProject, listProjects, updateProject } from "./project";
+import { badRequestFromZod, createProjectSchema, updateProjectSchema } from "./request-schema";
 
 /** JSON ボディ検証。失敗時は API の `{ error }` 400 で返す（@hono/zod-validator）。 */
 const validateCreate = zValidator("json", createProjectSchema, (result, c) => {

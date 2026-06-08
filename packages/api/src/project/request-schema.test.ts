@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createProjectSchema, updateProjectSchema } from "./parse";
+import { createProjectSchema, updateProjectSchema } from "./request-schema";
 
 describe("createProjectSchema", () => {
   const valid = { name: "案件A", startDate: "2024-01-01" };
