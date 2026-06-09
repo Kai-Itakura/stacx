@@ -1,0 +1,53 @@
+import { z } from "zod";
+
+// JSON 由来のボディを検証する zod スキーマ。HTTP 経由なので number は常に有限
+// （JSON に Infinity/NaN は無い）。日付は epoch ミリ秒（number）または日付文字列を
+// coerce で Date 化し、不正値は弾く。ルートでは @hono/zod-validator が消費する。
+
+/** POST /projects 用。未指定の任意項目は null に正規化する。 */
+export const createProjectSchema = z.object({
+  name: z.string().trim().min(1),
+  startDate: z.coerce.date(),
+  endDate: z.coerce
+    .date()
+    .nullish()
+    .transform((v) => v ?? null),
+  summary: z
+    .string()
+    .nullish()
+    .transform((v) => v ?? null),
+  teamSize: z
+    .number()
+    .nullish()
+    .transform((v) => v ?? null),
+  role: z
+    .string()
+    .nullish()
+    .transform((v) => v ?? null),
+  workStyle: z
+    .string()
+    .nullish()
+    .transform((v) => v ?? null),
+});
+
+/** PUT /projects/:id 用。部分更新なので全項目任意。指定キーのみ出力に残る。 */
+export const updateProjectSchema = z
+  .object({
+    name: z.string().trim().min(1),
+    startDate: z.coerce.date(),
+    endDate: z.coerce.date().nullable(),
+    summary: z.string().nullable(),
+    teamSize: z.number().nullable(),
+    role: z.string().nullable(),
+    workStyle: z.string().nullable(),
+  })
+  .partial();
+
+/** ZodError を API の `{ error }` 400 ボディに整形する（先頭 issue を可読化）。 */
+export function badRequestFromZod(error: {
+  issues: ReadonlyArray<{ path: ReadonlyArray<PropertyKey>; message: string }>;
+}): { error: string } {
+  const issue = error.issues[0];
+  const path = issue?.path.map((p) => p.toString()).join(".");
+  return { error: path ? `${path}: ${issue?.message}` : (issue?.message ?? "invalid body") };
+}
