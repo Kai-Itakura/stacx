@@ -57,10 +57,7 @@ export const projects = sqliteTable("projects", {
   role: text("role"),
   workStyle: text("work_style"),
   // 使用技術スタック。絞り込み軸にはしないため正規化せず JSON 配列で持つ（ADR 0004 圏外・grill 決定）。
-  techStack: text("tech_stack", { mode: "json" })
-    .$type<string[]>()
-    .notNull()
-    .default(sql`'[]'`),
+  techStack: text("tech_stack", { mode: "json" }).$type<string[]>().notNull().default(sql`'[]'`),
   createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
   updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull(),
 });
