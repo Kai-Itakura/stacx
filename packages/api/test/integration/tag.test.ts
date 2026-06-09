@@ -4,6 +4,7 @@ import { ulid } from "ulid";
 import { beforeEach, describe, expect, it } from "vitest";
 import * as schema from "../../src/db/schema";
 import { tags, users } from "../../src/db/schema";
+import { createTagSchema } from "../../src/tag/request-schema";
 import { createTag, deleteTag, listTags } from "../../src/tag/tag";
 
 const db = drizzle(env.DB, { schema });
@@ -16,6 +17,9 @@ async function seedUser(): Promise<string> {
   return id;
 }
 
+/** branded な作成入力。ドメインは検証を通した値しか受け取らないので schema 経由で作る。 */
+const tagInput = (name: string) => createTagSchema.parse({ name });
+
 describe("createTag", () => {
   beforeEach(async () => {
     await db.delete(tags);
@@ -25,7 +29,7 @@ describe("createTag", () => {
   it("id・userId・name・createdAt を採番して作成する", async () => {
     const userId = await seedUser();
 
-    const result = await createTag(db, userId, "トラブル");
+    const result = await createTag(db, userId, tagInput("トラブル"));
 
     expect(result.ok).toBe(true);
     if (result.ok) {
@@ -41,9 +45,9 @@ describe("createTag", () => {
 
   it("同一 User 内で同名は重複として弾く（duplicate）", async () => {
     const userId = await seedUser();
-    await createTag(db, userId, "トラブル");
+    await createTag(db, userId, tagInput("トラブル"));
 
-    const dup = await createTag(db, userId, "トラブル");
+    const dup = await createTag(db, userId, tagInput("トラブル"));
 
     expect(dup).toEqual({ ok: false, reason: "duplicate" });
     expect(await db.select().from(tags)).toHaveLength(1); // 増えない
@@ -52,9 +56,9 @@ describe("createTag", () => {
   it("別 User なら同名でも作成できる（User スコープの一意）", async () => {
     const alice = await seedUser();
     const bob = await seedUser();
-    await createTag(db, alice, "トラブル");
+    await createTag(db, alice, tagInput("トラブル"));
 
-    const result = await createTag(db, bob, "トラブル");
+    const result = await createTag(db, bob, tagInput("トラブル"));
 
     expect(result.ok).toBe(true);
     expect(await db.select().from(tags)).toHaveLength(2);
@@ -70,9 +74,9 @@ describe("listTags", () => {
   it("呼び出し User 自身のタグだけを name 昇順で返す", async () => {
     const me = await seedUser();
     const other = await seedUser();
-    await createTag(db, me, "パフォーマンス");
-    await createTag(db, me, "トラブル");
-    await createTag(db, other, "他人のタグ");
+    await createTag(db, me, tagInput("パフォーマンス"));
+    await createTag(db, me, tagInput("トラブル"));
+    await createTag(db, other, tagInput("他人のタグ"));
 
     const list = await listTags(db, me);
 
@@ -88,7 +92,7 @@ describe("deleteTag", () => {
 
   it("自分のタグを削除して true", async () => {
     const me = await seedUser();
-    const created = await createTag(db, me, "トラブル");
+    const created = await createTag(db, me, tagInput("トラブル"));
     const id = created.ok ? created.tag.id : "";
 
     expect(await deleteTag(db, me, id)).toBe(true);
@@ -98,7 +102,7 @@ describe("deleteTag", () => {
   it("他人のタグは削除せず false（所有境界）", async () => {
     const me = await seedUser();
     const other = await seedUser();
-    const created = await createTag(db, other, "トラブル");
+    const created = await createTag(db, other, tagInput("トラブル"));
     const id = created.ok ? created.tag.id : "";
 
     expect(await deleteTag(db, me, id)).toBe(false);
