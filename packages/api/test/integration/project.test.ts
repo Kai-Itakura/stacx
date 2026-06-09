@@ -58,6 +58,21 @@ describe("createProject", () => {
     expect(rows).toHaveLength(1);
     expect(rows[0]?.id).toBe(created.id);
   });
+
+  it("techStack を永続化し、未指定は空配列になる", async () => {
+    const userId = await seedUser();
+
+    const withStack = await createProject(
+      db,
+      userId,
+      createInput({ techStack: ["Go", "PostgreSQL"] }),
+    );
+    expect(withStack.techStack).toEqual(["Go", "PostgreSQL"]);
+    expect((await getProject(db, userId, withStack.id))?.techStack).toEqual(["Go", "PostgreSQL"]);
+
+    const withoutStack = await createProject(db, userId, createInput({ name: "スタックなし" }));
+    expect(withoutStack.techStack).toEqual([]);
+  });
 });
 
 describe("listProjects", () => {
@@ -131,6 +146,22 @@ describe("updateProject", () => {
     expect(updated?.name).toBe("改名後");
     expect(updated?.endDate).toEqual(new Date("2024-12-31"));
     expect(updated?.updatedAt.getTime()).toBeGreaterThanOrEqual(created.updatedAt.getTime());
+  });
+
+  it("techStack は present なら完全置換、absent なら維持する", async () => {
+    const me = await seedUser();
+    const created = await createProject(db, me, createInput({ techStack: ["Go"] }));
+
+    const kept = await updateProject(db, me, created.id, updateInput({ name: "改名" }));
+    expect(kept?.techStack).toEqual(["Go"]);
+
+    const replaced = await updateProject(
+      db,
+      me,
+      created.id,
+      updateInput({ techStack: ["TypeScript", "Hono"] }),
+    );
+    expect(replaced?.techStack).toEqual(["TypeScript", "Hono"]);
   });
 
   it("他人の Project は更新せず null を返す", async () => {
