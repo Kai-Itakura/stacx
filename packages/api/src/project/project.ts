@@ -23,6 +23,7 @@ export async function createProject(
       teamSize: input.teamSize ?? null,
       role: input.role ?? null,
       workStyle: input.workStyle ?? null,
+      techStack: input.techStack,
       createdAt: now,
       updatedAt: now,
     })

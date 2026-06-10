@@ -29,6 +29,7 @@ export const createProjectSchema = z
       .string()
       .nullish()
       .transform((v) => v ?? null),
+    techStack: z.array(z.string().trim().min(1)).default([]),
   })
   .brand<"CreateProjectInput">();
 
@@ -42,6 +43,7 @@ export const updateProjectSchema = z
     teamSize: z.number().nullable(),
     role: z.string().nullable(),
     workStyle: z.string().nullable(),
+    techStack: z.array(z.string().trim().min(1)),
   })
   .partial()
   .brand<"UpdateProjectInput">();

@@ -41,6 +41,18 @@ describe("createProjectSchema", () => {
     expect(createProjectSchema.safeParse({ ...valid, teamSize: "5" }).success).toBe(false);
     expect(createProjectSchema.safeParse({ ...valid, teamSize: 5 }).success).toBe(true);
   });
+
+  it("techStack 未指定は空配列に正規化、指定はそのまま通す", () => {
+    const r = createProjectSchema.safeParse(valid);
+    expect(r.success && r.data.techStack).toEqual([]);
+    const r2 = createProjectSchema.safeParse({ ...valid, techStack: ["Go", "React"] });
+    expect(r2.success && r2.data.techStack).toEqual(["Go", "React"]);
+  });
+
+  it("techStack に空文字・非文字列が混じると失敗", () => {
+    expect(createProjectSchema.safeParse({ ...valid, techStack: [""] }).success).toBe(false);
+    expect(createProjectSchema.safeParse({ ...valid, techStack: [123] }).success).toBe(false);
+  });
 });
 
 describe("updateProjectSchema", () => {
@@ -78,6 +90,14 @@ describe("updateProjectSchema", () => {
     expect(r.success && r.data.teamSize).toBeNull();
     expect(updateProjectSchema.safeParse({ teamSize: 3 }).success).toBe(true);
     expect(updateProjectSchema.safeParse({ teamSize: "3" }).success).toBe(false);
+  });
+
+  it("techStack は present なら配列を通し、空文字混入は失敗", () => {
+    const r = updateProjectSchema.safeParse({ techStack: ["TypeScript"] });
+    expect(r.success && r.data.techStack).toEqual(["TypeScript"]);
+    const empty = updateProjectSchema.safeParse({ techStack: [] });
+    expect(empty.success && "techStack" in empty.data && empty.data.techStack).toEqual([]);
+    expect(updateProjectSchema.safeParse({ techStack: [""] }).success).toBe(false);
   });
 
   it("summary/role/workStyle は文字列を通し、型違いは失敗", () => {
