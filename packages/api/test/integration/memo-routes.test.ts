@@ -112,13 +112,14 @@ describe("memo routes", () => {
   it("POST 有効 → 201 でメモを返す", async () => {
     const { cookie, userId } = await loginAs("alice");
     const projectId = await seedProject(userId);
+    const tagId = await seedTag(userId, "タグ");
 
-    const res = await postMemo(cookie, { projectId, title: "学び", body: "本文" });
+    const res = await postMemo(cookie, { projectId, title: "学び", body: "本文", tagIds: [tagId] });
 
     expect(res.status).toBe(201);
     const json = (await res.json()) as { memo: { title: string; tagIds: string[] } };
     expect(json.memo.title).toBe("学び");
-    expect(json.memo.tagIds).toEqual([]);
+    expect(json.memo.tagIds).toEqual([tagId]);
   });
 
   it("POST title 空 → 400（schema 検証）", async () => {
@@ -210,15 +211,22 @@ describe("memo routes", () => {
 
   it("PUT /:id で title 更新 → 200", async () => {
     const { cookie, userId } = await loginAs("alice");
-    const id = await seedMemo(userId, await seedProject(userId), { title: "旧" });
+    const id = await seedMemo(userId, await seedProject(userId), {
+      title: "旧",
+      tagIds: [await seedTag(userId, "タグ")],
+    });
+    const newTagId = await seedTag(userId, "新しいタグ");
+    const want = { title: "新", tagIds: [newTagId] };
 
     const res = await SELF.fetch(`${BASE}/api/memos/${id}`, {
       method: "PUT",
       headers: { cookie, "content-type": "application/json" },
-      body: JSON.stringify({ title: "新" }),
+      body: JSON.stringify({ title: want.title, tagIds: want.tagIds }),
     });
     expect(res.status).toBe(200);
-    expect(((await res.json()) as { memo: { title: string } }).memo.title).toBe("新");
+    expect(
+      ((await res.json()) as { memo: { title: string; tagIds: string[] } }).memo,
+    ).toMatchObject(want);
   });
 
   it("PUT /:id は他人のメモだと 404 not_found", async () => {

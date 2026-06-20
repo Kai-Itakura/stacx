@@ -92,6 +92,17 @@ describe("createMemo", () => {
     expect(await db.select().from(memos)).toHaveLength(0);
     expect(await db.select().from(memoTags)).toHaveLength(0);
   });
+
+  it("tagId に重複があると、１つは除かれる", async () => {
+    const me = await seedUser();
+    const projectId = await seedProject(me);
+    const tagId = await seedTag(me, "dummy tag");
+
+    const result = await createMemo(db, me, createInput({ projectId, tagIds: [tagId, tagId] }));
+    assert.isTrue(result.ok);
+
+    expect(result.memo.tagIds).toHaveLength(1);
+  });
 });
 
 describe("listMemos / getMemo", () => {
@@ -143,7 +154,8 @@ describe("listMemos / getMemo", () => {
     const p = await seedProject(me);
     const t = await seedTag(me, "トラブル");
     const created = await createMemo(db, me, createInput({ projectId: p, tagIds: [t] }));
-    const id = created.ok ? created.memo.id : "";
+    assert(created.ok, "メモのシード作成失敗");
+    const id = created.memo.id;
 
     const got = await getMemo(db, me, id);
     expect(got?.tagIds).toEqual([t]);
@@ -160,7 +172,8 @@ describe("updateMemo", () => {
     const t1 = await seedTag(me, "旧");
     const t2 = await seedTag(me, "新");
     const created = await createMemo(db, me, createInput({ projectId: p, tagIds: [t1] }));
-    const id = created.ok ? created.memo.id : "";
+    assert(created.ok, "メモのシード作成失敗");
+    const id = created.memo.id;
 
     const result = await updateMemo(db, me, id, updateInput({ title: "改名", tagIds: [t2] }));
 
@@ -176,7 +189,8 @@ describe("updateMemo", () => {
     const p = await seedProject(me);
     const t1 = await seedTag(me, "維持");
     const created = await createMemo(db, me, createInput({ projectId: p, tagIds: [t1] }));
-    const id = created.ok ? created.memo.id : "";
+    assert(created.ok, "メモのシード作成失敗");
+    const id = created.memo.id;
 
     await updateMemo(db, me, id, updateInput({ body: "本文だけ更新" }));
 
@@ -240,12 +254,31 @@ describe("updateMemo", () => {
       other,
       createInput({ projectId: await seedProject(other) }),
     );
-    const id = created.ok ? created.memo.id : "";
+    assert(created.ok, "メモのシード作成失敗");
+    const id = created.memo.id;
 
     expect(await updateMemo(db, me, id, updateInput({ title: "乗っ取り" }))).toEqual({
       ok: false,
       reason: "not_found",
     });
+  });
+
+  it("tagId が重複している場合は、１つ除かれる", async () => {
+    const me = await seedUser();
+    const projectId = await seedProject(me);
+    const tagId = await seedTag(me, "dummy tag");
+    const created = await createMemo(db, me, createInput({ projectId }));
+    assert(created.ok, "メモのシード作成失敗");
+
+    const result = await updateMemo(
+      db,
+      me,
+      created.memo.id,
+      updateInput({ tagIds: [tagId, tagId] }),
+    );
+    assert.isTrue(result.ok);
+
+    expect(result.memo.tagIds).toHaveLength(1);
   });
 });
 
@@ -257,7 +290,8 @@ describe("deleteMemo", () => {
     const p = await seedProject(me);
     const t = await seedTag(me, "トラブル");
     const created = await createMemo(db, me, createInput({ projectId: p, tagIds: [t] }));
-    const id = created.ok ? created.memo.id : "";
+    assert(created.ok, "メモのシード作成失敗");
+    const id = created.memo.id;
 
     expect(await deleteMemo(db, me, id)).toBe(true);
     expect(await db.select().from(memos)).toHaveLength(0);
@@ -272,7 +306,8 @@ describe("deleteMemo", () => {
       other,
       createInput({ projectId: await seedProject(other) }),
     );
-    const id = created.ok ? created.memo.id : "";
+    assert(created.ok, "メモのシード作成失敗");
+    const id = created.memo.id;
 
     expect(await deleteMemo(db, me, id)).toBe(false);
     expect(await db.select().from(memos)).toHaveLength(1);
