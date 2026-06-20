@@ -1,4 +1,5 @@
 import { env, SELF } from "cloudflare:test";
+import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
 import { beforeEach, describe, expect, it } from "vitest";
 import { loginWithIdentity } from "../../src/auth/account";
@@ -53,13 +54,14 @@ describe("tag routes", () => {
     expect(res.status).toBe(401);
   });
 
-  it("POST 有効 → 201 で作成したタグを返す", async () => {
+  it("POST 有効 → 201 で id を返し、タグが作成される", async () => {
     const cookie = await loginAs("alice");
     const res = await postTag(cookie, { name: "トラブル" });
 
     expect(res.status).toBe(201);
-    const json = (await res.json()) as { tag: { id: string; name: string } };
-    expect(json.tag.name).toBe("トラブル");
+    const { id } = (await res.json()) as { id: string };
+    const [tag] = await db.select().from(tags).where(eq(tags.id, id));
+    expect(tag?.name).toBe("トラブル");
   });
 
   it("POST name 空 → 400", async () => {
@@ -91,9 +93,9 @@ describe("tag routes", () => {
     const alice = await loginAs("alice");
     const bob = await loginAs("bob");
     const created = (await (await postTag(alice, { name: "トラブル" })).json()) as {
-      tag: { id: string };
+      id: string;
     };
-    const url = `${BASE}/api/tags/${created.tag.id}`;
+    const url = `${BASE}/api/tags/${created.id}`;
 
     expect((await SELF.fetch(url, { method: "DELETE", headers: { cookie: bob } })).status).toBe(
       404,

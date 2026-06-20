@@ -109,7 +109,7 @@ describe("memo routes", () => {
     expect(res.status).toBe(401);
   });
 
-  it("POST 有効 → 201 でメモを返す", async () => {
+  it("POST 有効 → 201 で id を返し、メモとタグが永続化される", async () => {
     const { cookie, userId } = await loginAs("alice");
     const projectId = await seedProject(userId);
     const tagId = await seedTag(userId, "タグ");
@@ -117,9 +117,11 @@ describe("memo routes", () => {
     const res = await postMemo(cookie, { projectId, title: "学び", body: "本文", tagIds: [tagId] });
 
     expect(res.status).toBe(201);
-    const json = (await res.json()) as { memo: { title: string; tagIds: string[] } };
-    expect(json.memo.title).toBe("学び");
-    expect(json.memo.tagIds).toEqual([tagId]);
+    const { id } = (await res.json()) as { id: string };
+    const [memo] = await db.select().from(memos).where(eq(memos.id, id));
+    expect(memo?.title).toBe("学び");
+    const links = await db.select().from(memoTags).where(eq(memoTags.memoId, id));
+    expect(links.map((l) => l.tagId)).toEqual([tagId]);
   });
 
   it("POST title 空 → 400（schema 検証）", async () => {
@@ -209,24 +211,26 @@ describe("memo routes", () => {
     expect(await db.select().from(memos).where(eq(memos.id, id))).toHaveLength(1);
   });
 
-  it("PUT /:id で title 更新 → 200", async () => {
+  it("PUT /:id で title と tagIds を更新 → 200 で id を返し、永続化される", async () => {
     const { cookie, userId } = await loginAs("alice");
     const id = await seedMemo(userId, await seedProject(userId), {
       title: "旧",
       tagIds: [await seedTag(userId, "タグ")],
     });
     const newTagId = await seedTag(userId, "新しいタグ");
-    const want = { title: "新", tagIds: [newTagId] };
 
     const res = await SELF.fetch(`${BASE}/api/memos/${id}`, {
       method: "PUT",
       headers: { cookie, "content-type": "application/json" },
-      body: JSON.stringify({ title: want.title, tagIds: want.tagIds }),
+      body: JSON.stringify({ title: "新", tagIds: [newTagId] }),
     });
+
     expect(res.status).toBe(200);
-    expect(
-      ((await res.json()) as { memo: { title: string; tagIds: string[] } }).memo,
-    ).toMatchObject(want);
+    expect(((await res.json()) as { id: string }).id).toBe(id);
+    const [memo] = await db.select().from(memos).where(eq(memos.id, id));
+    expect(memo?.title).toBe("新");
+    const links = await db.select().from(memoTags).where(eq(memoTags.memoId, id));
+    expect(links.map((l) => l.tagId)).toEqual([newTagId]);
   });
 
   it("PUT /:id は他人のメモだと 404 not_found", async () => {

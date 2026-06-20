@@ -1,4 +1,5 @@
 import { env, SELF } from "cloudflare:test";
+import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
 import { beforeEach, describe, expect, it } from "vitest";
 import { loginWithIdentity } from "../../src/auth/account";
@@ -47,7 +48,7 @@ describe("project routes", () => {
     expect(res.status).toBe(401);
   });
 
-  it("POST 有効 → 201 で作成した Project を返す", async () => {
+  it("POST 有効 → 201 で id を返し、Project が作成される", async () => {
     const cookie = await loginAs("alice");
     const res = await SELF.fetch(`${BASE}/api/projects`, {
       method: "POST",
@@ -56,9 +57,10 @@ describe("project routes", () => {
     });
 
     expect(res.status).toBe(201);
-    const json = (await res.json()) as { project: { id: string; name: string; endDate: null } };
-    expect(json.project.name).toBe("案件A");
-    expect(json.project.endDate).toBeNull();
+    const { id } = (await res.json()) as { id: string };
+    const [project] = await db.select().from(projects).where(eq(projects.id, id));
+    expect(project?.name).toBe("案件A");
+    expect(project?.endDate).toBeNull();
   });
 
   it("POST name 欠落 → 400", async () => {
@@ -100,8 +102,8 @@ describe("project routes", () => {
         headers: { cookie: alice, "content-type": "application/json" },
         body: JSON.stringify(body),
       })
-    ).json()) as { project: { id: string } };
-    const id = created.project.id;
+    ).json()) as { id: string };
+    const id = created.id;
 
     // 所有者本人は取得・更新・削除できる
     expect(
@@ -133,8 +135,8 @@ describe("project routes", () => {
         headers: { cookie, "content-type": "application/json" },
         body: JSON.stringify(body),
       })
-    ).json()) as { project: { id: string } };
-    const url = `${BASE}/api/projects/${created.project.id}`;
+    ).json()) as { id: string };
+    const url = `${BASE}/api/projects/${created.id}`;
 
     const put = await SELF.fetch(url, {
       method: "PUT",
@@ -142,7 +144,9 @@ describe("project routes", () => {
       body: JSON.stringify({ name: "改名後" }),
     });
     expect(put.status).toBe(200);
-    expect(((await put.json()) as { project: { name: string } }).project.name).toBe("改名後");
+    expect(((await put.json()) as { id: string }).id).toBe(created.id);
+    const [project] = await db.select().from(projects).where(eq(projects.id, created.id));
+    expect(project?.name).toBe("改名後");
 
     expect((await SELF.fetch(url, { method: "DELETE", headers: { cookie } })).status).toBe(204);
     expect((await SELF.fetch(url, { headers: { cookie } })).status).toBe(404);
