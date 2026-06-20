@@ -20,7 +20,7 @@ export const tagApp = new Hono<AppEnv>()
   .post("/", validateCreate, async (c) => {
     const result = await createTag(c.var.db, c.var.user.id, c.req.valid("json"));
     if (!result.ok) return c.json({ error: "duplicate" }, 409);
-    return c.json({ tag: result.tag }, 201);
+    return c.json({ id: result.tag.id }, 201);
   })
   .get("/", async (c) => {
     const list = await listTags(c.var.db, c.var.user.id);

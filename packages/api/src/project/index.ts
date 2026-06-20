@@ -22,7 +22,7 @@ export const projectApp = new Hono<AppEnv>()
   .use("*", authMiddleware)
   .post("/", validateCreate, async (c) => {
     const project = await createProject(c.var.db, c.var.user.id, c.req.valid("json"));
-    return c.json({ project }, 201);
+    return c.json({ id: project.id }, 201);
   })
   .get("/", async (c) => {
     const projects = await listProjects(c.var.db, c.var.user.id);
@@ -41,7 +41,7 @@ export const projectApp = new Hono<AppEnv>()
       c.req.valid("json"),
     );
     if (!project) return c.json({ error: "not_found" }, 404);
-    return c.json({ project });
+    return c.json({ id: project.id });
   })
   .delete("/:id", async (c) => {
     const deleted = await deleteProject(c.var.db, c.var.user.id, c.req.param("id"));

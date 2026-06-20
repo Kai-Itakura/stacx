@@ -23,7 +23,7 @@ export const memoApp = new Hono<AppEnv>()
   .post("/", validateCreate, async (c) => {
     const result = await createMemo(c.var.db, c.var.user.id, c.req.valid("json"));
     if (!result.ok) return c.json({ error: result.reason }, 400);
-    return c.json({ memo: result.memo }, 201);
+    return c.json({ id: result.memo.id }, 201);
   })
   .get("/", async (c) => {
     const projectId = c.req.query("projectId");
@@ -45,7 +45,7 @@ export const memoApp = new Hono<AppEnv>()
     if (!result.ok) {
       return c.json({ error: result.reason }, result.reason === "not_found" ? 404 : 400);
     }
-    return c.json({ memo: result.memo });
+    return c.json({ id: result.memo.id });
   })
   .delete("/:id", async (c) => {
     const deleted = await deleteMemo(c.var.db, c.var.user.id, c.req.param("id"));
