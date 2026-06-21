@@ -33,10 +33,10 @@ export default defineWorkersConfig(async () => {
         // 入ると下回って CI が落ちる。IdP への通信を伴う verify / callback
         // 成功分岐は意図的に未カバーのため branch は他より低め。
         thresholds: {
-          statements: 89,
-          functions: 86,
-          lines: 90,
-          branches: 78,
+          statements: 90,
+          functions: 87,
+          lines: 91,
+          branches: 80,
         },
       },
     },
