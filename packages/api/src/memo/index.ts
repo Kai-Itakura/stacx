@@ -45,7 +45,7 @@ export const memoApp = new Hono<AppEnv>()
     if (!result.ok) {
       return c.json({ error: result.reason }, result.reason === "not_found" ? 404 : 400);
     }
-    return c.json({ id: result.memo.id });
+    return c.json({ id: result.id });
   })
   .delete("/:id", async (c) => {
     const deleted = await deleteMemo(c.var.db, c.var.user.id, c.req.param("id"));

@@ -12,7 +12,7 @@ export type CreateMemoResult =
   | { ok: false; reason: "project_not_found" | "tag_not_found" };
 
 export type UpdateMemoResult =
-  | { ok: true; memo: MemoView }
+  | { ok: true; id: string }
   | { ok: false; reason: "not_found" | "tag_not_found" };
 
 /** 呼び出し User が当該 Project を所有しているか。 */
@@ -106,7 +106,7 @@ export async function getMemo(db: DB, userId: string, id: string): Promise<MemoV
 /**
  * 呼び出し User のメモを更新する。所有していなければ not_found。
  * tagIds が present ならタグ集合を完全置換（全 tagId は所有必須）、absent なら変更しない。
- * 書き込みは db.batch で原子化する。
+ * 成功時は id のみ返す（レスポンスに必要なのは id だけなので更新後の再読込はしない）。
  */
 export async function updateMemo(
   db: DB,
@@ -114,13 +114,6 @@ export async function updateMemo(
   id: string,
   input: UpdateMemoInput,
 ): Promise<UpdateMemoResult> {
-  const existing = await db
-    .select({ id: memos.id })
-    .from(memos)
-    .where(and(eq(memos.id, id), eq(memos.userId, userId)))
-    .limit(1);
-  if (!existing[0]) return { ok: false, reason: "not_found" };
-
   const set: Partial<Pick<Memo, "title" | "body">> & { updatedAt: Date } = {
     updatedAt: new Date(),
   };
@@ -129,29 +122,39 @@ export async function updateMemo(
 
   const own = and(eq(memos.id, id), eq(memos.userId, userId));
 
+  // タグを触らない場合は UPDATE ... RETURNING で「更新」と「所有確認(=not_found)」を 1 クエリに畳む。
   if (input.tagIds === undefined) {
-    await db.update(memos).set(set).where(own);
-  } else {
-    const tagIds = [...new Set(input.tagIds)];
-    if (!(await ownsAllTags(db, userId, tagIds))) {
-      return { ok: false, reason: "tag_not_found" };
-    }
-    if (tagIds.length === 0) {
-      await db.batch([
-        db.update(memos).set(set).where(own),
-        db.delete(memoTags).where(eq(memoTags.memoId, id)),
-      ]);
-    } else {
-      await db.batch([
-        db.update(memos).set(set).where(own),
-        db.delete(memoTags).where(eq(memoTags.memoId, id)),
-        db.insert(memoTags).values(tagIds.map((tagId) => ({ memoId: id, tagId }))),
-      ]);
-    }
+    const updated = await db.update(memos).set(set).where(own).returning({ id: memos.id });
+    return updated[0] ? { ok: true, id } : { ok: false, reason: "not_found" };
   }
 
-  const memo = await getMemo(db, userId, id);
-  return { ok: true, memo: memo as MemoView };
+  // タグ置換時は batch を使うが、batch は途中で分岐できない。破壊的な memo_tags の
+  // delete/insert を走らせる前に所有をゲートで確認し、他人のメモに触れないようにする。
+  const existing = await db.select({ id: memos.id }).from(memos).where(own).limit(1);
+  if (!existing[0]) return { ok: false, reason: "not_found" };
+
+  const tagIds = [...new Set(input.tagIds)];
+  if (!(await ownsAllTags(db, userId, tagIds))) {
+    return { ok: false, reason: "tag_not_found" };
+  }
+
+  // 更新・タグ全削除・タグ再挿入を 1 batch で原子化する（ADR 0004）。
+  const results =
+    tagIds.length === 0
+      ? await db.batch([
+          db.update(memos).set(set).where(own).returning({ id: memos.id }),
+          db.delete(memoTags).where(eq(memoTags.memoId, id)),
+        ])
+      : await db.batch([
+          db.update(memos).set(set).where(own).returning({ id: memos.id }),
+          db.delete(memoTags).where(eq(memoTags.memoId, id)),
+          db.insert(memoTags).values(tagIds.map((tagId) => ({ memoId: id, tagId }))),
+        ]);
+
+  // 先頭ゲートは「非所有者を破壊的 batch に到達させない」セキュリティ用。
+  // こちらの returning 判定は「ゲート通過後にメモが消えた(TOCTOU の 0 行更新)」を拾う正しさ用。
+  const updatedMemoId = results[0][0]?.id;
+  return updatedMemoId ? { ok: true, id: updatedMemoId } : { ok: false, reason: "not_found" };
 }
 
 /** 呼び出し User のメモを削除する。memo_tags は FK cascade で掃除される。 */
