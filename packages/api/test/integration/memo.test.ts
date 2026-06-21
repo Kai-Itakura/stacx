@@ -177,11 +177,11 @@ describe("updateMemo", () => {
 
     const result = await updateMemo(db, me, id, updateInput({ title: "改名", tagIds: [t2] }));
 
-    expect(result.ok).toBe(true);
-    if (result.ok) {
-      expect(result.memo.title).toBe("改名");
-      expect(result.memo.tagIds).toEqual([t2]); // t1 は外れ t2 に置換
-    }
+    assert(result.ok, "更新失敗");
+    expect(result.id).toBe(id);
+    const updated = await getMemo(db, me, id);
+    expect(updated?.title).toBe("改名");
+    expect(updated?.tagIds).toEqual([t2]); // t1 は外れ t2 に置換
   });
 
   it("tagIds 未指定なら タグは変更しない", async () => {
@@ -208,7 +208,7 @@ describe("updateMemo", () => {
     const updated = await updateMemo(db, me, created.memo.id, updateInput({ tagIds: [] }));
 
     assert.isTrue(updated.ok);
-    expect((await getMemo(db, me, updated.memo.id))?.tagIds).toEqual([]);
+    expect((await getMemo(db, me, created.memo.id))?.tagIds).toEqual([]);
   });
 
   it("userが所有していないtagは指定できない", async () => {
@@ -263,6 +263,25 @@ describe("updateMemo", () => {
     });
   });
 
+  it("他人のメモはタグ付き更新でも not_found で、タグは変更されない", async () => {
+    const me = await seedUser();
+    const other = await seedUser();
+    const myTag = await seedTag(me, "自分のタグ");
+    const otherTag = await seedTag(other, "他人のタグ");
+    const created = await createMemo(
+      db,
+      other,
+      createInput({ projectId: await seedProject(other), tagIds: [otherTag] }),
+    );
+    assert(created.ok, "メモのシード作成失敗");
+
+    const result = await updateMemo(db, me, created.memo.id, updateInput({ tagIds: [myTag] }));
+
+    expect(result).toEqual({ ok: false, reason: "not_found" });
+    // 破壊的書き込み前にゲートで弾くので、他人のメモのタグは変更されない
+    expect((await getMemo(db, other, created.memo.id))?.tagIds).toEqual([otherTag]);
+  });
+
   it("tagId が重複している場合は、１つ除かれる", async () => {
     const me = await seedUser();
     const projectId = await seedProject(me);
@@ -278,7 +297,7 @@ describe("updateMemo", () => {
     );
     assert.isTrue(result.ok);
 
-    expect(result.memo.tagIds).toHaveLength(1);
+    expect((await getMemo(db, me, created.memo.id))?.tagIds).toHaveLength(1);
   });
 });
 
