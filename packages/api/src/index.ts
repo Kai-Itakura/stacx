@@ -2,12 +2,16 @@ import { drizzle } from "drizzle-orm/d1";
 import { Hono } from "hono";
 import { authApp, authMiddleware } from "./auth/index";
 import * as schema from "./db/schema";
+import { onError } from "./error";
 import { memoApp } from "./memo/index";
 import { projectApp } from "./project/index";
 import { tagApp } from "./tag/index";
 import type { AppEnv } from "./types";
 
 const app = new Hono<AppEnv>().basePath("/api");
+
+// 未捕捉例外を 500 + { error: "internal" } JSON に揃える（成功・失敗とも JSON で一貫させる）。
+app.onError(onError);
 
 app.use("*", async (c, next) => {
   c.set("db", drizzle(c.env.DB, { schema }));
