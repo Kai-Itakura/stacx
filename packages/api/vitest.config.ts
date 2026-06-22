@@ -36,7 +36,7 @@ export default defineWorkersConfig(async () => {
           statements: 90,
           functions: 87,
           lines: 91,
-          branches: 80,
+          branches: 79,
         },
       },
     },

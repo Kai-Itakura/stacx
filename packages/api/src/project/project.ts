@@ -11,21 +11,11 @@ export async function createProject(
   input: CreateProjectInput,
 ): Promise<Project> {
   const now = new Date();
+  // 任意項目の null 既定は createProjectSchema が正規化済み（出力は T | null）。
+  // domain では再正規化せず input をそのまま流し込む。
   const rows = await db
     .insert(projects)
-    .values({
-      id: ulid(),
-      userId,
-      name: input.name,
-      startDate: input.startDate,
-      endDate: input.endDate ?? null,
-      summary: input.summary ?? null,
-      teamSize: input.teamSize ?? null,
-      role: input.role ?? null,
-      workStyle: input.workStyle ?? null,
-      createdAt: now,
-      updatedAt: now,
-    })
+    .values({ ...input, id: ulid(), userId, createdAt: now, updatedAt: now })
     .returning();
   // insert ... returning は 1 行を返す。型の都合で配列なので先頭を取る。
   return rows[0] as Project;
