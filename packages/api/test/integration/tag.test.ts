@@ -63,6 +63,31 @@ describe("createTag", () => {
     expect(result.ok).toBe(true);
     expect(await db.select().from(tags)).toHaveLength(2);
   });
+
+  it("事前 SELECT をすり抜けた同時作成は UNIQUE 制約で duplicate に倒す（500 にしない）", async () => {
+    const userId = await seedUser();
+
+    // 同名を同時に作成すると、両者の事前 SELECT が空を見てから片方の INSERT が
+    // UNIQUE 制約に当たる。捕捉して duplicate に変換できていれば 1 件だけ成功する。
+    const results = await Promise.all([
+      createTag(db, userId, tagInput("競合")),
+      createTag(db, userId, tagInput("競合")),
+    ]);
+
+    const reasons = results.map((r) => (r.ok ? "ok" : r.reason)).sort();
+    expect(reasons).toEqual(["duplicate", "ok"]);
+    expect(await db.select().from(tags)).toHaveLength(1);
+  });
+
+  it("UNIQUE 以外の DB エラーは握りつぶさず再 throw する（500 に委ねる）", async () => {
+    const boom = new Error("D1_ERROR: something else");
+    const stubDb = {
+      select: () => ({ from: () => ({ where: () => ({ limit: () => Promise.resolve([]) }) }) }),
+      insert: () => ({ values: () => ({ returning: () => Promise.reject(boom) }) }),
+    } as unknown as Parameters<typeof createTag>[0];
+
+    await expect(createTag(stubDb, "u", tagInput("x"))).rejects.toThrow("something else");
+  });
 });
 
 describe("listTags", () => {
