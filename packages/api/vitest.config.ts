@@ -8,6 +8,9 @@ export default defineWorkersConfig(async () => {
   return {
     test: {
       setupFiles: ["./test/apply-migrations.ts"],
+      // 結合テストは workerd ランタイムをローカル起動する。起動が遅れた回に最初へ走る
+      // テストが既定 5s を超えて落ちる flake があるため、余裕を持たせる（本体は数十 ms）。
+      testTimeout: 15000,
       poolOptions: {
         workers: {
           singleWorker: true,
