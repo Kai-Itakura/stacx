@@ -1,18 +1,9 @@
-import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 import { authMiddleware } from "../auth/index";
 import type { AppEnv } from "../types";
-import { badRequestFromZod } from "../validation";
+import { jsonValidator } from "../validation";
 import { createProject, deleteProject, getProject, listProjects, updateProject } from "./project";
 import { createProjectSchema, updateProjectSchema } from "./request-schema";
-
-/** JSON ボディ検証。失敗時は API の `{ error }` 400 で返す（@hono/zod-validator）。 */
-const validateCreate = zValidator("json", createProjectSchema, (result, c) => {
-  if (!result.success) return c.json(badRequestFromZod(result.error), 400);
-});
-const validateUpdate = zValidator("json", updateProjectSchema, (result, c) => {
-  if (!result.success) return c.json(badRequestFromZod(result.error), 400);
-});
 
 /**
  * Project の CRUD ルート。/api/projects 配下にマウントする。
@@ -20,7 +11,7 @@ const validateUpdate = zValidator("json", updateProjectSchema, (result, c) => {
  */
 export const projectApp = new Hono<AppEnv>()
   .use("*", authMiddleware)
-  .post("/", validateCreate, async (c) => {
+  .post("/", jsonValidator(createProjectSchema), async (c) => {
     const project = await createProject(c.var.db, c.var.user.id, c.req.valid("json"));
     return c.json({ id: project.id }, 201);
   })
@@ -33,7 +24,7 @@ export const projectApp = new Hono<AppEnv>()
     if (!project) return c.json({ error: "not_found" }, 404);
     return c.json({ project });
   })
-  .put("/:id", validateUpdate, async (c) => {
+  .put("/:id", jsonValidator(updateProjectSchema), async (c) => {
     const project = await updateProject(
       c.var.db,
       c.var.user.id,

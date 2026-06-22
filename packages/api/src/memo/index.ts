@@ -1,17 +1,9 @@
-import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 import { authMiddleware } from "../auth/index";
 import type { AppEnv } from "../types";
-import { badRequestFromZod } from "../validation";
+import { jsonValidator } from "../validation";
 import { createMemo, deleteMemo, getMemo, listMemos, updateMemo } from "./memo";
 import { createMemoSchema, updateMemoSchema } from "./request-schema";
-
-const validateCreate = zValidator("json", createMemoSchema, (result, c) => {
-  if (!result.success) return c.json(badRequestFromZod(result.error), 400);
-});
-const validateUpdate = zValidator("json", updateMemoSchema, (result, c) => {
-  if (!result.success) return c.json(badRequestFromZod(result.error), 400);
-});
 
 /**
  * メモの CRUD ルート。/api/memos 配下にマウントする。
@@ -20,7 +12,7 @@ const validateUpdate = zValidator("json", updateMemoSchema, (result, c) => {
  */
 export const memoApp = new Hono<AppEnv>()
   .use("*", authMiddleware)
-  .post("/", validateCreate, async (c) => {
+  .post("/", jsonValidator(createMemoSchema), async (c) => {
     const result = await createMemo(c.var.db, c.var.user.id, c.req.valid("json"));
     if (!result.ok) return c.json({ error: result.reason }, 400);
     return c.json({ id: result.memo.id }, 201);
@@ -35,7 +27,7 @@ export const memoApp = new Hono<AppEnv>()
     if (!memo) return c.json({ error: "not_found" }, 404);
     return c.json({ memo });
   })
-  .put("/:id", validateUpdate, async (c) => {
+  .put("/:id", jsonValidator(updateMemoSchema), async (c) => {
     const result = await updateMemo(
       c.var.db,
       c.var.user.id,
