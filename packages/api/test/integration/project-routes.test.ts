@@ -73,6 +73,16 @@ describe("project routes", () => {
     expect(res.status).toBe(400);
   });
 
+  it("POST startDate:null → 400（epoch に化けず弾く）", async () => {
+    const cookie = await loginAs("alice");
+    const res = await SELF.fetch(`${BASE}/api/projects`, {
+      method: "POST",
+      headers: { cookie, "content-type": "application/json" },
+      body: JSON.stringify({ name: "案件A", startDate: null }),
+    });
+    expect(res.status).toBe(400);
+  });
+
   it("GET /api/projects は自分の Project だけを返す", async () => {
     const alice = await loginAs("alice");
     const bob = await loginAs("bob");

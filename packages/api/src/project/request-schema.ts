@@ -4,15 +4,17 @@ import { z } from "zod";
 // （JSON に Infinity/NaN は無い）。日付は epoch ミリ秒（number）または日付文字列を
 // coerce で Date 化し、不正値は弾く。ルートでは @hono/zod-validator が消費する。
 
+// 日付入力。string/number/Date のみ受けてから Date 化する。
+// 素の z.coerce.date() は new Date() の挙動上 null→1970(epoch)・boolean→epoch を黙って通すため、
+// 入力型を union で絞ってそれらを弾く（null 許容は各フィールドで .nullable()/.nullish() を付ける）。
+const dateFromInput = z.union([z.string(), z.number(), z.date()]).pipe(z.coerce.date());
+
 /** POST /projects 用。未指定の任意項目は null に正規化する。 */
 export const createProjectSchema = z
   .object({
     name: z.string().trim().min(1),
-    startDate: z.coerce.date(),
-    endDate: z.coerce
-      .date()
-      .nullish()
-      .transform((v) => v ?? null),
+    startDate: dateFromInput,
+    endDate: dateFromInput.nullish().transform((v) => v ?? null),
     summary: z
       .string()
       .nullish()
@@ -36,8 +38,8 @@ export const createProjectSchema = z
 export const updateProjectSchema = z
   .object({
     name: z.string().trim().min(1),
-    startDate: z.coerce.date(),
-    endDate: z.coerce.date().nullable(),
+    startDate: dateFromInput,
+    endDate: dateFromInput.nullable(),
     summary: z.string().nullable(),
     teamSize: z.number().nullable(),
     role: z.string().nullable(),

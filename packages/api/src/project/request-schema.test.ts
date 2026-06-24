@@ -24,11 +24,14 @@ describe("createProjectSchema", () => {
     expect(createProjectSchema.safeParse({ ...valid, name: "   " }).success).toBe(false);
   });
 
-  it("startDate 欠落・不正日付は失敗", () => {
+  it("startDate 欠落・不正日付・null は失敗", () => {
     expect(createProjectSchema.safeParse({ name: "A" }).success).toBe(false);
     expect(createProjectSchema.safeParse({ name: "A", startDate: "not-a-date" }).success).toBe(
       false,
     );
+    // null/boolean は coerce で epoch(1970) に化けやすいので明示的に弾く
+    expect(createProjectSchema.safeParse({ name: "A", startDate: null }).success).toBe(false);
+    expect(createProjectSchema.safeParse({ name: "A", startDate: true }).success).toBe(false);
   });
 
   it("endDate 指定時は Date に変換、不正なら失敗", () => {
@@ -57,9 +60,12 @@ describe("updateProjectSchema", () => {
     expect(updateProjectSchema.safeParse({}).success).toBe(false);
   });
 
-  it("present な name が空・date が不正なら失敗", () => {
+  it("present な name が空・date が不正・startDate が null なら失敗", () => {
     expect(updateProjectSchema.safeParse({ name: "" }).success).toBe(false);
     expect(updateProjectSchema.safeParse({ startDate: "bad" }).success).toBe(false);
+    // startDate は非 nullable。null/boolean は coerce で epoch に化けるため弾く
+    expect(updateProjectSchema.safeParse({ startDate: null }).success).toBe(false);
+    expect(updateProjectSchema.safeParse({ startDate: true }).success).toBe(false);
   });
 
   it("endDate は null で進行中に戻せ、不正値は失敗", () => {
