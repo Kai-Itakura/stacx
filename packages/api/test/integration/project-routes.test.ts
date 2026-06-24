@@ -151,4 +151,23 @@ describe("project routes", () => {
     expect((await SELF.fetch(url, { method: "DELETE", headers: { cookie } })).status).toBe(204);
     expect((await SELF.fetch(url, { headers: { cookie } })).status).toBe(404);
   });
+
+  it("PUT /:id は空ボディだと 400（最低 1 フィールド必須・no-op 更新を防ぐ）", async () => {
+    const cookie = await loginAs("alice");
+    const created = (await (
+      await SELF.fetch(`${BASE}/api/projects`, {
+        method: "POST",
+        headers: { cookie, "content-type": "application/json" },
+        body: JSON.stringify(body),
+      })
+    ).json()) as { id: string };
+
+    const res = await SELF.fetch(`${BASE}/api/projects/${created.id}`, {
+      method: "PUT",
+      headers: { cookie, "content-type": "application/json" },
+      body: JSON.stringify({}),
+    });
+
+    expect(res.status).toBe(400);
+  });
 });

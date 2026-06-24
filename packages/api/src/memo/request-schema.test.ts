@@ -44,9 +44,8 @@ describe("updateMemoSchema", () => {
     }
   });
 
-  it("空オブジェクトは成功（変更なし）", () => {
-    const r = updateMemoSchema.safeParse({});
-    expect(r.success && Object.keys(r.data)).toEqual([]);
+  it("空オブジェクトは失敗（最低 1 フィールド必須）", () => {
+    expect(updateMemoSchema.safeParse({}).success).toBe(false);
   });
 
   it("tagIds は空配列で全外しを表せる", () => {

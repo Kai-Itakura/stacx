@@ -53,9 +53,8 @@ describe("updateProjectSchema", () => {
     }
   });
 
-  it("空オブジェクトは成功（変更なし）", () => {
-    const r = updateProjectSchema.safeParse({});
-    expect(r.success && Object.keys(r.data)).toEqual([]);
+  it("空オブジェクトは失敗（最低 1 フィールド必須）", () => {
+    expect(updateProjectSchema.safeParse({}).success).toBe(false);
   });
 
   it("present な name が空・date が不正なら失敗", () => {

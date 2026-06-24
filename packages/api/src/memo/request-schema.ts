@@ -27,6 +27,8 @@ export const updateMemoSchema = z
     tagIds: z.array(z.string().min(1)),
   })
   .partial()
+  // 空ボディ {} は updatedAt だけ進む no-op になるため、最低 1 フィールドを必須にする。
+  .refine((v) => Object.keys(v).length > 0, { message: "at least one field is required" })
   .brand<"UpdateMemoInput">();
 
 /** 検証済みのメモ更新入力。updateMemoSchema.parse の出力としてのみ得られる。 */
