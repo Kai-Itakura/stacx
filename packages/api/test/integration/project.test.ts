@@ -150,6 +150,15 @@ describe("updateProject", () => {
     expect(await updateProject(db, me, created.id, updateInput({ name: "乗っ取り" }))).toBeNull();
     expect((await db.select().from(projects))[0]?.name).toBe(base.name); // 不変
   });
+
+  it("部分更新で他の項目は消えない", async () => {
+    const me = await seedUser();
+    const created = await createProject(db, me, createInput());
+
+    const updated = await updateProject(db, me, created.id, updateInput({ name: "部分更新" }));
+
+    expect(updated).toEqual({ ...created, name: "部分更新", updatedAt: updated?.updatedAt });
+  });
 });
 
 describe("deleteProject", () => {
