@@ -19,6 +19,7 @@ coverage/
 # IDE
 .vscode/
 .idea/
+.zed/
 *.swp
 
 # Claude Code（ローカル設定・一時ファイル。共有する .claude/settings.json 等は対象外）
