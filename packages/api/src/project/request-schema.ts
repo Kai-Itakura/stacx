@@ -44,6 +44,8 @@ export const updateProjectSchema = z
     workStyle: z.string().nullable(),
   })
   .partial()
+  // 空ボディ {} は updatedAt だけ進む no-op になるため、最低 1 フィールドを必須にする。
+  .refine((v) => Object.keys(v).length > 0, { message: "at least one field is required" })
   .brand<"UpdateProjectInput">();
 
 /** 検証済みの作成入力。createProjectSchema.parse の出力としてのみ得られる（branded）。 */

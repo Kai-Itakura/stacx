@@ -233,6 +233,19 @@ describe("memo routes", () => {
     expect(links.map((l) => l.tagId)).toEqual([newTagId]);
   });
 
+  it("PUT /:id は空ボディだと 400（最低 1 フィールド必須・no-op 更新を防ぐ）", async () => {
+    const { cookie, userId } = await loginAs("alice");
+    const id = await seedMemo(userId, await seedProject(userId));
+
+    const res = await SELF.fetch(`${BASE}/api/memos/${id}`, {
+      method: "PUT",
+      headers: { cookie, "content-type": "application/json" },
+      body: JSON.stringify({}),
+    });
+
+    expect(res.status).toBe(400);
+  });
+
   it("PUT /:id は他人のメモだと 404 not_found", async () => {
     const alice = await loginAs("alice");
     const bob = await loginAs("bob");
