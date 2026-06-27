@@ -7,14 +7,14 @@
   "name": "stacx-web",
   "compatibility_date": "2026-06-24",
   "main": "./workers/app.ts",
-  "vars": {
-    "VALUE_FROM_CLOUDFLARE": "Hello from Cloudflare"
-  },
   "observability": {
     "enabled": true
   },
   "upload_source_maps": true,
-  "compatibility_flags": ["nodejs_compat"]
+  "compatibility_flags": ["nodejs_compat"],
+  // web worker から API worker(stacx-api) を同一オリジンで叩くためのサービスバインディング。
+  // /api/* の中継（workers/app.ts）と SSR loader/action の型付きクライアントが利用する。
+  "services": [{ "binding": "API", "service": "stacx-api" }]
   /**
    * Smart Placement
    * https://developers.cloudflare.com/workers/configuration/smart-placement/#smart-placement
