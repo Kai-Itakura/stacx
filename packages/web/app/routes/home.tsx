@@ -1,3 +1,5 @@
+import { ThemeToggle } from "~/components/theme-toggle";
+import { Button } from "~/components/ui/button";
 import { requireUser } from "../lib/auth.server";
 import type { Route } from "./+types/home";
 
@@ -16,15 +18,20 @@ export default function Home({ loaderData }: Route.ComponentProps) {
     <main className="container mx-auto p-8">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">StacX</h1>
-        {/* logout は api を直接叩く form（web worker が中継）。状態変更なので POST。 */}
-        <form method="post" action="/api/auth/logout">
-          <button type="submit" className="text-sm underline">
-            ログアウト
-          </button>
-        </form>
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
+          {/* logout は api を直接叩く form（web worker が中継）。状態変更なので POST。 */}
+          <form method="post" action="/api/auth/logout">
+            <Button type="submit" variant="outline">
+              ログアウト
+            </Button>
+          </form>
+        </div>
       </div>
       <p className="mt-2">ようこそ、{user.name ?? user.email ?? "ゲスト"} さん。</p>
-      <p className="mt-1 text-sm">フロントの基盤＋認証ができました。次は各画面を実装します。</p>
+      <p className="text-muted-foreground mt-1 text-sm">
+        フロントの基盤＋認証ができました。次は各画面を実装します。
+      </p>
     </main>
   );
 }
