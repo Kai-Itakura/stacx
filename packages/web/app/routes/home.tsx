@@ -19,7 +19,7 @@ const HINTS = [
 ];
 
 /** 本文の最初の非空行をタイトルにする（長い場合は短縮）。 */
-function deriveTitle(body: string): string {
+export function deriveTitle(body: string): string {
   const firstLine =
     body
       .split("\n")
