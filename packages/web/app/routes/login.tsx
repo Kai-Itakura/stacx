@@ -1,4 +1,6 @@
 import { redirect } from "react-router";
+import { ThemeToggle } from "~/components/theme-toggle";
+import { buttonVariants } from "~/components/ui/button";
 import { getUser } from "../lib/auth.server";
 import type { Route } from "./+types/login";
 
@@ -15,15 +17,15 @@ export async function loader({ request }: Route.LoaderArgs) {
 export default function Login() {
   return (
     <main className="container mx-auto flex min-h-dvh max-w-sm flex-col justify-center gap-6 p-8">
+      <div className="absolute top-4 right-4">
+        <ThemeToggle />
+      </div>
       <div>
         <h1 className="text-2xl font-bold">StacX</h1>
-        <p className="mt-1 text-sm">1 分メモから職務経歴書へ</p>
+        <p className="text-muted-foreground mt-1 text-sm">1 分メモから職務経歴書へ</p>
       </div>
       {/* api worker への直接遷移（web worker が /api/* を中継）。RR の Link ではなく素の遷移にする。 */}
-      <a
-        href="/api/auth/login/google"
-        className="rounded-md border px-4 py-2 text-center font-medium hover:bg-gray-50 hover:text-gray-900"
-      >
+      <a href="/api/auth/login/google" className={buttonVariants({ variant: "outline" })}>
         Google でログイン
       </a>
     </main>
