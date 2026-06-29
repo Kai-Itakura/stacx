@@ -10,8 +10,7 @@ import { hc } from "hono/client";
  */
 export function apiClient(request: Request) {
   return hc<AppType>("https://stacx-api", {
-    fetch: (input: RequestInfo | URL, init?: RequestInit) =>
-      env.API.fetch(input as Parameters<typeof env.API.fetch>[0], init),
+    fetch: (input: RequestInfo | URL, init?: RequestInit) => env.API.fetch(input, init),
     headers: { cookie: request.headers.get("cookie") ?? "" },
   });
 }
