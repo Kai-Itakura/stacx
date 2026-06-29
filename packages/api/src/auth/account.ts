@@ -1,6 +1,6 @@
 import { and, eq, lt } from "drizzle-orm";
-import { ulid } from "ulid";
 import { sessions, userIdentities, users } from "../db/schema";
+import { ulid } from "../id";
 import type { IdentityProfile } from "./providers/types";
 import { type DB, generateSessionId, SESSION_TTL_MS } from "./session";
 

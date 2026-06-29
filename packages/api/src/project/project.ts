@@ -1,7 +1,7 @@
 import { and, desc, eq } from "drizzle-orm";
-import { ulid } from "ulid";
 import type { DB } from "../auth/session";
 import { type Project, projects } from "../db/schema";
+import { ulid } from "../id";
 import type { CreateProjectInput, UpdateProjectInput } from "./request-schema";
 
 /** Project を作成し、生成された行を返す。ID はアプリ側で ULID 採番する（ADR 0004）。 */
