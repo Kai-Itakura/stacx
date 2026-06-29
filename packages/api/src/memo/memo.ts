@@ -1,7 +1,7 @@
 import { and, eq, inArray } from "drizzle-orm";
-import { ulid } from "ulid";
 import type { DB } from "../auth/session";
 import { type Memo, memos, memoTags, projects, tags } from "../db/schema";
+import { ulid } from "../id";
 import type { CreateMemoInput, UpdateMemoInput } from "./request-schema";
 
 /** メモ + 紐づくタグ ID（API のレスポンス形）。 */

@@ -1,7 +1,7 @@
 import { and, asc, eq } from "drizzle-orm";
-import { ulid } from "ulid";
 import type { DB } from "../auth/session";
 import { type Tag, tags } from "../db/schema";
+import { ulid } from "../id";
 import type { CreateTagInput } from "./request-schema";
 
 /** タグ作成の結果。同名既存なら作成せず duplicate を返す（暗黙作成しない）。 */
