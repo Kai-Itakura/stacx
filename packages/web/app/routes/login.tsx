@@ -22,7 +22,7 @@ export default function Login() {
       {/* api worker への直接遷移（web worker が /api/* を中継）。RR の Link ではなく素の遷移にする。 */}
       <a
         href="/api/auth/login/google"
-        className="rounded-md border px-4 py-2 text-center font-medium hover:bg-gray-50"
+        className="rounded-md border px-4 py-2 text-center font-medium hover:bg-gray-50 hover:text-gray-900"
       >
         Google でログイン
       </a>
