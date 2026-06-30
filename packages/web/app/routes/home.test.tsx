@@ -4,7 +4,8 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { createRoutesStub } from "react-router";
 import { describe, expect, it } from "vitest";
-import Home, { deriveTitle, memoFormSchema, projectFormSchema } from "~/routes/home";
+import { deriveTitle, memoFormSchema, projectFormSchema } from "~/features/intake/schema";
+import Home from "~/routes/home";
 
 const TEXTAREA = /1 分でメモ/;
 
