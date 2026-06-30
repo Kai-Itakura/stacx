@@ -17,7 +17,7 @@ export default defineConfig({
     ],
   },
   test: {
-    environment: "happy-dom",
+    environment: "./test/environment-jsdom-undici.ts",
     setupFiles: ["./test/setup.ts"],
     include: ["app/**/*.test.{ts,tsx}"],
   },

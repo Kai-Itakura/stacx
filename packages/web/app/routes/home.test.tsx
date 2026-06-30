@@ -1,9 +1,10 @@
 import "@testing-library/jest-dom/vitest";
+import { parseWithZod } from "@conform-to/zod/v4";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { createRoutesStub } from "react-router";
 import { describe, expect, it } from "vitest";
-import Home, { deriveTitle } from "~/routes/home";
+import Home, { deriveTitle, memoFormSchema, projectFormSchema } from "~/routes/home";
 
 const TEXTAREA = /1 分でメモ/;
 
@@ -25,18 +26,21 @@ const baseLoader: LoaderData = {
   ],
 };
 
-/** action に届いた FormData を記録するスタブ。tagIds は複数値なので getAll で拾う。 */
+/**
+ * action に届いた FormData を記録するスタブ。intent に応じて実 schema で検証し、
+ * Conform の SubmissionResult を返す（client 側の lastResult 処理を壊さないため）。
+ */
 function captureAction() {
   const calls: Record<string, unknown>[] = [];
   const fn = async ({ request }: { request: Request }) => {
     const fd = await request.formData();
-    const intent = (fd.get("intent") as string | null) ?? "createMemo";
+    const intent = fd.get("intent");
     if (intent === "createTag") return { ok: true, intent: "createTag", tagId: "t-new" };
-    const entry: Record<string, unknown> = Object.fromEntries(fd);
-    entry.intent = intent;
-    entry.tagIds = fd.getAll("tagIds");
-    calls.push(entry);
-    return { ok: true, intent };
+    const schema = intent === "createProject" ? projectFormSchema : memoFormSchema;
+    const submission = parseWithZod(fd, { schema });
+    if (submission.status !== "success") return submission.reply();
+    calls.push({ ...Object.fromEntries(fd), tagIds: fd.getAll("tagIds") });
+    return submission.reply({ resetForm: true });
   };
   return { fn, calls };
 }
@@ -50,7 +54,7 @@ function renderHome(opts?: { loaderData?: Partial<LoaderData>; action?: StubActi
       // biome-ignore lint/suspicious/noExplicitAny: stub の Component 型はゆるく、実 route の型と差異がある
       Component: Home as any,
       loader: () => ({ ...baseLoader, ...opts?.loaderData }),
-      action: opts?.action ?? (() => ({ ok: true, intent: "createMemo" })),
+      action: opts?.action ?? (() => ({ ok: true })),
     },
   ]);
   render(<Stub initialEntries={["/"]} />);
@@ -96,6 +100,17 @@ describe("クイック・インテーク画面", () => {
     expect(calls[0]).toMatchObject({ body: "1行目\n2行目", projectId: "p2" });
   });
 
+  it("本文が空なら検証エラーを出して送信しない", async () => {
+    const { fn, calls } = captureAction();
+    renderHome({ action: fn });
+
+    const textarea = await screen.findByPlaceholderText(TEXTAREA);
+    fireEvent.keyDown(textarea, { key: "Enter", metaKey: true });
+
+    expect(await screen.findByText("本文を入力してください")).toBeInTheDocument();
+    expect(calls).toHaveLength(0);
+  });
+
   it("タグ chip を選ぶと tagIds に含めて送信する", async () => {
     const user = userEvent.setup();
     const { fn, calls } = captureAction();
@@ -128,10 +143,14 @@ describe("クイック・インテーク画面", () => {
     expect(calls[0].tagIds).toContain("t-new");
   });
 
-  it("メモ保存失敗時にエラーを表示する", async () => {
+  it("メモ保存失敗時にフォームエラーを表示する", async () => {
     const user = userEvent.setup();
     renderHome({
-      action: () => ({ ok: false, intent: "createMemo", error: "メモの保存に失敗しました" }),
+      action: async ({ request }) => {
+        const submission = parseWithZod(await request.formData(), { schema: memoFormSchema });
+        if (submission.status !== "success") return submission.reply();
+        return submission.reply({ formErrors: ["メモの保存に失敗しました"] });
+      },
     });
 
     const textarea = await screen.findByPlaceholderText(TEXTAREA);
@@ -152,5 +171,16 @@ describe("クイック・インテーク画面", () => {
 
     await waitFor(() => expect(calls).toHaveLength(1));
     expect(calls[0]).toMatchObject({ intent: "createProject", name: "新規PJ" });
+  });
+
+  it("プロジェクト名が空なら検証エラーを出して送信しない", async () => {
+    const user = userEvent.setup();
+    const { fn, calls } = captureAction();
+    renderHome({ loaderData: { projects: [] }, action: fn });
+
+    await user.click(await screen.findByRole("button", { name: "作成" }));
+
+    expect(await screen.findByText("プロジェクト名を入力してください")).toBeInTheDocument();
+    expect(calls).toHaveLength(0);
   });
 });
