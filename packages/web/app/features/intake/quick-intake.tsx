@@ -16,6 +16,7 @@ import {
   type IntakeTag,
   memoFormSchema,
   type TagFetcherResult,
+  tagFormSchema,
 } from "./schema";
 
 const HINTS = [
@@ -31,12 +32,13 @@ type QuickIntakeProps = {
 
 /** 画面1: クイック・インテーク（メモ作成）フォーム。 */
 export function QuickIntake({ projects, tags }: QuickIntakeProps) {
-  const lastResult = useActionData() as SubmissionResult | undefined;
+  const lastResult = useActionData<SubmissionResult | undefined>();
   const tagFetcher = useFetcher<TagFetcherResult>();
   const formRef = useRef<HTMLFormElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set());
   const [newTag, setNewTag] = useState("");
+  const [tagError, setTagError] = useState<string | null>(null);
 
   // 進行中（endDate が null）のプロジェクトを既定選択。無ければ先頭。
   const defaultProjectId = (projects.find((p) => p.endDate === null) ?? projects[0]).id;
@@ -78,9 +80,14 @@ export function QuickIntake({ projects, tags }: QuickIntakeProps) {
   };
 
   const addTag = () => {
-    const name = newTag.trim();
-    if (!name) return;
-    tagFetcher.submit({ intent: "createTag", name }, { method: "post" });
+    // メモ/プロジェクトと同じく zod スキーマで検証する。
+    const result = tagFormSchema.safeParse({ name: newTag });
+    if (!result.success) {
+      setTagError(result.error.issues[0]?.message ?? "タグ名を入力してください");
+      return;
+    }
+    setTagError(null);
+    tagFetcher.submit({ intent: "createTag", name: result.data.name }, { method: "post" });
   };
 
   const onTextareaKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -164,7 +171,10 @@ export function QuickIntake({ projects, tags }: QuickIntakeProps) {
         <div className="mt-1 flex gap-2">
           <Input
             value={newTag}
-            onChange={(e) => setNewTag(e.target.value)}
+            onChange={(e) => {
+              setNewTag(e.target.value);
+              setTagError(null);
+            }}
             onKeyDown={(e) => {
               if (e.key === "Enter") {
                 e.preventDefault();
@@ -184,8 +194,11 @@ export function QuickIntake({ projects, tags }: QuickIntakeProps) {
             追加
           </Button>
         </div>
-        {tagFetcher.data && !tagFetcher.data.ok && (
-          <p className="text-destructive text-sm">{tagFetcher.data.error}</p>
+        {/* クライアント検証エラーを優先し、無ければサーバ（重複等）のエラーを出す。 */}
+        {(tagError || (tagFetcher.data && !tagFetcher.data.ok)) && (
+          <p className="text-destructive text-sm">
+            {tagError ?? (tagFetcher.data && !tagFetcher.data.ok ? tagFetcher.data.error : null)}
+          </p>
         )}
       </div>
 

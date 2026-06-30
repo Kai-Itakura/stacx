@@ -18,6 +18,11 @@ export const projectFormSchema = z.object({
     .min(1, "プロジェクト名を入力してください"),
 });
 
+/** タグのインライン作成の検証スキーマ（client/server 共用）。 */
+export const tagFormSchema = z.object({
+  name: z.string({ error: "タグ名を入力してください" }).trim().min(1, "タグ名を入力してください"),
+});
+
 /** 本文の最初の非空行をタイトルにする（長い場合は短縮）。 */
 export function deriveTitle(body: string): string {
   const firstLine =

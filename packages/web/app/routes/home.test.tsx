@@ -144,6 +144,17 @@ describe("クイック・インテーク画面", () => {
     expect(calls[0].tagIds).toContain("t-new");
   });
 
+  it("タグ名が空で追加すると検証エラーを出し、作成リクエストを送らない", async () => {
+    const user = userEvent.setup();
+    const { fn, calls } = captureAction();
+    renderHome({ action: fn });
+
+    await user.click(await screen.findByRole("button", { name: "追加" }));
+
+    expect(await screen.findByText("タグ名を入力してください")).toBeInTheDocument();
+    expect(calls).toHaveLength(0);
+  });
+
   it("メモ保存失敗時にフォームエラーを表示する", async () => {
     const user = userEvent.setup();
     renderHome({

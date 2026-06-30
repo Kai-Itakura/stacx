@@ -3,7 +3,12 @@ import { ThemeToggle } from "~/components/theme-toggle";
 import { Button } from "~/components/ui/button";
 import { EmptyProjectState } from "~/features/intake/empty-project-state";
 import { QuickIntake } from "~/features/intake/quick-intake";
-import { deriveTitle, memoFormSchema, projectFormSchema } from "~/features/intake/schema";
+import {
+  deriveTitle,
+  memoFormSchema,
+  projectFormSchema,
+  tagFormSchema,
+} from "~/features/intake/schema";
 import { apiClient } from "~/lib/api.server";
 import { requireUser } from "~/lib/auth.server";
 import type { Route } from "./+types/home";
@@ -31,20 +36,7 @@ export async function action({ request }: Route.ActionArgs) {
 
   // タグのインライン作成（fetcher 経由）。結果は fetcher.data で受け取る。
   if (intent === "createTag") {
-    const name = String(formData.get("name") ?? "").trim();
-    if (!name)
-      return {
-        ok: false as const,
-        intent: "createTag" as const,
-        error: "タグ名を入力してください",
-      };
-    const res = await client.api.tags.$post({ json: { name } });
-    if (!res.ok) {
-      const error = res.status === 409 ? "同名のタグが既にあります" : "タグの作成に失敗しました";
-      return { ok: false as const, intent: "createTag" as const, error };
-    }
-    const { id } = await res.json();
-    return { ok: true as const, intent: "createTag" as const, tagId: id };
+    return createTag(formData, client);
   }
 
   if (intent === "createProject") {
@@ -66,6 +58,23 @@ export async function action({ request }: Route.ActionArgs) {
   });
   if (!res.ok) return submission.reply({ formErrors: ["メモの保存に失敗しました"] });
   return submission.reply({ resetForm: true });
+}
+
+async function createTag(formData: FormData, client: ReturnType<typeof apiClient>) {
+  const parsed = tagFormSchema.safeParse({ name: formData.get("name") });
+  if (!parsed.success)
+    return {
+      ok: false as const,
+      intent: "createTag" as const,
+      error: parsed.error.issues[0]?.message ?? "タグ名を入力してください",
+    };
+  const res = await client.api.tags.$post({ json: { name: parsed.data.name } });
+  if (!res.ok) {
+    const error = res.status === 409 ? "同名のタグが既にあります" : "タグの作成に失敗しました";
+    return { ok: false as const, intent: "createTag" as const, error };
+  }
+  const { id } = await res.json();
+  return { ok: true as const, intent: "createTag" as const, tagId: id };
 }
 
 export default function Home({ loaderData }: Route.ComponentProps) {
