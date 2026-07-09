@@ -36,8 +36,3 @@ export function deriveTitle(body: string): string {
 /** クイック・インテーク画面が必要とする Project / Tag の最小形（loader の結果から渡す）。 */
 export type IntakeProject = { id: string; name: string; endDate: string | null };
 export type IntakeTag = { id: string; name: string };
-
-/** タグのインライン作成（fetcher）の戻り値。 */
-export type TagFetcherResult =
-  | { ok: true; intent: "createTag"; tagId: string }
-  | { ok: false; intent: "createTag"; error: string };
