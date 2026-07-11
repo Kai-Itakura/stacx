@@ -131,6 +131,45 @@ pnpm check                             # Biome（lint + format + import 整列�
 
 ---
 
+## packages/web のコンポーネントテスト
+
+web（React Router framework mode）の UI テストは api とは別構成。**Vitest + @testing-library/react + jsdom ベースのカスタム環境 + React Router の `createRoutesStub`** で、loader/action を差し替えながらコンポーネントの振る舞い（Conform のバリデーション、fetcher 送信、フォーカス制御など）を検証する。
+
+```
+packages/web/
+├── vitest.config.ts                     # app の vite.config.ts とは別。plugins:[react()], ~/ alias
+├── test/
+│   ├── environment-jsdom-undici.ts      # カスタム vitest 環境（下記「経緯」参照）
+│   ├── setup.ts                         # jest-dom matcher, matchMedia モック, cleanup
+│   └── cloudflare-workers-stub.ts       # `cloudflare:workers` の alias 先（export const env = {}）
+└── app/routes/home.test.tsx             # テストはソースにコロケーション
+```
+
+```sh
+pnpm --filter @stacx/web test        # 一回実行
+pnpm --filter @stacx/web test:watch  # 監視実行
+```
+
+### なぜカスタム環境が要るのか（経緯・重要）
+
+`createRoutesStub`（RR のデータルーター）は **Node ネイティブ（undici）の fetch 系 API**（`Request` / `AbortSignal` / `URLSearchParams` など）を前提に動く。ところが DOM エミュレータはこれらをグローバルに自前実装で上書きするため、既製の環境はどちらも RR + Conform と両立しない：
+
+- **素の jsdom**: fetch 系を jsdom 実装で上書き → undici の Request と混ざり、`Expected signal to be an instance of AbortSignal` や `Content-Type was not one of ...` で落ちる
+- **happy-dom**: fetch 系は自己完結だが、form submit の `event.target` が form 要素にならない。Conform は不変条件 `event.target === document.forms.namedItem(formId)` を検査するため全フォームテストが落ちる
+
+解決が `test/environment-jsdom-undici.ts`：jsdom をセットアップした**後に fetch 系グローバルだけ Node ネイティブへ戻す**。`FormData` だけは jsdom のまま残す（form 要素から FormData を構築するには DOM 実装が必要なため）。`vitest.config.ts` の `environment` にドット始まりの相対パスを渡すとローカルモジュールとして解決される。
+
+### その他の落とし穴
+
+- **`cloudflare:workers` import**: route module が `import { env } from "cloudflare:workers"` を持つため、alias で `test/cloudflare-workers-stub.ts` に向ける。テストでは loader/action を stub で差し替えるので env の中身は実行されない
+- **`matchMedia`**: jsdom に無い（ThemeToggle が使用）→ `test/setup.ts` でモック
+- **初期ナビゲーションは非同期**: `createRoutesStub` の render 直後は空。最初のクエリは `findBy*`（await）で待つ。loader 付きの stub ルートには `HydrateFallback: () => null` を渡す（未指定だと警告が出る）
+- **`<Form>` の `encType`**: `application/x-www-form-urlencoded` を明示する（jsdom の FormData 由来の multipart を undici の Request が解釈できないため）
+- **Cmd+Enter のフレーク**: `user.keyboard` は activeElement 依存で揺れる。`fireEvent.keyDown(textarea, { key: "Enter", metaKey: true })` で対象要素へ直接ディスパッチして決定的にする
+- **resource route への送信**: フォームが fetcher で `/resources/...` に送る構成のため、stub には画面ルートに加えて**送信先の resource route も登録**する必要がある（無いと 404 でテストが黙って落ちる）
+
+---
+
 ## 経緯
 
 テストは当初「要求時のみ」だったが、プロジェクトを TDD で進める方針に切り替え、認証コードを特性テストでカバーした時点で本基盤（Vitest + pool-workers）を導入した。
