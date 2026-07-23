@@ -1,4 +1,5 @@
 import { parseWithZod } from "@conform-to/zod/v4";
+import { Link } from "react-router";
 import { ThemeToggle } from "~/components/theme-toggle";
 import { Button } from "~/components/ui/button";
 import { EmptyProjectState } from "~/features/intake/empty-project-state";
@@ -88,6 +89,9 @@ export default function Home({ loaderData }: Route.ComponentProps) {
             {user.name ?? user.email ?? "ゲスト"}
           </span>
           <ThemeToggle />
+          <Button asChild variant="outline">
+            <Link to="/projects">プロジェクト</Link>
+          </Button>
           {/* logout は api を直接叩く form（web worker が中継）。状態変更なので POST。 */}
           <form method="post" action="/api/auth/logout">
             <Button type="submit" variant="outline">
