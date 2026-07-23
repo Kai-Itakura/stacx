@@ -31,6 +31,11 @@ export const createProjectSchema = z
       .string()
       .nullish()
       .transform((v) => v ?? null),
+    // 使用技術スタック。未指定は空配列に正規化する（DB は notNull default []）。
+    techStack: z
+      .array(z.string())
+      .nullish()
+      .transform((v) => v ?? []),
   })
   .brand<"CreateProjectInput">();
 
@@ -44,6 +49,8 @@ export const updateProjectSchema = z
     teamSize: z.number().nullable(),
     role: z.string().nullable(),
     workStyle: z.string().nullable(),
+    // 使用技術スタック。指定時のみ更新（空配列でクリア可能）。
+    techStack: z.array(z.string()),
   })
   .partial()
   // 空ボディ {} は updatedAt だけ進む no-op になるため、最低 1 フィールドを必須にする。
