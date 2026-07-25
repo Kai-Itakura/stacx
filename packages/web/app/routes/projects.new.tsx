@@ -24,8 +24,7 @@ export async function action({ request }: Route.ActionArgs) {
   const res = await client.api.projects.$post({ json: toProjectPayload(submission.value) });
   if (!res.ok) return submission.reply({ formErrors: ["プロジェクトの作成に失敗しました"] });
 
-  const { id } = await res.json();
-  return redirect(`/projects/${id}`);
+  return redirect(`/projects`);
 }
 
 export default function NewProject() {
