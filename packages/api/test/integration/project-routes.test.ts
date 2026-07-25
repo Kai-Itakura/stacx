@@ -63,6 +63,19 @@ describe("project routes", () => {
     expect(project?.endDate).toBeNull();
   });
 
+  it("POST techStack を渡すと保存される", async () => {
+    const cookie = await loginAs("alice");
+    const res = await SELF.fetch(`${BASE}/api/projects`, {
+      method: "POST",
+      headers: { cookie, "content-type": "application/json" },
+      body: JSON.stringify({ ...body, techStack: ["Go", "React"] }),
+    });
+    expect(res.status).toBe(201);
+    const { id } = (await res.json()) as { id: string };
+    const [project] = await db.select().from(projects).where(eq(projects.id, id));
+    expect(project?.techStack).toEqual(["Go", "React"]);
+  });
+
   it("POST name 欠落 → 400", async () => {
     const cookie = await loginAs("alice");
     const res = await SELF.fetch(`${BASE}/api/projects`, {

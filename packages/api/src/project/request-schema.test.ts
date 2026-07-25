@@ -44,6 +44,14 @@ describe("createProjectSchema", () => {
     expect(createProjectSchema.safeParse({ ...valid, teamSize: "5" }).success).toBe(false);
     expect(createProjectSchema.safeParse({ ...valid, teamSize: 5 }).success).toBe(true);
   });
+
+  it("techStack は省略時 []・文字列配列を通し、非文字列配列は失敗", () => {
+    const omitted = createProjectSchema.safeParse(valid);
+    expect(omitted.success && omitted.data.techStack).toEqual([]);
+    const given = createProjectSchema.safeParse({ ...valid, techStack: ["Go", "React"] });
+    expect(given.success && given.data.techStack).toEqual(["Go", "React"]);
+    expect(createProjectSchema.safeParse({ ...valid, techStack: [1, 2] }).success).toBe(false);
+  });
 });
 
 describe("updateProjectSchema", () => {
@@ -89,5 +97,13 @@ describe("updateProjectSchema", () => {
     const r = updateProjectSchema.safeParse({ summary: "概要", role: "リード", workStyle: "受託" });
     expect(r.success && r.data).toEqual({ summary: "概要", role: "リード", workStyle: "受託" });
     expect(updateProjectSchema.safeParse({ role: 123 }).success).toBe(false);
+  });
+
+  it("techStack は文字列配列を通し（空配列可）、非文字列配列は失敗", () => {
+    const empty = updateProjectSchema.safeParse({ techStack: [] });
+    expect(empty.success && "techStack" in empty.data && empty.data.techStack).toEqual([]);
+    const r = updateProjectSchema.safeParse({ techStack: ["Go"] });
+    expect(r.success && "techStack" in r.data && r.data.techStack).toEqual(["Go"]);
+    expect(updateProjectSchema.safeParse({ techStack: [1] }).success).toBe(false);
   });
 });
