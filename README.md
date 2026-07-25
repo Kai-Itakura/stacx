@@ -27,15 +27,15 @@
     pnpm install
 
     # Cloudflare 認証
-    npx wrangler login
+    pnpm dlx wrangler login
 
     # D1 データベース作成
     cd packages/api
-    npx wrangler d1 create stacx-db
+    pnpm dlx wrangler d1 create stacx-db
 
     # マイグレーション適用
-    pnpm drizzle-kit generate
-    npx wrangler d1 migrations apply stacx-db --local
+    pnpm db:generate
+    pnpm db:migrate:local
 
     # 開発サーバー起動（全パッケージ並列）
     cd ../..
