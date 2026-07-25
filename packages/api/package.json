@@ -20,12 +20,13 @@
     "test:coverage": "vitest run --coverage",
     "db:generate": "drizzle-kit generate",
     "db:migrate:local": "wrangler d1 migrations apply stacx-db --local",
-    "db:migrate:remote": "wrangler d1 migrations apply stacx-db --remote"
+    "db:migrate:remote": "wrangler d1 migrations apply stacx-db --remote",
+    "db:view-schema": "drizzle-kit studio"
   },
   "dependencies": {
     "@hono/zod-validator": "^0.8.0",
     "arctic": "^3.0.0",
-    "drizzle-orm": "^0.36.0",
+    "drizzle-orm": "^0.38.0",
     "hono": "^4.6.0",
     "ulid": "^2.3.0",
     "zod": "^4.4.3"
@@ -33,6 +34,7 @@
   "devDependencies": {
     "@cloudflare/vitest-pool-workers": "^0.8.61",
     "@cloudflare/workers-types": "^4.20250101.0",
+    "@libsql/client": "^0.17.4",
     "@types/node": "^22.19.19",
     "@vitest/coverage-istanbul": "3.2.4",
     "drizzle-kit": "^0.30.0",
