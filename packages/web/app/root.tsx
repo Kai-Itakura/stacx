@@ -11,6 +11,16 @@ import type { Route } from "./+types/root";
 import "./app.css";
 import { themeInitScript } from "./lib/theme";
 
+/**
+ * ファビコン。SVG に対応するブラウザは favicon.svg を、それ以外は favicon.ico を使う。
+ * 実体は packages/web/scripts/generate-icons.mjs で生成する。
+ */
+export const links: Route.LinksFunction = () => [
+  { rel: "icon", href: "/favicon.ico", sizes: "48x48" },
+  { rel: "icon", href: "/favicon.svg", type: "image/svg+xml" },
+  { rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
+];
+
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="ja" suppressHydrationWarning>
