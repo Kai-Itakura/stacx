@@ -1,10 +1,11 @@
 /**
  * ファビコン一式（favicon.svg / favicon.ico / apple-touch-icon.png）を public/ に生成する。
  *
- * StacX のマークは「積み重なるメモ」を表す 3 枚のスラブ。右上に向かってずれながら
- * 明度が上がることで、日々の 1 分メモが職務経歴書という成果に積み上がる様子を表す。
- * デザインの正はこのファイルの定数のみ。SVG も画像もここから生成する。
+ * StacX のマークは、アイソメトリックに積み重なった 3 枚のプレート。日々の 1 分メモが
+ * 層として積み上がり、最上段（最も明るいライム）が職務経歴書という成果になる、という
+ * コンセプトを表す。下段ほど濃い緑にして、蓄積の深さと成長を同時に見せている。
  *
+ * デザインの正はこのファイルの定数のみ。SVG も画像もここから生成する。
  * 実行: pnpm --filter @stacx/web icons
  */
 
@@ -19,19 +20,52 @@ const PUBLIC_DIR = join(dirname(fileURLToPath(import.meta.url)), "..", "public")
 
 const CANVAS = 32;
 /** app.css の --background(dark) / oklch(0.145 0 0) と同値。 */
-const BG = [0x0a, 0x0a, 0x0a];
-/** app.css の --foreground(dark) / oklch(0.985 0 0) と同値。 */
-const FG = [0xfa, 0xfa, 0xfa];
+const TILE_BG = "#0a0a0a";
 /** --radius(0.625rem) をタイル 32px 相当に合わせた角丸。 */
 const TILE_RADIUS = 7;
 
-const SLAB_W = 15;
-const SLAB_H = 5;
-/** 下から上へ。x を右にずらして「積み上がり」を、opacity を上ほど濃くして新しさを表す。 */
-const SLABS = [
-  { x: 4, y: 21.5, opacity: 0.7 },
-  { x: 8.5, y: 13.5, opacity: 0.85 },
-  { x: 13, y: 5.5, opacity: 1 },
+/** プレート（菱形）の半幅・半高・角丸。半高との比でアイソメトリックな厚みを出す。 */
+const PLATE_HW = 12;
+const PLATE_HH = 5.6;
+const PLATE_R = 1.5;
+/** プレート同士の間に入れる背景色の抜き幅。 */
+const PLATE_GAP = 1.15;
+
+/** 下から上へ。上のプレートが下のプレートの奥半分を隠すので、この順に描く。 */
+const PLATES = [
+  { cy: 21.2, color: "#2f7d32" },
+  { cy: 16.0, color: "#69b52f" },
+  { cy: 10.8, color: "#b7e03a" },
+];
+
+/** 菱形の頂点。角丸 PLATE_R 分だけ内側に縮めておき、描画側で膨らませて元の大きさに戻す。 */
+function plateVertices(cy, grow) {
+  const hw = PLATE_HW - PLATE_R + grow;
+  const hh = PLATE_HH - PLATE_R + grow;
+  return [
+    [CANVAS / 2 - hw, cy],
+    [CANVAS / 2, cy - hh],
+    [CANVAS / 2 + hw, cy],
+    [CANVAS / 2, cy + hh],
+  ];
+}
+
+/** タイル → 各プレート（手前に抜きを敷いてから本体）の順に重ねた描画リスト。 */
+function buildLayers({ bleed = false } = {}) {
+  const layers = [
+    { kind: "rect", radius: bleed ? 0 : TILE_RADIUS, color: TILE_BG },
+    ...PLATES.flatMap(({ cy, color }) => [
+      { kind: "plate", points: plateVertices(cy, PLATE_GAP), color: TILE_BG },
+      { kind: "plate", points: plateVertices(cy, 0), color },
+    ]),
+  ];
+  return layers;
+}
+
+const parseHex = (h) => [
+  Number.parseInt(h.slice(1, 3), 16),
+  Number.parseInt(h.slice(3, 5), 16),
+  Number.parseInt(h.slice(5, 7), 16),
 ];
 
 // --- ラスタライズ ---------------------------------------------------------------
@@ -40,8 +74,31 @@ const SLABS = [
 function roundedRectDistance(px, py, x, y, w, h, r) {
   const dx = Math.abs(px - (x + w / 2)) - (w / 2 - r);
   const dy = Math.abs(py - (y + h / 2)) - (h / 2 - r);
-  const outside = Math.hypot(Math.max(dx, 0), Math.max(dy, 0));
-  return outside + Math.min(Math.max(dx, dy), 0) - r;
+  return Math.hypot(Math.max(dx, 0), Math.max(dy, 0)) + Math.min(Math.max(dx, dy), 0) - r;
+}
+
+/** 凸多角形を r だけ膨らませた形の符号付き距離。各辺の外向き半平面の最大値で求める。 */
+function convexPolygonEdges(points) {
+  const cx = points.reduce((s, p) => s + p[0], 0) / points.length;
+  const cy = points.reduce((s, p) => s + p[1], 0) / points.length;
+  return points.map((v, i) => {
+    const w = points[(i + 1) % points.length];
+    const len = Math.hypot(w[1] - v[1], w[0] - v[0]);
+    let nx = (w[1] - v[1]) / len;
+    let ny = -(w[0] - v[0]) / len;
+    // 重心が正側に来る向きは内向きなので反転して外向きに揃える。
+    if (nx * (cx - v[0]) + ny * (cy - v[1]) > 0) {
+      nx = -nx;
+      ny = -ny;
+    }
+    return [v[0], v[1], nx, ny];
+  });
+}
+
+function roundedPolygonDistance(px, py, edges, r) {
+  let d = Number.NEGATIVE_INFINITY;
+  for (const [vx, vy, nx, ny] of edges) d = Math.max(d, (px - vx) * nx + (py - vy) * ny);
+  return d - r;
 }
 
 /** RGBA(ストレートアルファ)の src を dst にソースオーバー合成する。 */
@@ -62,21 +119,14 @@ function composite(dst, i, rgb, alpha) {
  * 距離場を 1px 幅でクランプすることでアンチエイリアスを掛ける。
  * bleed=true は角丸なしの全面塗り（iOS が独自にマスクするため）。
  */
-function render(size, { bleed = false } = {}) {
+function render(size, options) {
   const scale = size / CANVAS;
   const pixels = new Uint8Array(size * size * 4);
-  const shapes = [
-    { x: 0, y: 0, w: CANVAS, h: CANVAS, r: bleed ? 0 : TILE_RADIUS, rgb: BG, opacity: 1 },
-    ...SLABS.map((s) => ({
-      x: s.x,
-      y: s.y,
-      w: SLAB_W,
-      h: SLAB_H,
-      r: SLAB_H / 2,
-      rgb: FG,
-      opacity: s.opacity,
-    })),
-  ];
+  const shapes = buildLayers(options).map((layer) => ({
+    rgb: parseHex(layer.color),
+    edges: layer.kind === "plate" ? convexPolygonEdges(layer.points) : null,
+    radius: layer.radius,
+  }));
 
   for (let py = 0; py < size; py++) {
     const y = (py + 0.5) / scale;
@@ -84,9 +134,10 @@ function render(size, { bleed = false } = {}) {
       const x = (px + 0.5) / scale;
       const i = (py * size + px) * 4;
       for (const s of shapes) {
-        const d = roundedRectDistance(x, y, s.x, s.y, s.w, s.h, s.r) * scale;
-        const coverage = Math.min(Math.max(0.5 - d, 0), 1);
-        composite(pixels, i, s.rgb, coverage * s.opacity);
+        const d = s.edges
+          ? roundedPolygonDistance(x, y, s.edges, PLATE_R)
+          : roundedRectDistance(x, y, 0, 0, CANVAS, CANVAS, s.radius);
+        composite(pixels, i, s.rgb, Math.min(Math.max(0.5 - d * scale, 0), 1));
       }
     }
   }
@@ -166,19 +217,24 @@ function encodeIco(entries) {
 
 // --- SVG -----------------------------------------------------------------------
 
+/**
+ * 角丸多角形は「多角形 + 同色の stroke-linejoin=round」で表現する。
+ * stroke は輪郭の外側に半分だけ乗るので、太さ 2r はラスタライズ側の「r 膨らませ」と等価。
+ */
 function buildSvg() {
-  const hex = (rgb) => `#${rgb.map((v) => v.toString(16).padStart(2, "0")).join("")}`;
-  const slabs = SLABS.map((s) => {
-    const opacity = s.opacity === 1 ? "" : ` opacity="${s.opacity}"`;
-    return `    <rect x="${s.x}" y="${s.y}" width="${SLAB_W}" height="${SLAB_H}" rx="${SLAB_H / 2}"${opacity} />`;
-  }).join("\n");
+  const body = buildLayers()
+    .map((layer) => {
+      if (layer.kind === "rect") {
+        return `  <rect width="${CANVAS}" height="${CANVAS}" rx="${layer.radius}" fill="${layer.color}" />`;
+      }
+      const points = layer.points.map(([x, y]) => `${+x.toFixed(2)},${+y.toFixed(2)}`).join(" ");
+      return `  <polygon points="${points}" fill="${layer.color}" stroke="${layer.color}" stroke-width="${PLATE_R * 2}" stroke-linejoin="round" />`;
+    })
+    .join("\n");
 
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${CANVAS} ${CANVAS}" width="${CANVAS}" height="${CANVAS}" role="img" aria-label="StacX">
   <title>StacX</title>
-  <rect width="${CANVAS}" height="${CANVAS}" rx="${TILE_RADIUS}" fill="${hex(BG)}" />
-  <g fill="${hex(FG)}">
-${slabs}
-  </g>
+${body}
 </svg>
 `;
 }

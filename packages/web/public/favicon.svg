@@ -1,9 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32" role="img" aria-label="StacX">
   <title>StacX</title>
   <rect width="32" height="32" rx="7" fill="#0a0a0a" />
-  <g fill="#fafafa">
-    <rect x="4" y="21.5" width="15" height="5" rx="2.5" opacity="0.7" />
-    <rect x="8.5" y="13.5" width="15" height="5" rx="2.5" opacity="0.85" />
-    <rect x="13" y="5.5" width="15" height="5" rx="2.5" />
-  </g>
+  <polygon points="4.35,21.2 16,15.95 27.65,21.2 16,26.45" fill="#0a0a0a" stroke="#0a0a0a" stroke-width="3" stroke-linejoin="round" />
+  <polygon points="5.5,21.2 16,17.1 26.5,21.2 16,25.3" fill="#2f7d32" stroke="#2f7d32" stroke-width="3" stroke-linejoin="round" />
+  <polygon points="4.35,16 16,10.75 27.65,16 16,21.25" fill="#0a0a0a" stroke="#0a0a0a" stroke-width="3" stroke-linejoin="round" />
+  <polygon points="5.5,16 16,11.9 26.5,16 16,20.1" fill="#69b52f" stroke="#69b52f" stroke-width="3" stroke-linejoin="round" />
+  <polygon points="4.35,10.8 16,5.55 27.65,10.8 16,16.05" fill="#0a0a0a" stroke="#0a0a0a" stroke-width="3" stroke-linejoin="round" />
+  <polygon points="5.5,10.8 16,6.7 26.5,10.8 16,14.9" fill="#b7e03a" stroke="#b7e03a" stroke-width="3" stroke-linejoin="round" />
 </svg>
