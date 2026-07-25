@@ -4,7 +4,7 @@
  */
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "stacx-web",
+  "name": "stacx",
   "compatibility_date": "2026-06-24",
   "main": "./workers/app.ts",
   "observability": {

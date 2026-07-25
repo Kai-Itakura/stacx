@@ -13,3 +13,22 @@ migrations_dir = "src/db/migrations"
 
 [dev]
 port = 8787
+
+# 本番デプロイ用の環境（`wrangler deploy --env production`）。
+# env セクションは top-level のバインディング/名前を継承しないため再掲する。
+# name を明示して worker 名を stacx-api に固定する（web の service binding が名前参照するため、
+# 未指定だと stacx-api-production になり binding が壊れる）。
+# APP_BASE_URL は web worker の公開 URL。初回 web デプロイ後に確定する workers.dev の
+# サブドメインで YOUR_SUBDOMAIN を置き換えること（docs/08-deploy.md 参照）。
+# GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET は secret（`wrangler secret put ... --env production`）。
+[env.production]
+name = "stacx-api"
+
+[env.production.vars]
+APP_BASE_URL = "https://stacx.YOUR_SUBDOMAIN.workers.dev"
+
+[[env.production.d1_databases]]
+binding = "DB"
+database_name = "stacx-db"
+database_id = "44a30247-7ab9-4ca6-a04e-b2e23ddef369"
+migrations_dir = "src/db/migrations"
