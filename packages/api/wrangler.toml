@@ -25,7 +25,7 @@ port = 8787
 name = "stacx-api"
 
 [env.production.vars]
-APP_BASE_URL = "https://stacx-web.YOUR_SUBDOMAIN.workers.dev"
+APP_BASE_URL = "https://stacx.YOUR_SUBDOMAIN.workers.dev"
 
 [[env.production.d1_databases]]
 binding = "DB"

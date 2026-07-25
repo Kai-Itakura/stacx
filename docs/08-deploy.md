@@ -2,7 +2,7 @@
 
 StacX を Cloudflare Workers に最小構成でデプロイする手順。まずは workers.dev サブドメインで動かすことを目標にする。カスタムドメインは後から差し替え可能。
 
-構成: **web worker（`stacx-web`）** がブラウザからのリクエストを受け、`/api/*` を **service binding** 経由で **api worker（`stacx-api`）** に中継する。認証（Google OIDC）は api worker が担う。
+構成: **web worker（`stacx`）** がブラウザからのリクエストを受け、`/api/*` を **service binding** 経由で **api worker（`stacx-api`）** に中継する。認証（Google OIDC）は api worker が担う。
 
 ---
 
@@ -25,7 +25,7 @@ cd packages/web
 pnpm deploy
 ```
 
-出力される `https://stacx-web.<YOUR_SUBDOMAIN>.workers.dev` を控える。以降この URL を `APP_BASE_URL` とする。
+出力される `https://stacx.<YOUR_SUBDOMAIN>.workers.dev` を控える。以降この URL を `APP_BASE_URL` とする。
 
 ---
 
@@ -35,7 +35,7 @@ pnpm deploy
 
 ```toml
 [env.production.vars]
-APP_BASE_URL = "https://stacx-web.<YOUR_SUBDOMAIN>.workers.dev"
+APP_BASE_URL = "https://stacx.<YOUR_SUBDOMAIN>.workers.dev"
 ```
 
 ---
@@ -44,8 +44,8 @@ APP_BASE_URL = "https://stacx-web.<YOUR_SUBDOMAIN>.workers.dev"
 
 作成した OAuth クライアントに以下を登録する（api のコールバックは `packages/api/src/auth/providers/google.ts` が `${APP_BASE_URL}/api/auth/callback/google` を組み立てる）。
 
-- **承認済みのリダイレクト URI**: `https://stacx-web.<YOUR_SUBDOMAIN>.workers.dev/api/auth/callback/google`
-- **承認済みの JavaScript 生成元**: `https://stacx-web.<YOUR_SUBDOMAIN>.workers.dev`
+- **承認済みのリダイレクト URI**: `https://stacx.<YOUR_SUBDOMAIN>.workers.dev/api/auth/callback/google`
+- **承認済みの JavaScript 生成元**: `https://stacx.<YOUR_SUBDOMAIN>.workers.dev`
 
 ---
 
@@ -73,7 +73,7 @@ web の service binding が `stacx-api` を名前参照するため、**api を�
 cd packages/api
 pnpm deploy:production      # = wrangler deploy --env production
 
-# web（stacx-web）
+# web（stacx）
 cd ../web
 pnpm deploy
 ```
@@ -84,7 +84,7 @@ pnpm deploy
 
 ## 6. 動作確認
 
-1. `https://stacx-web.<YOUR_SUBDOMAIN>.workers.dev` を開く
+1. `https://stacx.<YOUR_SUBDOMAIN>.workers.dev` を開く
 2. Google でログイン
 3. メモを作成（`/`）
 4. `/memos` で作成したメモが表示される
