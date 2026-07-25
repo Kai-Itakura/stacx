@@ -51,6 +51,8 @@
 - [画面仕様](docs/04-screens.md)
 - [認証設計](docs/05-auth.md)
 - [開発フロー](docs/06-development.md)
+- [テスト方針](docs/07-testing.md)
+- [デプロイ手順](docs/08-deploy.md)
 
 ## AI エージェント利用
 
