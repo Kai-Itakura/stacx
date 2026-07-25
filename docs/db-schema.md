@@ -76,8 +76,8 @@ erDiagram
   }
 
   memo_tags {
-    text memo_id PK_FK "→ memos.id (cascade)"
-    text tag_id PK_FK "→ tags.id (cascade)"
+    text memo_id PK, FK "→ memos.id (cascade)"
+    text tag_id PK, FK "→ tags.id (cascade)"
   }
 ```
 
