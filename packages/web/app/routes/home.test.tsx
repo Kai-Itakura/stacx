@@ -28,16 +28,13 @@ const baseLoader: LoaderData = {
 };
 
 /**
- * action に届いた FormData を記録するスタブ。intent に応じて実 schema で検証し、
- * Conform の SubmissionResult を返す（client 側の lastResult 処理を壊さないため）。
+ * action に届いた FormData を記録するスタブ。実 schema で検証し、Conform の
+ * SubmissionResult を返す（client 側の lastResult 処理を壊さないため）。
  */
-function captureAction() {
+function captureAction(schema: typeof memoFormSchema | typeof projectFormSchema) {
   const calls: Record<string, unknown>[] = [];
   const fn = async ({ request }: { request: Request }) => {
     const fd = await request.formData();
-    const intent = fd.get("intent");
-    if (intent === "createTag") return { ok: true, intent: "createTag", tagId: "t-new" };
-    const schema = intent === "createProject" ? projectFormSchema : memoFormSchema;
     const submission = parseWithZod(fd, { schema });
     if (submission.status !== "success") return submission.reply();
     calls.push({ ...Object.fromEntries(fd), tagIds: fd.getAll("tagIds") });
@@ -46,16 +43,45 @@ function captureAction() {
   return { fn, calls };
 }
 
+/** タグ作成 action のスタブ。届いた JSON を記録し、新規タグ id を返す。 */
+function captureTagAction() {
+  const calls: unknown[] = [];
+  const fn = async ({ request }: { request: Request }) => {
+    calls.push(await request.json());
+    return { ok: true, tagId: "t-new" };
+  };
+  return { fn, calls };
+}
+
 type StubAction = Parameters<typeof createRoutesStub>[0][number]["action"];
 
-function renderHome(opts?: { loaderData?: Partial<LoaderData>; action?: StubAction }) {
+/** 画面ルート（/）に加え、各フォームの送信先となる resource route 3 つを stub する。 */
+function renderHome(opts?: {
+  loaderData?: Partial<LoaderData>;
+  memoAction?: StubAction;
+  projectAction?: StubAction;
+  tagAction?: StubAction;
+}) {
   const Stub = createRoutesStub([
     {
       path: "/",
       // biome-ignore lint/suspicious/noExplicitAny: stub の Component 型はゆるく、実 route の型と差異がある
       Component: Home as any,
       loader: () => ({ ...baseLoader, ...opts?.loaderData }),
-      action: opts?.action ?? (() => ({ ok: true })),
+      // stub は loader をクライアント側で解決するため、初回描画用のフォールバックが要る。
+      HydrateFallback: () => null,
+    },
+    {
+      path: "/resources/memos/create",
+      action: opts?.memoAction ?? (() => ({ ok: true })),
+    },
+    {
+      path: "/resources/projects/create",
+      action: opts?.projectAction ?? (() => ({ ok: true })),
+    },
+    {
+      path: "/resources/tags/create",
+      action: opts?.tagAction ?? (() => ({ ok: true, tagId: "t-new" })),
     },
   ]);
   render(<Stub initialEntries={["/"]} />);
@@ -90,8 +116,8 @@ describe("クイック・インテーク画面", () => {
 
   it("Cmd+Enter で本文と選択中プロジェクトを送信する", async () => {
     const user = userEvent.setup();
-    const { fn, calls } = captureAction();
-    renderHome({ action: fn });
+    const { fn, calls } = captureAction(memoFormSchema);
+    renderHome({ memoAction: fn });
 
     const textarea = await screen.findByPlaceholderText(TEXTAREA);
     await user.type(textarea, "1行目\n2行目");
@@ -102,8 +128,8 @@ describe("クイック・インテーク画面", () => {
   });
 
   it("本文が空なら検証エラーを出して送信しない", async () => {
-    const { fn, calls } = captureAction();
-    renderHome({ action: fn });
+    const { fn, calls } = captureAction(memoFormSchema);
+    renderHome({ memoAction: fn });
 
     const textarea = await screen.findByPlaceholderText(TEXTAREA);
     fireEvent.keyDown(textarea, { key: "Enter", metaKey: true });
@@ -114,8 +140,8 @@ describe("クイック・インテーク画面", () => {
 
   it("タグ chip を選ぶと tagIds に含めて送信する", async () => {
     const user = userEvent.setup();
-    const { fn, calls } = captureAction();
-    renderHome({ action: fn });
+    const { fn, calls } = captureAction(memoFormSchema);
+    renderHome({ memoAction: fn });
 
     const textarea = await screen.findByPlaceholderText(TEXTAREA);
     await user.type(textarea, "本文");
@@ -128,8 +154,8 @@ describe("クイック・インテーク画面", () => {
 
   it("新規タグを作成すると自動選択され、送信に含まれる", async () => {
     const user = userEvent.setup();
-    const { fn, calls } = captureAction();
-    renderHome({ action: fn });
+    const { fn, calls } = captureAction(memoFormSchema);
+    renderHome({ memoAction: fn });
 
     const textarea = await screen.findByPlaceholderText(TEXTAREA);
     await user.type(textarea, "本文");
@@ -146,8 +172,8 @@ describe("クイック・インテーク画面", () => {
 
   it("タグ名が空で追加すると検証エラーを出し、作成リクエストを送らない", async () => {
     const user = userEvent.setup();
-    const { fn, calls } = captureAction();
-    renderHome({ action: fn });
+    const { fn, calls } = captureTagAction();
+    renderHome({ tagAction: fn });
 
     await user.click(await screen.findByRole("button", { name: "追加" }));
 
@@ -158,7 +184,7 @@ describe("クイック・インテーク画面", () => {
   it("メモ保存失敗時にフォームエラーを表示する", async () => {
     const user = userEvent.setup();
     renderHome({
-      action: async ({ request }) => {
+      memoAction: async ({ request }) => {
         const submission = parseWithZod(await request.formData(), { schema: memoFormSchema });
         if (submission.status !== "success") return submission.reply();
         return submission.reply({ formErrors: ["メモの保存に失敗しました"] });
@@ -172,23 +198,23 @@ describe("クイック・インテーク画面", () => {
     expect(await screen.findByText("メモの保存に失敗しました")).toBeInTheDocument();
   });
 
-  it("プロジェクト 0 件なら作成フォームを出し、createProject を送る", async () => {
+  it("プロジェクト 0 件なら作成フォームを出し、プロジェクト作成を送る", async () => {
     const user = userEvent.setup();
-    const { fn, calls } = captureAction();
-    renderHome({ loaderData: { projects: [] }, action: fn });
+    const { fn, calls } = captureAction(projectFormSchema);
+    renderHome({ loaderData: { projects: [] }, projectAction: fn });
 
     expect(await screen.findByText("まずはプロジェクトを作成")).toBeInTheDocument();
     await user.type(screen.getByPlaceholderText("プロジェクト名"), "新規PJ");
     await user.click(screen.getByRole("button", { name: "作成" }));
 
     await waitFor(() => expect(calls).toHaveLength(1));
-    expect(calls[0]).toMatchObject({ intent: "createProject", name: "新規PJ" });
+    expect(calls[0]).toMatchObject({ name: "新規PJ" });
   });
 
   it("プロジェクト名が空なら検証エラーを出して送信しない", async () => {
     const user = userEvent.setup();
-    const { fn, calls } = captureAction();
-    renderHome({ loaderData: { projects: [] }, action: fn });
+    const { fn, calls } = captureAction(projectFormSchema);
+    renderHome({ loaderData: { projects: [] }, projectAction: fn });
 
     await user.click(await screen.findByRole("button", { name: "作成" }));
 
