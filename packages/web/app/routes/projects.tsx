@@ -27,7 +27,10 @@ export default function Projects({ loaderData }: Route.ComponentProps) {
         <div className="flex items-center gap-2">
           <ThemeToggle />
           <Button asChild variant="outline">
-            <Link to="/">メモ</Link>
+            <Link to="/memos">メモ一覧</Link>
+          </Button>
+          <Button asChild variant="outline">
+            <Link to="/">メモ作成</Link>
           </Button>
           <Button asChild>
             <Link to="/projects/new">新規作成</Link>

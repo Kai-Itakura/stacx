@@ -1,4 +1,3 @@
-import { parseWithZod } from "@conform-to/zod/v4";
 import { Link } from "react-router";
 import { ThemeToggle } from "~/components/theme-toggle";
 import { Button } from "~/components/ui/button";
@@ -35,6 +34,9 @@ export default function Home({ loaderData }: Route.ComponentProps) {
             {user.name ?? user.email ?? "ゲスト"}
           </span>
           <ThemeToggle />
+          <Button asChild variant="outline">
+            <Link to="/memos">メモ一覧</Link>
+          </Button>
           <Button asChild variant="outline">
             <Link to="/projects">プロジェクト</Link>
           </Button>
