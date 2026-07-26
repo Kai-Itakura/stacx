@@ -14,42 +14,35 @@ StacX を Cloudflare Workers に最小構成でデプロイする手順。まず
 
 ---
 
-## 1. web を先に一度デプロイして公開 URL を確定する
+## 1. 公開 URL（APP_BASE_URL）
 
-`APP_BASE_URL`（Cookie とリダイレクトの基点）に web の公開 URL が必要だが、URL は初回デプロイで確定する。まず web を出す。
+web worker（`stacx`）の公開 URL は、アカウント固定の workers.dev サブドメイン `itakai199969-e42` から決まる（サブドメインは変更不可）。
 
-```sh
-# api の service binding 先が未作成だと web デプロイ時に警告が出るが、URL 確認が目的なので先に web を出してよい
-# （本番稼働は 3〜5 の順で行う）
-cd packages/web
-pnpm deploy
+```
+https://stacx.itakai199969-e42.workers.dev
 ```
 
-出力される `https://stacx.<YOUR_SUBDOMAIN>.workers.dev` を控える。以降この URL を `APP_BASE_URL` とする。
-
----
-
-## 2. 設定に本番 URL を反映
-
-- `packages/api/wrangler.toml` の `[env.production.vars]` の `APP_BASE_URL` を、手順1で確定した URL に更新する（`YOUR_SUBDOMAIN` を置換）。
+これが `APP_BASE_URL`（Cookie とリダイレクトの基点）。`packages/api/wrangler.toml` の `[env.production.vars]` に設定済みなので、通常は編集不要。
 
 ```toml
 [env.production.vars]
-APP_BASE_URL = "https://stacx.<YOUR_SUBDOMAIN>.workers.dev"
+APP_BASE_URL = "https://stacx.itakai199969-e42.workers.dev"
 ```
+
+> 独自ドメインへ移行する場合のみ、この値と Google 設定（手順2）・`packages/web/wrangler.jsonc` を新ドメインに更新する。
 
 ---
 
-## 3. Google コンソールにリダイレクト URI を登録
+## 2. Google コンソールにリダイレクト URI を登録
 
 作成した OAuth クライアントに以下を登録する（api のコールバックは `packages/api/src/auth/providers/google.ts` が `${APP_BASE_URL}/api/auth/callback/google` を組み立てる）。
 
-- **承認済みのリダイレクト URI**: `https://stacx.<YOUR_SUBDOMAIN>.workers.dev/api/auth/callback/google`
-- **承認済みの JavaScript 生成元**: `https://stacx.<YOUR_SUBDOMAIN>.workers.dev`
+- **承認済みのリダイレクト URI**: `https://stacx.itakai199969-e42.workers.dev/api/auth/callback/google`
+- **承認済みの JavaScript 生成元**: `https://stacx.itakai199969-e42.workers.dev`
 
 ---
 
-## 4. api の secret を投入し、リモート D1 をマイグレーション
+## 3. api の secret を投入し、リモート D1 をマイグレーション
 
 ```sh
 cd packages/api
@@ -64,7 +57,7 @@ pnpm db:migrate:remote
 
 ---
 
-## 5. api → web の順で本番デプロイ
+## 4. api → web の順で本番デプロイ
 
 web の service binding が `stacx-api` を名前参照するため、**api を先に**デプロイして worker を存在させる。
 
@@ -82,9 +75,9 @@ pnpm deploy
 
 ---
 
-## 6. 動作確認
+## 5. 動作確認
 
-1. `https://stacx.<YOUR_SUBDOMAIN>.workers.dev` を開く
+1. `https://stacx.itakai199969-e42.workers.dev` を開く
 2. Google でログイン
 3. メモを作成（`/`）
 4. `/memos` で作成したメモが表示される
@@ -101,6 +94,6 @@ pnpm deploy
 
 ## トラブルシュート
 
-- **ログイン後に 400 / redirect_uri_mismatch**: Google のリダイレクト URI と `APP_BASE_URL` の不一致。手順2・3を再確認。
+- **ログイン後に 400 / redirect_uri_mismatch**: Google のリダイレクト URI と `APP_BASE_URL` の不一致。手順1・2を再確認。
 - **Cookie が付かない / ログイン状態が保持されない**: `APP_BASE_URL` が実 URL と一致しているか（Cookie 名を URL から導出しているため）。https であること。
 - **web が API に到達しない**: `stacx-api` が先にデプロイ済みか、`packages/web/wrangler.jsonc` の `services` binding が `stacx-api` を指しているか確認。
