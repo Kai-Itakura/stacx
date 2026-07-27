@@ -10,11 +10,6 @@ export function meta(_: Route.MetaArgs) {
   return [{ title: "新規プロジェクト | StacX" }];
 }
 
-export async function loader({ request }: Route.LoaderArgs) {
-  await requireUser(request);
-  return null;
-}
-
 export async function action({ request }: Route.ActionArgs) {
   await requireUser(request);
   const submission = parseWithZod(await request.formData(), { schema: projectFormSchema });

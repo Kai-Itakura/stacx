@@ -12,7 +12,6 @@ export function meta(_: Route.MetaArgs) {
 }
 
 export async function loader({ request, params }: Route.LoaderArgs) {
-  await requireUser(request);
   const client = apiClient(request);
   const res = await client.api.projects[":id"].$get({ param: { id: params.id } });
   if (!res.ok) throw new Response("Not Found", { status: 404 });
