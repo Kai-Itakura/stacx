@@ -72,21 +72,27 @@ D1 は**環境ごとに別データベース**。ここを共有すると stagin
 
 ### 自動デプロイ（既定）
 
-`main` への push で CI（Biome / typecheck / test）が通ると、`.github/workflows/deploy.yml` が
-**staging → production** の順に流れる。各環境の中では次の順序を守る。
+`.github/workflows/deploy.yml` が CI（Biome / typecheck / test）の成功に相乗りして動く。
+**デプロイ先はブランチで決まる**。
+
+| ブランチ | デプロイ先 |
+|---|---|
+| `stg` | staging のみ |
+| `main` | production のみ |
+
+2 つのジョブは**独立**していて、staging の成否は production をブロックしない。
+そのため「staging を経ずに production へ出せてしまう」ことに注意（→ 運用は
+[ブランチ戦略](#ブランチ戦略stg--main)を参照）。
+
+各環境の中では次の順序を守る。この順序は固定で、崩してはいけない。
 
 1. D1 マイグレーション適用
 2. api デプロイ
 3. web デプロイ
 
-この順序は固定で、崩してはいけない。
-
 - **マイグレーションが先**なのは、新しいカラムを読むコードを先に出すと、適用までの間だけ壊れた状態が生まれるため。
 - **api が web より先**なのは、web の service binding が worker 名（`stacx-api` / `stacx-api-staging`）を
   参照するため、api が存在しないとバインディングが壊れるため。
-
-staging を先に通す一番の目的は、**マイグレーションが失敗したときに production ジョブが実行されず、
-本番 D1 に一切触れないまま止まる**こと。
 
 必要な GitHub Secrets:
 
@@ -133,7 +139,9 @@ api は `wrangler deploy --env staging` で環境が切り替わるが、**web �
 
 ## D1 マイグレーション
 
-CD が staging → production の順で自動適用する。手で流す場合も同じ順序で行う。
+CD がデプロイ先の環境に対して自動適用する（`stg` → staging / `main` → production）。
+**ワークフロー側に「staging を先に通す」強制は無い**ため、`stg` → `main` の順で流すこと自体が
+リハーサルを保証している。手で流す場合も同じ順序で行う。
 
     # 未適用の一覧を確認
     pnpm --filter @stacx/api exec wrangler d1 migrations list stacx-db-staging --remote --env staging
@@ -186,13 +194,53 @@ redirect_uri は `${APP_BASE_URL}/api/auth/callback/google` として組み立�
 
 ---
 
-## ブランチ戦略（個人開発）
+## ブランチ戦略（stg → main）
 
-- `main`: 安定版、本番デプロイ対象
-- `feat/*`: 機能開発
-- `fix/*`: バグ修正
+| ブランチ | 役割 | デプロイ先 |
+|---|---|---|
+| `main` | 安定版 | **production** |
+| `stg` | リリース前の検証 | **staging** |
+| `feat/*` | 機能開発 | なし |
+| `fix/*` | バグ修正 | なし |
 
-PR を切らず直接 push でも問題ないが、後で経歴書に書く時に PR 履歴があると説明しやすい。
+### リリースの流れ
+
+```
+feat/* または fix/*
+      │  PR
+      ▼
+    stg  ──▶ CI 成功 ──▶ staging へ自動デプロイ
+      │                    │
+      │                    ▼
+      │              staging で動作確認（特に D1 マイグレーション）
+      │  PR
+      ▼
+    main ──▶ CI 成功 ──▶ production へ自動デプロイ
+```
+
+1. `feat/*` / `fix/*` で作業し、**`stg` へ PR を出してマージする**
+2. CI 成功で staging へ自動デプロイされる（マイグレーション → api → web）
+3. staging で動作確認する。**特にスキーマ変更を含む場合は必ずここで確認する**
+4. 問題なければ **`stg` から `main` へ PR を出してマージする**
+5. CI 成功で production へ自動デプロイされる
+
+### なぜ `main` へ直接入れてはいけないか
+
+CD の staging ジョブと production ジョブは**独立**していて、`needs` の依存関係が無い。
+つまり **`main` に直接入った変更は staging を経ずに本番 D1 へマイグレーションが当たる**。
+
+D1 のマイグレーションは**不可逆**（ロールバックできない）。破壊的な SQL を本番で初めて実行することに
+なるため、`stg` を飛ばさないことが唯一の防波堤になっている。
+
+現状これを止めているのは**この運用の約束のみで、仕組みでは担保されていない**。
+ブランチ保護や承認ゲートによる担保は #67 で検討中。
+
+### 例外を通す場合
+
+CI やドキュメントの修正など、D1 と Worker の挙動に影響しない変更に限り `main` へ直接出してよい。
+ただし判断に迷うものは `stg` を通す。**判断コストより事故のコストの方が高い**。
+
+PR を切らず直接 push でも技術的には動くが、後で経歴書に書く時に PR 履歴があると説明しやすい。
 
 ---
 
