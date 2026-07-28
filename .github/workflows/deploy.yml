@@ -1,0 +1,65 @@
+name: Deploy
+
+# CI（Biome / typecheck / test）が main で成功したときだけ本番へ出す。
+# push トリガーにして同じ検査を書き直すと二重実行になるため、CI の完了に相乗りする。
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+
+# デプロイは途中で止めない。api だけ出て web が出ていない状態を避けたいので
+# cancel-in-progress は false にし、続けて push があっても直列に流す。
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    # CI が失敗した commit を本番に出さない。workflow_run は失敗時にも発火するため必須。
+    if: github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    environment: production
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      # workflow_run の既定は default ブランチの HEAD なので、CI が通した commit を明示的に取る。
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      # 順序は api → web で固定する。web の service binding が worker 名 `stacx-api` を
+      # 参照するため、api が先に存在していないと web 側のバインディングが壊れる。
+      - name: Deploy API (stacx-api)
+        run: pnpm --filter @stacx/api run deploy:production
+
+      # `pnpm --filter <pkg> deploy` は pnpm 組み込みの deploy コマンドに解釈されるため、
+      # スクリプトを呼ぶときは run を挟む。web の deploy スクリプトが build も行う。
+      - name: Deploy Web (stacx)
+        run: pnpm --filter @stacx/web run deploy
+
+      - name: Summary
+        run: |
+          {
+            echo "### デプロイ完了"
+            echo ""
+            echo "- commit: \`${{ github.event.workflow_run.head_sha }}\`"
+            echo "- api: stacx-api"
+            echo "- web: https://stacx.itakai199969-e42.workers.dev"
+            echo ""
+            echo "> D1 のマイグレーションはこのワークフローでは適用していない。"
+            echo "> スキーマ変更を含むリリースでは \`pnpm --filter @stacx/api exec wrangler d1 migrations apply stacx-db --remote\` を手動で実行すること。"
+          } >> "$GITHUB_STEP_SUMMARY"

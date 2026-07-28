@@ -59,16 +59,55 @@
 
 ## デプロイ
 
-### API（Cloudflare Workers）
+api / web とも **Cloudflare Workers**（web も Pages ではなく Workers。`packages/web/workers/app.ts` がエントリ）。
 
-    pnpm --filter @stacx/api deploy
+### 自動デプロイ（既定）
 
-### Web（Cloudflare Pages）
+`main` への push で CI（Biome / typecheck / test）が通ると、`.github/workflows/deploy.yml` が
+**api → web の順**に本番へデプロイする。この順序は固定で、崩してはいけない。
+web の service binding が worker 名 `stacx-api` を参照するため、api が先に存在しないと
+バインディングが壊れる。
 
-- GitHub と連携した自動デプロイを推奨
-- `packages/web` のビルド設定:
-  - Build command: `pnpm --filter @stacx/web build`
-  - Output directory: `packages/web/build/client`
+必要な GitHub Secrets:
+
+| 名前 | 用途 |
+|---|---|
+| `CLOUDFLARE_API_TOKEN` | Workers / D1 の編集権限を持つ API トークン |
+| `CLOUDFLARE_ACCOUNT_ID` | 対象アカウント ID |
+
+### 手動デプロイ
+
+    pnpm --filter @stacx/api run deploy:production   # wrangler deploy --env production
+    pnpm --filter @stacx/web run deploy              # build して wrangler deploy
+
+`pnpm --filter <pkg> deploy` は pnpm 組み込みの `deploy` コマンドとして解釈されるため、
+スクリプトを呼ぶときは **`run` を挟む**こと。
+
+### PR プレビュー
+
+PR を開くと `.github/workflows/preview.yml` が `wrangler versions upload` でバージョンを
+アップロードし、プレビュー URL を PR にコメントする。**本番の配信は現行バージョンのまま**変わらない。
+URL は `<branch>-<worker-name>.<subdomain>.workers.dev` で、同じブランチに commit を足しても変わらない。
+
+**プレビューは本番 D1 に接続する。** バージョンが保持するのはコード・設定・バインディングまでで、
+D1 の中身はバージョン管理されない。破壊的な書き込みを含む変更をプレビュー URL で試すと本番データに影響する。
+また web のプレビューが呼ぶ api は **本番にデプロイ済みのバージョン**（service binding が名前参照のため）。
+
+---
+
+## D1 マイグレーション（本番）
+
+**CD では自動適用しない。** ステージング用の D1 が存在せず、リモートの D1 は本番の 1 個だけなので、
+リハーサルできないまま CI から不可逆な変更が走るのを避けている。
+
+スキーマ変更を含むリリースでは、デプロイとは別に手動で実行する。
+
+    # 適用前に必ず内容を確認する
+    pnpm --filter @stacx/api exec wrangler d1 migrations list stacx-db --remote
+    pnpm --filter @stacx/api exec wrangler d1 migrations apply stacx-db --remote
+
+順序は「マイグレーション適用 → デプロイ」。新しいカラムを読むコードを先に出すと、
+適用までの間だけ本番が壊れる。
 
 ---
 
@@ -76,8 +115,11 @@
 
     # 本番 secret 登録 (packages/api 配下で実行)
     cd packages/api
-    npx wrangler secret put GOOGLE_CLIENT_ID
-    npx wrangler secret put GOOGLE_CLIENT_SECRET
+    npx wrangler secret put GOOGLE_CLIENT_ID --env production
+    npx wrangler secret put GOOGLE_CLIENT_SECRET --env production
+
+`--env production` を付けるのは、本番の worker が `[env.production]` 側の設定で動くため。
+省くと既定環境に登録され、本番からは参照できない。
 
 ローカルは `packages/api/.dev.vars` に記述（Git 管理外）。
 
