@@ -8,8 +8,6 @@
     "dev:api": "pnpm --filter @stacx/api dev",
     "dev:web": "pnpm --filter @stacx/web dev",
     "build": "pnpm -r build",
-    "deploy:staging": "pnpm --filter @stacx/api run deploy:staging && pnpm --filter @stacx/web run deploy:staging",
-    "deploy:production": "pnpm --filter @stacx/api run deploy:production && pnpm --filter @stacx/web run deploy",
     "lint": "biome lint .",
     "format": "biome format --write .",
     "check": "biome check --write .",

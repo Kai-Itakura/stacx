@@ -54,9 +54,13 @@ jobs:
       - name: Apply D1 migrations (staging)
         run: pnpm --filter @stacx/api exec wrangler d1 migrations apply stacx-db-staging --remote --env staging
 
-      # api → web の順で直列デプロイ（root の deploy:staging スクリプトが && で保証）。
-      - name: Deploy API → Web (staging)
-        run: pnpm run deploy:staging
+      # 順序は api → web で固定する。web の service binding が worker 名
+      # `stacx-api-staging` を参照するため、api が先に無いとバインディングが壊れる。
+      - name: Deploy API (stacx-api-staging)
+        run: pnpm --filter @stacx/api run deploy:staging
+
+      - name: Deploy Web (stacx-staging)
+        run: pnpm --filter @stacx/web run deploy:staging
 
       - name: Summary
         run: |
@@ -107,9 +111,11 @@ jobs:
       - name: Apply D1 migrations (production)
         run: pnpm --filter @stacx/api exec wrangler d1 migrations apply stacx-db --remote --env production
 
-      # api → web の順で直列デプロイ（root の deploy:production スクリプトが && で保証）。
-      - name: Deploy API → Web (production)
-        run: pnpm run deploy:production
+      - name: Deploy API (stacx-api)
+        run: pnpm --filter @stacx/api run deploy:production
+
+      - name: Deploy Web (stacx)
+        run: pnpm --filter @stacx/web run deploy
 
       - name: Summary
         run: |
