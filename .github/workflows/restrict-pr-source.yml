@@ -1,0 +1,60 @@
+name: Restrict PR source branch
+
+# main へは stg からのみマージする運用を、仕組みで担保する。
+#
+# CD の staging ジョブと production ジョブには needs の依存が無いため（#63）、
+# main へ直接入った変更は staging を経ずに本番 D1 へマイグレーションが当たる。
+# D1 は不可逆（ロールバックできない）なので、stg を飛ばさないことが唯一の防波堤になっている。
+# それを人の約束だけに委ねないためのチェック（#67）。
+on:
+  pull_request:
+    branches: [main]
+    types:
+      - opened
+      - reopened
+      - synchronize
+      # base ブランチの付け替えは edited で通知される。別 base で開いた PR を後から
+      # main に向け直す経路を塞ぐために必要。
+      - edited
+      # hotfix ラベルの付け外しで再評価させる。label 系イベントを入れないと、
+      # ラベルを付けても赤いままで解除できない。
+      - labeled
+      - unlabeled
+
+jobs:
+  # このジョブ名を Settings → Branches の required status check に指定して初めて強制力を持つ。
+  # 指定しないと「赤くなるがマージはできる」状態にしかならない。
+  check-source-branch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: head ブランチが stg か確認
+        env:
+          # ${{ }} を run に直接埋め込むと、ブランチ名を経由してシェルへコードを注入されうる。
+          # ブランチ名には `$( )` やバッククォートを含められるため、必ず env を介して渡す。
+          HEAD_REF: ${{ github.head_ref }}
+          HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+          # 緊急時の逃げ道。stg に無関係な未完了の変更が乗っていると hotfix を出せなくなり、
+          # 結果として保護そのものを外す判断に傾きやすい。明示的な例外を用意しておく。
+          HAS_HOTFIX_LABEL: ${{ contains(github.event.pull_request.labels.*.name, 'hotfix') }}
+        run: |
+          # fork の stg からでも head_ref は "stg" になるため、リポジトリも併せて確認する。
+          if [ "$HEAD_REF" = "stg" ] && [ "$HEAD_REPO" = "$GITHUB_REPOSITORY" ]; then
+            echo "✅ stg からの PR。staging での確認を経ている前提で main へ進める。"
+            exit 0
+          fi
+
+          if [ "$HAS_HOTFIX_LABEL" = "true" ]; then
+            echo "::warning::hotfix ラベルにより stg 経由を迂回しています (head: $HEAD_REF)。staging での動作確認を経ていないため、D1 マイグレーションを含む変更では特に慎重に。"
+            exit 0
+          fi
+
+          echo "::error::main への PR は stg からのみ許可されています (現在の head: $HEAD_REF)"
+          echo ""
+          echo "対応:"
+          echo "  1. この PR の base を stg に変更する"
+          echo "  2. stg へマージし、staging (https://stacx-staging.itakai199969-e42.workers.dev) で動作確認する"
+          echo "  3. stg から main へ PR を出す"
+          echo ""
+          echo "緊急時に staging を飛ばす必要がある場合は、この PR に hotfix ラベルを付ける。"
+          echo "詳細: docs/06-development.md のブランチ戦略を参照。"
+          exit 1
