@@ -1,6 +1,6 @@
 import { FolderKanban, LogOut, NotebookText, PenLine } from "lucide-react";
 import type { ReactNode } from "react";
-import { Form, NavLink } from "react-router";
+import { Form, Link, NavLink } from "react-router";
 import { ThemeToggle } from "~/components/theme-toggle";
 import { Button } from "~/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "~/components/ui/sheet";
@@ -21,7 +21,10 @@ export function AppLayout({ user, children }: { user: User; children: ReactNode 
     <div className="flex min-h-svh flex-col">
       {/* ─── Top header ─── */}
       <header className="bg-background/80 border-b sticky top-0 z-30 flex h-14 items-center px-4 backdrop-blur-sm">
-        <span className="font-semibold tracking-tight">StacX</span>
+        <Link to="/" className="flex items-center gap-2">
+          <img src="/favicon.svg" alt="StacX" className="h-7 w-7 rounded-md" />
+          <span className="font-semibold tracking-tight">StacX</span>
+        </Link>
 
         {/* Desktop nav (md+) */}
         <nav className="ml-6 hidden items-center gap-1 md:flex">
