@@ -102,28 +102,31 @@ export function AppLayout({ user, children }: { user: User; children: ReactNode 
       </header>
 
       {/* ─── Page content ─── */}
-      {/* pb-20 on mobile clears the fixed bottom tab bar */}
-      <div className="flex-1 pb-20 md:pb-0">{children}</div>
+      {/* pb-28 on mobile clears the floating bottom tab bar */}
+      <div className="flex-1 pb-28 md:pb-0">{children}</div>
 
-      {/* ─── Bottom tab bar (mobile only, Slack-style pill active state) ─── */}
+      {/* ─── Bottom tab bar (mobile only, floating glass pill) ─── */}
+      {/* inset-x-4: 左右に 16px のマージンを取って浮かせる。bottom は safe area の上に 12px 追加 */}
       <nav
-        className="bg-background/90 border-t fixed inset-x-0 bottom-0 z-30 flex h-16 items-center justify-around px-2 backdrop-blur-sm md:hidden"
-        style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+        className="fixed inset-x-4 z-30 md:hidden"
+        style={{ bottom: "calc(0.75rem + env(safe-area-inset-bottom))" }}
       >
-        {NAV_ITEMS.map(({ to, tabLabel, icon: Icon, end }) => (
-          <NavLink key={to} to={to} end={end} className="flex items-center justify-center">
-            {({ isActive }) => (
-              <span
-                className={`flex flex-col items-center gap-0.5 rounded-2xl px-5 py-1.5 transition-colors ${
-                  isActive ? "bg-muted text-foreground" : "text-muted-foreground"
-                }`}
-              >
-                <Icon strokeWidth={isActive ? 2.5 : 2} className="h-5 w-5" />
-                <span className="text-[10px] leading-none">{tabLabel}</span>
-              </span>
-            )}
-          </NavLink>
-        ))}
+        <div className="bg-background/70 border-border/40 flex h-14 items-center justify-around rounded-full border px-2 shadow-xl shadow-black/10 backdrop-blur-xl">
+          {NAV_ITEMS.map(({ to, tabLabel, icon: Icon, end }) => (
+            <NavLink key={to} to={to} end={end} className="flex items-center justify-center">
+              {({ isActive }) => (
+                <span
+                  className={`flex flex-col items-center gap-0.5 rounded-full px-5 py-1.5 transition-colors ${
+                    isActive ? "bg-muted text-foreground" : "text-muted-foreground"
+                  }`}
+                >
+                  <Icon strokeWidth={isActive ? 2.5 : 2} className="h-5 w-5" />
+                  <span className="text-[10px] leading-none">{tabLabel}</span>
+                </span>
+              )}
+            </NavLink>
+          ))}
+        </div>
       </nav>
     </div>
   );
