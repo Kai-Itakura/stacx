@@ -9,6 +9,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "deploy": "pnpm run build && wrangler deploy",
+    "deploy:staging": "CLOUDFLARE_ENV=staging pnpm run build && wrangler deploy --env staging",
     "preview": "pnpm run build && vite preview",
     "cf-typegen": "wrangler types",
     "postinstall": "wrangler types"
