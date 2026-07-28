@@ -33,7 +33,7 @@ database_name = "stacx-db-staging"
 # `wrangler d1 create stacx-db-staging` で払い出した ID に置き換える。
 # 未設定のままだと wrangler がエラーで止まる（本番 DB に誤接続するより落ちる方が安全なので、
 # 値を空にせずプレースホルダを残している）。
-database_id = "REPLACE_WITH_STAGING_D1_DATABASE_ID"
+database_id = "c9bb4333-2943-4ebc-8d60-725a162c7f69"
 migrations_dir = "src/db/migrations"
 
 # 本番デプロイ用の環境（`wrangler deploy --env production`）。
