@@ -14,7 +14,21 @@
   "compatibility_flags": ["nodejs_compat"],
   // web worker から API worker(stacx-api) を同一オリジンで叩くためのサービスバインディング。
   // /api/* の中継（workers/app.ts）と SSR loader/action の型付きクライアントが利用する。
-  "services": [{ "binding": "API", "service": "stacx-api" }]
+  "services": [{ "binding": "API", "service": "stacx-api" }],
+  // 検証用の環境。
+  // env は top-level のバインディングを継承しないため services を再掲する。ここを書き忘れると
+  // staging の web が本番 api(stacx-api) を叩き、本番 D1 に繋がってしまう＝staging の意味が消える。
+  //
+  // 重要: web は環境が **ビルド時** に確定する。react-router build（@cloudflare/vite-plugin）が
+  // この設定を解決して build/server/wrangler.json を生成し、wrangler deploy はそれを使うため、
+  // `wrangler deploy --env staging` だけでは効かず top-level（=本番）のまま出てしまう。
+  // ビルド時に CLOUDFLARE_ENV=staging を渡すこと（package.json の deploy:staging を参照）。
+  "env": {
+    "staging": {
+      "name": "stacx-staging",
+      "services": [{ "binding": "API", "service": "stacx-api-staging" }]
+    }
+  }
   /**
    * Smart Placement
    * https://developers.cloudflare.com/workers/configuration/smart-placement/#smart-placement

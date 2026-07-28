@@ -14,6 +14,28 @@ migrations_dir = "src/db/migrations"
 [dev]
 port = 8787
 
+# 検証用の環境（`wrangler deploy --env staging`）。
+# 本番と同じ手順・同じ形で動かし、マイグレーションを本番より先に当てて壊れないことを確かめる場所。
+# D1 は本番と必ず別データベースにする（ここを本番と同じ database_id にすると staging の意味が消える）。
+# APP_BASE_URL は staging の web worker（stacx-staging）の URL。
+# GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET は staging 用に別途登録が必要
+# （`wrangler secret put ... --env staging`）。加えて Google Cloud Console 側で
+# `<APP_BASE_URL>/api/auth/callback/google` を承認済みリダイレクト URI に追加しないとログインできない。
+[env.staging]
+name = "stacx-api-staging"
+
+[env.staging.vars]
+APP_BASE_URL = "https://stacx-staging.itakai199969-e42.workers.dev"
+
+[[env.staging.d1_databases]]
+binding = "DB"
+database_name = "stacx-db-staging"
+# `wrangler d1 create stacx-db-staging` で払い出した ID に置き換える。
+# 未設定のままだと wrangler がエラーで止まる（本番 DB に誤接続するより落ちる方が安全なので、
+# 値を空にせずプレースホルダを残している）。
+database_id = "REPLACE_WITH_STAGING_D1_DATABASE_ID"
+migrations_dir = "src/db/migrations"
+
 # 本番デプロイ用の環境（`wrangler deploy --env production`）。
 # env セクションは top-level のバインディング/名前を継承しないため再掲する。
 # name を明示して worker 名を stacx-api に固定する（web の service binding が名前参照するため、

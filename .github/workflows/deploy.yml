@@ -1,0 +1,118 @@
+name: Deploy
+
+# CI（Biome / typecheck / test）が main で成功したときだけ出す。
+# push トリガーにして同じ検査を書き直すと二重実行になるため、CI の完了に相乗りする。
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+
+# デプロイは途中で止めない。api だけ出て web が出ていない状態や、
+# マイグレーションだけ当たってデプロイが中断した状態を避ける。
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+jobs:
+  # staging を先に通す。ここでマイグレーションが失敗すれば production ジョブは実行されず、
+  # 本番 D1 には一切触れないまま止まる。これが staging を挟む一番の目的。
+  staging:
+    # CI が失敗した commit を出さない。workflow_run は失敗時にも発火するため必須。
+    if: github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    environment: staging
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      # workflow_run の既定は default ブランチの HEAD なので、CI が通した commit を明示的に取る。
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      # 適用前に未適用の一覧をログへ残す。何が当たったかを後から追えるようにするため。
+      # 失敗しても本体を止めない（一覧が取れないことは適用の可否と無関係）。
+      - name: List pending migrations (staging)
+        continue-on-error: true
+        run: pnpm --filter @stacx/api exec wrangler d1 migrations list stacx-db-staging --remote --env staging
+
+      # マイグレーションはデプロイより先。新しいカラムを読むコードを先に出すと、
+      # 適用までの間だけ壊れた状態が生まれる。
+      - name: Apply D1 migrations (staging)
+        run: pnpm --filter @stacx/api exec wrangler d1 migrations apply stacx-db-staging --remote --env staging
+
+      # 順序は api → web で固定する。web の service binding が worker 名
+      # `stacx-api-staging` を参照するため、api が先に無いとバインディングが壊れる。
+      - name: Deploy API (stacx-api-staging)
+        run: pnpm --filter @stacx/api run deploy:staging
+
+      # `pnpm --filter <pkg> deploy` は pnpm 組み込みの deploy コマンドに解釈されるため、
+      # スクリプトを呼ぶときは run を挟む。web の deploy スクリプトが build も行う。
+      - name: Deploy Web (stacx-staging)
+        run: pnpm --filter @stacx/web run deploy:staging
+
+  production:
+    # staging が緑のときだけ本番へ進む。
+    needs: staging
+    runs-on: ubuntu-latest
+    # GitHub の Settings → Environments で production に承認者を設定すれば、
+    # ワークフローを変更せずここを手動承認ゲートにできる。
+    environment: production
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: List pending migrations (production)
+        continue-on-error: true
+        run: pnpm --filter @stacx/api exec wrangler d1 migrations list stacx-db --remote --env production
+
+      # staging で同じ SQL が通っていることが前提。ここで初めて本番 D1 に触れる。
+      - name: Apply D1 migrations (production)
+        run: pnpm --filter @stacx/api exec wrangler d1 migrations apply stacx-db --remote --env production
+
+      - name: Deploy API (stacx-api)
+        run: pnpm --filter @stacx/api run deploy:production
+
+      - name: Deploy Web (stacx)
+        run: pnpm --filter @stacx/web run deploy
+
+      - name: Summary
+        run: |
+          {
+            echo "### デプロイ完了"
+            echo ""
+            echo "- commit: \`${{ github.event.workflow_run.head_sha }}\`"
+            echo "- staging: https://stacx-staging.itakai199969-e42.workers.dev"
+            echo "- production: https://stacx.itakai199969-e42.workers.dev"
+            echo ""
+            echo "D1 マイグレーションは staging → production の順で適用済み。"
+          } >> "$GITHUB_STEP_SUMMARY"
