@@ -1,5 +1,10 @@
 # Cloudflare Pages（web）と Workers（api）を path 分割で同一オリジン配置する
 
+> **Superseded by [ADR 0006](./0006-web-on-workers-with-service-binding.md)。**
+> web は Pages ではなく Workers にデプロイし、同一オリジンは path 分割ではなく
+> Service Binding による中継で実現する構成に変更された。
+> 以下は当時の決定の記録であり、現状の構成ではない。
+
 個人ツールとしての運用負荷最小化と GitHub 連携デプロイ・プレビュー URL 利用を優先し、web は Cloudflare Pages、api は Cloudflare Workers に分離する。カスタムドメイン `stacx.dev` の `/api/*` を Workers にルーティング、それ以外を Pages にルーティングする path 分割構成を採用し、ブラウザから見ると同一オリジンとする（Cookie / CORS の煩雑さを回避）。
 
 ## Considered Options

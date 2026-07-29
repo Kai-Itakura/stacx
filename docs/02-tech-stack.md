@@ -15,7 +15,7 @@
 | データベース | Cloudflare D1（SQLite） |
 | ORM | Drizzle ORM |
 | 認証 | OIDC（Google）+ arctic + 自前セッション管理 |
-| ホスティング | Cloudflare Pages + Cloudflare Workers |
+| ホスティング | Cloudflare Workers（web / api とも。Service Binding で接続 / ADR 0006） |
 | パッケージ管理 | pnpm workspace |
 
 ---
