@@ -37,9 +37,9 @@ stacx/
 
 ユーザー (PC / スマホ)
 　↓ HTTPS
-Cloudflare Pages (React Router v7 SSR/CSR)
-　↓ Hono RPC (fetch)
-Cloudflare Workers (Hono API)
+web worker "stacx" (Cloudflare Workers / React Router v7 SSR/CSR)
+　↓ Service Binding (env.API) — 公開網を経由しない worker 間の直接呼び出し
+api worker "stacx-api" (Cloudflare Workers / Hono API)
 　├─ 認証ミドルウェア
 　├─ ルーティング
 　└─ ビジネスロジック
@@ -130,7 +130,7 @@ Cloudflare Workers ⇄ Google IdP (OIDC)
 
 ### packages/web
 
-web からの API 呼び出しはすべて相対パス (`/api/...`) で行う。ローカル開発時は Vite の dev proxy で `/api/*` を wrangler dev (`http://localhost:8787`) に転送し、ブラウザから見た同一オリジン挙動を本番 (`stacx.dev/*` Pages, `stacx.dev/api/*` Workers) と一致させる。
+web からの API 呼び出しはすべて相対パス (`/api/...`) で行う。本番ではブラウザからの `/api/*` を web worker (`stacx`) が受け、Service Binding 経由で api worker (`stacx-api`) へ中継するため単一オリジンで完結する（ADR 0006）。ローカル開発時は Vite の dev proxy で `/api/*` を wrangler dev (`http://localhost:8787`) に転送し、同じ同一オリジン挙動を再現する。
 
     // packages/web/vite.config.ts
     export default defineConfig({
