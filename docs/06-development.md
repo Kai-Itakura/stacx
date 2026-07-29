@@ -49,8 +49,9 @@
     # ローカル D1 に適用
     pnpm --filter @stacx/api db:migrate:local
 
-    # 本番 D1 に適用
-    pnpm --filter @stacx/api db:migrate:remote
+    # staging / production の D1 に適用（対象を取り違えないよう環境を名前に含めている）
+    pnpm --filter @stacx/api db:migrate:staging
+    pnpm --filter @stacx/api db:migrate:production
 
     # DB を直接クエリ（デバッグ用）
     cd packages/api && npx wrangler d1 execute stacx-db --local --command="SELECT * FROM users"

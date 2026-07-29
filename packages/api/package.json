@@ -21,7 +21,6 @@
     "test:coverage": "vitest run --coverage",
     "db:generate": "drizzle-kit generate",
     "db:migrate:local": "wrangler d1 migrations apply stacx-db --local",
-    "db:migrate:remote": "wrangler d1 migrations apply stacx-db --remote",
     "db:migrate:staging": "wrangler d1 migrations apply stacx-db-staging --remote --env staging",
     "db:migrate:production": "wrangler d1 migrations apply stacx-db --remote --env production",
     "db:view-schema": "drizzle-kit studio"

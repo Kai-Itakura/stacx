@@ -72,8 +72,9 @@ pnpm db:migrate:production
 
 > **D1 は環境ごとに別インスタンス。** staging を用意した際に production と別 DB
 > （`stacx-db-staging`）へ分けたため、マイグレーションは環境ごとに実行する必要がある。
-> `--env` を省いた `db:migrate:remote` は既定環境（＝production と同じ D1）を見るので、
-> 意図を明示する `db:migrate:production` / `db:migrate:staging` を使う。
+> スクリプトは対象を取り違えないよう `db:migrate:production` / `db:migrate:staging` と
+> 環境を名前に含めている（`--env` を省いた `db:migrate:remote` は「どちらの D1 か」が
+> 名前から読み取れないため削除した）。
 
 ---
 
