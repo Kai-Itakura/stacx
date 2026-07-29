@@ -1,9 +1,17 @@
 import { FolderKanban, LogOut, NotebookText, PenLine } from "lucide-react";
 import type { ReactNode } from "react";
 import { Form, Link, NavLink } from "react-router";
-import { ThemeToggle } from "~/components/theme-toggle";
+import { THEME_ICON, ThemeToggle } from "~/components/theme-toggle";
 import { Button } from "~/components/ui/button";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "~/components/ui/sheet";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "~/components/ui/dropdown-menu";
+import { THEME_ICON_LABEL, useTheme } from "~/lib/use-theme";
 
 type User = { name: string | null; email: string | null };
 
@@ -12,6 +20,72 @@ const NAV_ITEMS = [
   { to: "/memos", label: "メモ一覧", tabLabel: "一覧", icon: NotebookText, end: false },
   { to: "/projects", label: "プロジェクト", tabLabel: "PJ", icon: FolderKanban, end: false },
 ] as const;
+
+/**
+ * モバイルのユーザーメニュー。トリガー（ヘッダー右上のアバター）の直下に開く。
+ *
+ * 以前は bottom sheet だったが、画面最上部のトリガーに対して画面下部から出るため
+ * 視線と指の移動が最大化されていた。項目もテーマとログアウトの 2 つだけで、
+ * sheet を使うほどの分量ではない。
+ */
+function UserMenu({
+  displayName,
+  email,
+  initial,
+}: {
+  displayName: string;
+  email: string | null;
+  initial: string;
+}) {
+  const { theme, cycle } = useTheme();
+  const ThemeIcon = THEME_ICON[theme];
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button
+          type="button"
+          className="bg-primary text-primary-foreground flex h-8 w-8 items-center justify-center rounded-full text-sm font-semibold md:hidden"
+          aria-label="ユーザーメニューを開く"
+        >
+          {initial}
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="md:hidden">
+        <DropdownMenuLabel>
+          <p className="truncate font-medium">{displayName}</p>
+          {email && email !== displayName && (
+            <p className="text-muted-foreground truncate text-xs">{email}</p>
+          )}
+        </DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        {/* テーマは循環切り替えなので、選択してもメニューを閉じない。
+            連続で切り替えられるようにするため preventDefault する。 */}
+        <DropdownMenuItem
+          onSelect={(e) => {
+            e.preventDefault();
+            cycle();
+          }}
+        >
+          <ThemeIcon />
+          <span>テーマ</span>
+          <span className="text-muted-foreground ml-auto text-xs">{THEME_ICON_LABEL[theme]}</span>
+        </DropdownMenuItem>
+        {/* menuitem は form ではなく submit ボタン側に付ける。
+            form を asChild にすると、Radix が Enter で要素を click しても
+            form の click は submit にならず、キーボードから実行できなくなる。 */}
+        <Form method="post" action="/api/auth/logout">
+          <DropdownMenuItem asChild className="text-destructive focus:text-destructive">
+            <button type="submit" className="w-full">
+              <LogOut />
+              ログアウト
+            </button>
+          </DropdownMenuItem>
+        </Form>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
 
 export function AppLayout({ user, children }: { user: User; children: ReactNode }) {
   const displayName = user.name ?? user.email ?? "ゲスト";
@@ -58,49 +132,8 @@ export function AppLayout({ user, children }: { user: User; children: ReactNode 
             </Form>
           </div>
 
-          {/* Mobile: user avatar → Sheet */}
-          <Sheet>
-            <SheetTrigger asChild>
-              <button
-                type="button"
-                className="bg-primary text-primary-foreground flex h-8 w-8 items-center justify-center rounded-full text-sm font-semibold md:hidden"
-                aria-label="ユーザーメニューを開く"
-              >
-                {initial}
-              </button>
-            </SheetTrigger>
-            <SheetContent side="bottom" className="rounded-t-2xl pb-10">
-              <SheetHeader className="mb-4 border-b pb-4">
-                <div className="flex items-center gap-3">
-                  <div className="bg-primary text-primary-foreground flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-semibold">
-                    {initial}
-                  </div>
-                  <div className="min-w-0 text-left">
-                    <SheetTitle className="truncate text-sm font-medium">{displayName}</SheetTitle>
-                    {user.name && user.email && (
-                      <p className="text-muted-foreground truncate text-xs">{user.email}</p>
-                    )}
-                  </div>
-                </div>
-              </SheetHeader>
-              <div className="flex flex-col gap-2">
-                <div className="flex items-center justify-between px-1 py-2">
-                  <span className="text-sm">テーマ</span>
-                  <ThemeToggle />
-                </div>
-                <Form method="post" action="/api/auth/logout">
-                  <Button
-                    type="submit"
-                    variant="ghost"
-                    className="text-destructive hover:text-destructive w-full justify-start gap-2"
-                  >
-                    <LogOut className="h-4 w-4" />
-                    ログアウト
-                  </Button>
-                </Form>
-              </div>
-            </SheetContent>
-          </Sheet>
+          {/* Mobile: user avatar → DropdownMenu（トリガーの直下に開く） */}
+          <UserMenu displayName={displayName} email={user.email} initial={initial} />
         </div>
       </header>
 
