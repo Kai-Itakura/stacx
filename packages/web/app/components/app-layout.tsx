@@ -59,8 +59,6 @@ function UserMenu({
           )}
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        {/* テーマは循環切り替えなので、選択してもメニューを閉じない。
-            連続で切り替えられるようにするため preventDefault する。 */}
         <DropdownMenuItem
           onSelect={(e) => {
             e.preventDefault();
@@ -71,9 +69,6 @@ function UserMenu({
           <span>テーマ</span>
           <span className="text-muted-foreground ml-auto text-xs">{THEME_ICON_LABEL[theme]}</span>
         </DropdownMenuItem>
-        {/* menuitem は form ではなく submit ボタン側に付ける。
-            form を asChild にすると、Radix が Enter で要素を click しても
-            form の click は submit にならず、キーボードから実行できなくなる。 */}
         <Form method="post" action="/api/auth/logout">
           <DropdownMenuItem asChild className="text-destructive focus:text-destructive">
             <button type="submit" className="w-full">
