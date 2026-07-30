@@ -41,7 +41,7 @@ export function ProjectForm({ project, submitLabel }: ProjectFormProps) {
           role: project.role ?? "",
         }
       : undefined,
-    shouldValidate: "onBlur",
+    shouldValidate: "onSubmit",
     shouldRevalidate: "onInput",
     onValidate: ({ formData }) => parseWithZod(formData, { schema: projectFormSchema }),
   });

@@ -13,7 +13,7 @@ export function EmptyProjectState() {
   const [form, fields] = useForm({
     lastResult: projectFetcher.data,
     constraint: getZodConstraint(projectFormSchema),
-    shouldValidate: "onBlur",
+    shouldValidate: "onSubmit",
     shouldRevalidate: "onInput",
     onValidate: ({ formData }) => parseWithZod(formData, { schema: projectFormSchema }),
   });
