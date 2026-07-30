@@ -41,7 +41,8 @@ export function ProjectForm({ project, submitLabel }: ProjectFormProps) {
           role: project.role ?? "",
         }
       : undefined,
-    shouldValidate: "onBlur",
+    // 検証タイミングは画面間で揃える（#83）。詳細は quick-intake.tsx のコメント参照。
+    shouldValidate: "onSubmit",
     shouldRevalidate: "onInput",
     onValidate: ({ formData }) => parseWithZod(formData, { schema: projectFormSchema }),
   });
