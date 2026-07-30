@@ -33,9 +33,6 @@ export function QuickIntake({ projects, tags }: QuickIntakeProps) {
     lastResult: memoFetcher.data,
     constraint: getZodConstraint(memoFormSchema),
     defaultValue: { projectId: defaultProjectId },
-    // 初回は送信時まで検証しない。触って離れただけでエラーを出すと、書き始めた直後に
-    // 赤字が出て体験が悪い（#83）。一度エラーが出た後は onInput で即座に消えるので、
-    // 修正中のフィードバックは最速のまま保てる。
     shouldValidate: "onSubmit",
     shouldRevalidate: "onInput",
     onValidate: ({ formData }) => parseWithZod(formData, { schema: memoFormSchema }),

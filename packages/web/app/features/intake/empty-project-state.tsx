@@ -13,7 +13,6 @@ export function EmptyProjectState() {
   const [form, fields] = useForm({
     lastResult: projectFetcher.data,
     constraint: getZodConstraint(projectFormSchema),
-    // 検証タイミングは画面間で揃える（#83）。詳細は quick-intake.tsx のコメント参照。
     shouldValidate: "onSubmit",
     shouldRevalidate: "onInput",
     onValidate: ({ formData }) => parseWithZod(formData, { schema: projectFormSchema }),
