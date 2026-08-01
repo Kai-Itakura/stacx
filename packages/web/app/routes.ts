@@ -14,5 +14,6 @@ export default [
     route("tags/create", "resources/create-tag.ts"),
     route("projects/create", "resources/create-project.ts"),
     route("memos/create", "resources/create-memo.ts"),
+    route("logout", "resources/logout.ts"),
   ]),
 ] satisfies RouteConfig;
