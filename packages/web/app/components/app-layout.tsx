@@ -1,6 +1,6 @@
 import { FolderKanban, LogOut, NotebookText, PenLine } from "lucide-react";
 import type { ReactNode } from "react";
-import { Form, Link, NavLink } from "react-router";
+import { Link, NavLink } from "react-router";
 import { THEME_ICON, ThemeToggle } from "~/components/theme-toggle";
 import { Button } from "~/components/ui/button";
 import {
@@ -69,14 +69,14 @@ function UserMenu({
           <span>テーマ</span>
           <span className="text-muted-foreground ml-auto text-xs">{THEME_ICON_LABEL[theme]}</span>
         </DropdownMenuItem>
-        <Form method="post" action="/api/auth/logout">
+        <form method="post" action="/resources/logout">
           <DropdownMenuItem asChild className="text-destructive focus:text-destructive">
             <button type="submit" className="w-full">
               <LogOut />
               ログアウト
             </button>
           </DropdownMenuItem>
-        </Form>
+        </form>
       </DropdownMenuContent>
     </DropdownMenu>
   );
@@ -120,11 +120,11 @@ export function AppLayout({ user, children }: { user: User; children: ReactNode 
           <div className="hidden items-center gap-2 md:flex">
             <ThemeToggle />
             <span className="text-muted-foreground text-sm">{displayName}</span>
-            <Form method="post" action="/api/auth/logout">
+            <form method="post" action="/resources/logout">
               <Button type="submit" variant="outline" size="sm">
                 ログアウト
               </Button>
-            </Form>
+            </form>
           </div>
 
           {/* Mobile: user avatar → DropdownMenu（トリガーの直下に開く） */}
