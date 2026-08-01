@@ -142,7 +142,7 @@ export function AppLayout({ user, children }: { user: User; children: ReactNode 
         className="fixed inset-x-4 z-30 md:hidden"
         style={{ bottom: "calc(0.75rem + env(safe-area-inset-bottom))" }}
       >
-        <div className="bg-background/70 border-border/40 flex h-14 items-center justify-around rounded-full border px-2 shadow-xl shadow-black/10 backdrop-blur-xl">
+        <div className="bg-background/50 border-border/40 flex h-14 items-center justify-around rounded-full border px-2 shadow-xl shadow-black/10 backdrop-blur-xl">
           {NAV_ITEMS.map(({ to, tabLabel, icon: Icon, end }) => (
             <NavLink key={to} to={to} end={end} className="flex items-center justify-center">
               {({ isActive }) => (
