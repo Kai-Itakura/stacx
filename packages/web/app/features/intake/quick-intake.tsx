@@ -33,7 +33,7 @@ export function QuickIntake({ projects, tags }: QuickIntakeProps) {
     lastResult: memoFetcher.data,
     constraint: getZodConstraint(memoFormSchema),
     defaultValue: { projectId: defaultProjectId },
-    shouldValidate: "onBlur",
+    shouldValidate: "onSubmit",
     shouldRevalidate: "onInput",
     onValidate: ({ formData }) => parseWithZod(formData, { schema: memoFormSchema }),
   });
