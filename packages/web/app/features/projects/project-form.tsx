@@ -67,7 +67,7 @@ export function ProjectForm({ project, submitLabel }: ProjectFormProps) {
         <Input {...getInputProps(fields.name, { type: "text" })} autoFocus />
       </Field>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <Field htmlFor={fields.startDate.id} label="開始日" errors={fields.startDate.errors}>
           <Input {...getInputProps(fields.startDate, { type: "date" })} />
         </Field>
@@ -89,7 +89,7 @@ export function ProjectForm({ project, submitLabel }: ProjectFormProps) {
         />
       </Field>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <Field htmlFor={fields.teamSize.id} label="チーム規模" errors={fields.teamSize.errors}>
           <Input {...getInputProps(fields.teamSize, { type: "number" })} min={1} />
         </Field>
