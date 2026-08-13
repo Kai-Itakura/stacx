@@ -1,5 +1,7 @@
 import { Hono } from "hono";
 import { authMiddleware } from "../auth/index";
+import { upsertStarSchema } from "../star/request-schema";
+import { getStarLog, upsertStarLog } from "../star/star";
 import type { AppEnv } from "../types";
 import { jsonValidator } from "../validation";
 import { createMemo, deleteMemo, getMemo, listMemos, updateMemo } from "./memo";
@@ -43,4 +45,20 @@ export const memoApp = new Hono<AppEnv>()
     const deleted = await deleteMemo(c.var.db, c.var.user.id, c.req.param("id"));
     if (!deleted) return c.json({ error: "not_found" }, 404);
     return c.body(null, 204);
+  })
+  // STAR ログ（1 Memo : 1 STAR）。メモスコープなので memos 配下にぶら下げる。
+  .get("/:id/star", async (c) => {
+    const result = await getStarLog(c.var.db, c.var.user.id, c.req.param("id"));
+    if (!result.ok) return c.json({ error: result.reason }, 404);
+    return c.json({ star: result.star });
+  })
+  .put("/:id/star", jsonValidator(upsertStarSchema), async (c) => {
+    const result = await upsertStarLog(
+      c.var.db,
+      c.var.user.id,
+      c.req.param("id"),
+      c.req.valid("json"),
+    );
+    if (!result.ok) return c.json({ error: result.reason }, 404);
+    return c.json({ star: result.star });
   });

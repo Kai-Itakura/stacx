@@ -1,0 +1,1 @@
+ALTER TABLE `star_logs` ADD `status` text DEFAULT 'draft' NOT NULL;
