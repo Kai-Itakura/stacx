@@ -27,6 +27,7 @@ export async function loader({ request }: Route.LoaderArgs) {
     createdAt: m.createdAt,
     projectName: projectName.get(m.projectId) ?? "（不明なプロジェクト）",
     tagNames: m.tagIds.map((id) => tagName.get(id)).filter((n): n is string => n != null),
+    starStatus: m.starStatus,
   }));
 
   return { memos: items };

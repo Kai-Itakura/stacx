@@ -93,6 +93,34 @@ export const memos = sqliteTable("memos", {
   updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull(),
 });
 
+/** Memo を STAR（Situation/Task/Action/Result）に昇華したログ。1 Memo : 1 STAR。 */
+export const starLogs = sqliteTable(
+  "star_logs",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    memoId: text("memo_id")
+      .notNull()
+      .references(() => memos.id, { onDelete: "cascade" }),
+    // S/T/A/R は下書き可のため全て任意。1 項目以上の入力はリクエスト検証側で担保する。
+    situation: text("situation"),
+    task: text("task"),
+    action: text("action"),
+    result: text("result"),
+    // draft=書きかけ、complete=経歴書に使える完成状態。レジュメ生成は complete のみ対象。
+    status: text("status", { enum: ["draft", "complete"] })
+      .notNull()
+      .default("draft"),
+    createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
+    updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull(),
+  },
+  (t) => ({
+    memoUnique: uniqueIndex("star_logs_memo_unique").on(t.memoId),
+  }),
+);
+
 /** Memo と Tag の多対多。両親の削除で連鎖して掃除される。 */
 export const memoTags = sqliteTable(
   "memo_tags",
@@ -143,6 +171,21 @@ export const memosRelations = relations(memos, ({ one, many }) => ({
     references: [projects.id],
   }),
   memoTags: many(memoTags),
+  starLog: one(starLogs, {
+    fields: [memos.id],
+    references: [starLogs.memoId],
+  }),
+}));
+
+export const starLogsRelations = relations(starLogs, ({ one }) => ({
+  user: one(users, {
+    fields: [starLogs.userId],
+    references: [users.id],
+  }),
+  memo: one(memos, {
+    fields: [starLogs.memoId],
+    references: [memos.id],
+  }),
 }));
 
 export const memoTagsRelations = relations(memoTags, ({ one }) => ({
@@ -177,3 +220,4 @@ export type Project = typeof projects.$inferSelect;
 export type Tag = typeof tags.$inferSelect;
 export type Memo = typeof memos.$inferSelect;
 export type MemoTag = typeof memoTags.$inferSelect;
+export type StarLog = typeof starLogs.$inferSelect;
