@@ -7,6 +7,9 @@ import type { CreateMemoInput, UpdateMemoInput } from "./request-schema";
 /** メモ + 紐づくタグ ID（API のレスポンス形）。 */
 export type MemoView = Memo & { tagIds: string[] };
 
+/** 一覧用。タイムラインの「STAR化済み」表示のため hasStar を含む。 */
+export type MemoListView = MemoView & { hasStar: boolean };
+
 export type CreateMemoResult =
   | { ok: true; memo: MemoView }
   | { ok: false; reason: "project_not_found" | "tag_not_found" };
@@ -80,16 +83,20 @@ export async function listMemos(
   db: DB,
   userId: string,
   filter?: { projectId?: string },
-): Promise<MemoView[]> {
+): Promise<MemoListView[]> {
   const rows = await db.query.memos.findMany({
     where: (m, { and: a, eq: e }) =>
       filter?.projectId
         ? a(e(m.userId, userId), e(m.projectId, filter.projectId))
         : e(m.userId, userId),
     orderBy: (m, { desc: d }) => [d(m.createdAt)],
-    with: { memoTags: { columns: { tagId: true } } },
+    with: { memoTags: { columns: { tagId: true } }, starLog: { columns: { memoId: true } } },
   });
-  return rows.map(({ memoTags: mt, ...memo }) => ({ ...memo, tagIds: mt.map((x) => x.tagId) }));
+  return rows.map(({ memoTags: mt, starLog, ...memo }) => ({
+    ...memo,
+    tagIds: mt.map((x) => x.tagId),
+    hasStar: starLog != null,
+  }));
 }
 
 /** 呼び出し User のメモを 1 件、tagIds 込みで取得する。所有していなければ null。 */

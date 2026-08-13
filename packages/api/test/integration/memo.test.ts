@@ -7,6 +7,8 @@ import * as schema from "../../src/db/schema";
 import { memos, memoTags, projects, tags, users } from "../../src/db/schema";
 import { createMemo, deleteMemo, getMemo, listMemos, updateMemo } from "../../src/memo/memo";
 import { createMemoSchema, updateMemoSchema } from "../../src/memo/request-schema";
+import type { UpsertStarInput } from "../../src/star/request-schema";
+import { upsertStarLog } from "../../src/star/star";
 
 const db = drizzle(env.DB, { schema });
 
@@ -146,6 +148,20 @@ describe("listMemos / getMemo", () => {
     const list = await listMemos(db, me, { projectId: pa });
 
     expect(list.map((m) => m.title)).toEqual(["a1"]);
+  });
+
+  it("STAR ログの有無を hasStar で返す", async () => {
+    const me = await seedUser();
+    const p = await seedProject(me);
+    const withStar = await createMemo(db, me, createInput({ projectId: p, title: "star" }));
+    await createMemo(db, me, createInput({ projectId: p, title: "plain" }));
+    assert(withStar.ok, "メモのシード作成失敗");
+    await upsertStarLog(db, me, withStar.memo.id, { situation: "S" } as UpsertStarInput);
+
+    const list = await listMemos(db, me);
+    const byTitle = new Map(list.map((m) => [m.title, m.hasStar]));
+    expect(byTitle.get("star")).toBe(true);
+    expect(byTitle.get("plain")).toBe(false);
   });
 
   it("getMemo は自分のメモを tagIds 込みで返し、他人のは null", async () => {
