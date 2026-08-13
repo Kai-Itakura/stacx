@@ -1,8 +1,10 @@
 import type { FormMetadata } from "@conform-to/react";
+import { Check } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useFetcher } from "react-router";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
+import { tagToneClass } from "~/lib/tag-color";
 import type { action } from "~/resources/create-tag";
 import { type IntakeTag, tagFormSchema } from "./schema";
 
@@ -75,12 +77,13 @@ const TagField = ({ tags, formStatus }: TagFieldProps) => {
               type="button"
               onClick={() => toggleTag(tag.id)}
               aria-pressed={selected}
-              className={
-                selected
-                  ? "bg-primary text-primary-foreground rounded-full px-3 py-1 text-sm"
-                  : "border-input hover:bg-muted rounded-full border px-3 py-1 text-sm"
-              }
+              // どのタグかを色で判別できるよう、選択の有無にかかわらずタグ色を出す。
+              // 選択状態は色ではなく ring とチェックアイコン（＋ aria-pressed）で示す。
+              className={`${tagToneClass(tag.name)} inline-flex items-center gap-1 rounded-full px-3 py-1 text-sm transition-shadow ${
+                selected ? "ring-2 ring-current/50" : "hover:ring-2 hover:ring-current/20"
+              }`}
             >
+              {selected && <Check className="h-3.5 w-3.5" />}
               {tag.name}
             </button>
           );

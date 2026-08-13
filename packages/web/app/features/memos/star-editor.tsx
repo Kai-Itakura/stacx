@@ -2,8 +2,10 @@ import { getFormProps, getTextareaProps, type SubmissionResult, useForm } from "
 import { getZodConstraint, parseWithZod } from "@conform-to/zod/v4";
 import type { ReactNode } from "react";
 import { Form, Link, useActionData, useNavigation } from "react-router";
+import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import { Textarea } from "~/components/ui/textarea";
+import { tagToneClass } from "~/lib/tag-color";
 import {
   type StarEditorMemo,
   type StarSaveMode,
@@ -20,10 +22,13 @@ type StarEditorProps = {
   status: StarStatus;
 };
 
-const STATUS_BADGE: Record<StarStatus, { label: string; className: string }> = {
-  none: { label: "未保存", className: "bg-muted text-muted-foreground" },
-  draft: { label: "下書き", className: "bg-muted text-muted-foreground" },
-  complete: { label: "完成", className: "bg-primary/10 text-primary" },
+const STATUS_BADGE: Record<
+  StarStatus,
+  { label: string; variant: "secondary" | "warning" | "success" }
+> = {
+  none: { label: "未保存", variant: "secondary" },
+  draft: { label: "下書き", variant: "warning" },
+  complete: { label: "完成", variant: "success" },
 };
 
 const STAR_FIELDS = [
@@ -63,13 +68,11 @@ export function StarEditor({ memo, values, status }: StarEditorProps) {
         <span className="text-muted-foreground text-xs">メモ</span>
         <p className="mt-2 text-sm whitespace-pre-wrap">{memo.body}</p>
         <div className="mt-3 flex flex-wrap items-center gap-1.5">
-          <span className="bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs">
-            {memo.projectName}
-          </span>
+          <Badge variant="info">{memo.projectName}</Badge>
           {memo.tagNames.map((name) => (
-            <span key={name} className="bg-muted rounded-full px-2 py-0.5 text-xs">
+            <Badge key={name} variant="tag" className={tagToneClass(name)}>
               {name}
-            </span>
+            </Badge>
           ))}
         </div>
       </section>
@@ -77,9 +80,7 @@ export function StarEditor({ memo, values, status }: StarEditorProps) {
       {/* 右: STAR フォーム */}
       <Form method="post" {...getFormProps(form)} className="flex flex-col gap-4">
         <div className="flex items-center gap-2">
-          <span className={`rounded-full px-2 py-0.5 text-xs ${badge.className}`}>
-            {badge.label}
-          </span>
+          <Badge variant={badge.variant}>{badge.label}</Badge>
           <span className="text-muted-foreground text-xs">完成にすると経歴書の対象になります</span>
         </div>
 
