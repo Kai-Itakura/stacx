@@ -10,7 +10,7 @@ const base: MemoListItem = {
   createdAt: "2026-07-20T09:00:00.000Z",
   projectName: "進行中PJ",
   tagNames: ["技術チャレンジ"],
-  hasStar: false,
+  starStatus: "none",
 };
 
 describe("MemoList", () => {
@@ -47,18 +47,28 @@ describe("MemoList", () => {
     expect(screen.queryByText("技術チャレンジ")).not.toBeInTheDocument();
   });
 
-  it("未 STAR 化なら「STAR化する」リンクを出す", () => {
-    render(<MemoList memos={[{ ...base, hasStar: false }]} />);
+  it("未着手なら「STAR化する」リンクのみ（バッジ無し）", () => {
+    render(<MemoList memos={[{ ...base, starStatus: "none" }]} />);
     expect(screen.getByRole("link", { name: "STAR化する" })).toHaveAttribute(
       "href",
       "/memos/m1/star",
     );
-    expect(screen.queryByText("STAR化済み")).not.toBeInTheDocument();
+    expect(screen.queryByText("下書き")).not.toBeInTheDocument();
+    expect(screen.queryByText("完成")).not.toBeInTheDocument();
   });
 
-  it("STAR 化済みならバッジと編集リンクを出す", () => {
-    render(<MemoList memos={[{ ...base, hasStar: true }]} />);
-    expect(screen.getByText("STAR化済み")).toBeInTheDocument();
+  it("下書きなら「下書き」バッジと「下書きを続ける」リンク", () => {
+    render(<MemoList memos={[{ ...base, starStatus: "draft" }]} />);
+    expect(screen.getByText("下書き")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "下書きを続ける" })).toHaveAttribute(
+      "href",
+      "/memos/m1/star",
+    );
+  });
+
+  it("完成なら「完成」バッジと「STARを編集」リンク", () => {
+    render(<MemoList memos={[{ ...base, starStatus: "complete" }]} />);
+    expect(screen.getByText("完成")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "STARを編集" })).toHaveAttribute(
       "href",
       "/memos/m1/star",

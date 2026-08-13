@@ -1,3 +1,5 @@
+import type { StarStatus } from "./star-schema";
+
 /** メモ一覧の表示用アイテム（route loader が RPC レスポンスから整形して渡す）。 */
 export type MemoListItem = {
   id: string;
@@ -6,8 +8,14 @@ export type MemoListItem = {
   createdAt: string;
   projectName: string;
   tagNames: string[];
-  /** STAR ログが既にあるか。導線ラベルとバッジの出し分けに使う。 */
-  hasStar: boolean;
+  /** STAR の状態。バッジと導線ラベルの出し分けに使う。 */
+  starStatus: StarStatus;
+};
+
+const STAR_LINK_LABEL: Record<StarStatus, string> = {
+  none: "STAR化する",
+  draft: "下書きを続ける",
+  complete: "STARを編集",
 };
 
 /** メモ一覧（タイムライン・作成日降順）。純表示コンポーネント。 */
@@ -47,16 +55,21 @@ export function MemoList({ memos }: { memos: MemoListItem[] }) {
             ))}
           </div>
           <div className="mt-3 flex items-center justify-end gap-2 border-t pt-3">
-            {m.hasStar && (
+            {m.starStatus === "complete" && (
               <span className="bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs">
-                STAR化済み
+                完成
+              </span>
+            )}
+            {m.starStatus === "draft" && (
+              <span className="bg-muted text-muted-foreground rounded-full px-2 py-0.5 text-xs">
+                下書き
               </span>
             )}
             <a
               href={`/memos/${m.id}/star`}
               className="text-primary text-sm underline-offset-4 hover:underline"
             >
-              {m.hasStar ? "STARを編集" : "STAR化する"}
+              {STAR_LINK_LABEL[m.starStatus]}
             </a>
           </div>
         </li>
