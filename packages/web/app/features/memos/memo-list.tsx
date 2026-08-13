@@ -1,3 +1,5 @@
+import { Badge } from "~/components/ui/badge";
+import { tagToneClass } from "~/lib/tag-color";
 import type { StarStatus } from "./star-schema";
 
 /** メモ一覧の表示用アイテム（route loader が RPC レスポンスから整形して渡す）。 */
@@ -45,26 +47,16 @@ export function MemoList({ memos }: { memos: MemoListItem[] }) {
             {m.body}
           </p>
           <div className="mt-2 flex flex-wrap items-center gap-1.5">
-            <span className="bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs">
-              {m.projectName}
-            </span>
+            <Badge variant="info">{m.projectName}</Badge>
             {m.tagNames.map((name) => (
-              <span key={name} className="bg-muted rounded-full px-2 py-0.5 text-xs">
+              <Badge key={name} variant="tag" className={tagToneClass(name)}>
                 {name}
-              </span>
+              </Badge>
             ))}
           </div>
           <div className="mt-3 flex items-center justify-end gap-2 border-t pt-3">
-            {m.starStatus === "complete" && (
-              <span className="bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs">
-                完成
-              </span>
-            )}
-            {m.starStatus === "draft" && (
-              <span className="bg-muted text-muted-foreground rounded-full px-2 py-0.5 text-xs">
-                下書き
-              </span>
-            )}
+            {m.starStatus === "complete" && <Badge variant="success">完成</Badge>}
+            {m.starStatus === "draft" && <Badge variant="warning">下書き</Badge>}
             <a
               href={`/memos/${m.id}/star`}
               className="text-primary text-sm underline-offset-4 hover:underline"

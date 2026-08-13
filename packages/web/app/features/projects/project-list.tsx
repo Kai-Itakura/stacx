@@ -1,4 +1,6 @@
 import { Link } from "react-router";
+import { Badge } from "~/components/ui/badge";
+import { techToneClass } from "~/lib/tag-color";
 import { type ProjectSummary, toDateInputValue } from "./schema";
 
 function formatPeriod(p: ProjectSummary): string {
@@ -37,19 +39,15 @@ export function ProjectList({ projects }: { projects: ProjectSummary[] }) {
             >
               <div className="flex items-center justify-between gap-2">
                 <span className="font-medium">{p.name}</span>
-                {active && (
-                  <span className="bg-primary text-primary-foreground rounded-full px-2 py-0.5 text-xs">
-                    進行中
-                  </span>
-                )}
+                {active && <Badge variant="success">進行中</Badge>}
               </div>
               <p className="text-muted-foreground mt-1 text-sm">{formatPeriod(p)}</p>
               {p.techStack.length > 0 && (
                 <div className="mt-2 flex flex-wrap gap-1.5">
                   {p.techStack.map((t) => (
-                    <span key={t} className="bg-muted rounded-full px-2 py-0.5 text-xs">
+                    <Badge key={t} variant="outline" className={techToneClass(t)}>
                       {t}
-                    </span>
+                    </Badge>
                   ))}
                 </div>
               )}
