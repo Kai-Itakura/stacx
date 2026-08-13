@@ -150,18 +150,30 @@ describe("listMemos / getMemo", () => {
     expect(list.map((m) => m.title)).toEqual(["a1"]);
   });
 
-  it("STAR ログの有無を hasStar で返す", async () => {
+  it("STAR ログの状態を starStatus で返す（none/draft/complete）", async () => {
     const me = await seedUser();
     const p = await seedProject(me);
-    const withStar = await createMemo(db, me, createInput({ projectId: p, title: "star" }));
+    const draft = await createMemo(db, me, createInput({ projectId: p, title: "draft" }));
+    const done = await createMemo(db, me, createInput({ projectId: p, title: "done" }));
     await createMemo(db, me, createInput({ projectId: p, title: "plain" }));
-    assert(withStar.ok, "メモのシード作成失敗");
-    await upsertStarLog(db, me, withStar.memo.id, { situation: "S" } as UpsertStarInput);
+    assert(draft.ok && done.ok, "メモのシード作成失敗");
+    await upsertStarLog(db, me, draft.memo.id, {
+      situation: "S",
+      status: "draft",
+    } as UpsertStarInput);
+    await upsertStarLog(db, me, done.memo.id, {
+      situation: "S",
+      task: "T",
+      action: "A",
+      result: "R",
+      status: "complete",
+    } as UpsertStarInput);
 
     const list = await listMemos(db, me);
-    const byTitle = new Map(list.map((m) => [m.title, m.hasStar]));
-    expect(byTitle.get("star")).toBe(true);
-    expect(byTitle.get("plain")).toBe(false);
+    const byTitle = new Map(list.map((m) => [m.title, m.starStatus]));
+    expect(byTitle.get("draft")).toBe("draft");
+    expect(byTitle.get("done")).toBe("complete");
+    expect(byTitle.get("plain")).toBe("none");
   });
 
   it("getMemo は自分のメモを tagIds 込みで返し、他人のは null", async () => {

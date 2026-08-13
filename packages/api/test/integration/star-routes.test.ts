@@ -118,6 +118,25 @@ describe("star routes", () => {
     expect((await putStar(cookie, memoId, {})).status).toBe(400);
   });
 
+  it("status 既定は draft、complete は全項目必須", async () => {
+    const { userId, cookie } = await loginAs("alice");
+    const memoId = await seedMemo(userId);
+
+    // 既定は draft
+    await putStar(cookie, memoId, { situation: "S" });
+    const [drafted] = await db.select().from(starLogs).where(eq(starLogs.memoId, memoId));
+    expect(drafted?.status).toBe("draft");
+
+    // complete で一部欠けは 400、全部揃えば 200 で status=complete
+    expect((await putStar(cookie, memoId, { situation: "S", status: "complete" })).status).toBe(
+      400,
+    );
+    const full = { situation: "S", task: "T", action: "A", result: "R", status: "complete" };
+    expect((await putStar(cookie, memoId, full)).status).toBe(200);
+    const [done] = await db.select().from(starLogs).where(eq(starLogs.memoId, memoId));
+    expect(done?.status).toBe("complete");
+  });
+
   it("他人のメモは GET/PUT とも 404", async () => {
     const alice = await loginAs("alice");
     const bob = await loginAs("bob");

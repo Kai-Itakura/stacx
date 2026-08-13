@@ -50,6 +50,7 @@ export async function upsertStarLog(
     task: norm(input.task),
     action: norm(input.action),
     result: norm(input.result),
+    status: input.status,
   };
 
   const existing = await db

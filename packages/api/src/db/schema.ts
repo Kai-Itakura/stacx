@@ -109,6 +109,10 @@ export const starLogs = sqliteTable(
     task: text("task"),
     action: text("action"),
     result: text("result"),
+    // draft=書きかけ、complete=経歴書に使える完成状態。レジュメ生成は complete のみ対象。
+    status: text("status", { enum: ["draft", "complete"] })
+      .notNull()
+      .default("draft"),
     createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
     updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull(),
   },
