@@ -9,6 +9,12 @@ import { z } from "zod";
 // 入力型を union で絞ってそれらを弾く（null 許容は各フィールドで .nullable()/.nullish() を付ける）。
 const dateFromInput = z.union([z.string(), z.number(), z.date()]).pipe(z.coerce.date());
 
+const DATE_ORDER_MESSAGE = "終了日は開始日以降にしてください";
+
+/** startDate/endDate が両方揃うときだけ開始 ≤ 終了を要求する（endDate 未指定は進行中）。 */
+const isValidDateRange = (v: { startDate?: Date | null; endDate?: Date | null }) =>
+  v.startDate == null || v.endDate == null || v.startDate.getTime() <= v.endDate.getTime();
+
 /** POST /projects 用。未指定の任意項目は null に正規化する。 */
 export const createProjectSchema = z
   .object({
@@ -37,6 +43,7 @@ export const createProjectSchema = z
       .nullish()
       .transform((v) => v ?? []),
   })
+  .refine(isValidDateRange, { path: ["endDate"], message: DATE_ORDER_MESSAGE })
   .brand<"CreateProjectInput">();
 
 /** PUT /projects/:id 用。部分更新なので全項目任意。指定キーのみ出力に残る。 */
@@ -55,6 +62,7 @@ export const updateProjectSchema = z
   .partial()
   // 空ボディ {} は updatedAt だけ進む no-op になるため、最低 1 フィールドを必須にする。
   .refine((v) => Object.keys(v).length > 0, { message: "at least one field is required" })
+  .refine(isValidDateRange, { path: ["endDate"], message: DATE_ORDER_MESSAGE })
   .brand<"UpdateProjectInput">();
 
 /** 検証済みの作成入力。createProjectSchema.parse の出力としてのみ得られる（branded）。 */

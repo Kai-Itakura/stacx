@@ -52,6 +52,18 @@ describe("createProjectSchema", () => {
     expect(given.success && given.data.techStack).toEqual(["Go", "React"]);
     expect(createProjectSchema.safeParse({ ...valid, techStack: [1, 2] }).success).toBe(false);
   });
+
+  it("終了 < 開始は失敗、開始 = 終了は許可、endDate 未指定はスルー", () => {
+    expect(
+      createProjectSchema.safeParse({ ...valid, startDate: "2024-06-01", endDate: "2024-01-01" })
+        .success,
+    ).toBe(false);
+    expect(
+      createProjectSchema.safeParse({ ...valid, startDate: "2024-01-01", endDate: "2024-01-01" })
+        .success,
+    ).toBe(true);
+    expect(createProjectSchema.safeParse(valid).success).toBe(true);
+  });
 });
 
 describe("updateProjectSchema", () => {
@@ -105,5 +117,19 @@ describe("updateProjectSchema", () => {
     const r = updateProjectSchema.safeParse({ techStack: ["Go"] });
     expect(r.success && "techStack" in r.data && r.data.techStack).toEqual(["Go"]);
     expect(updateProjectSchema.safeParse({ techStack: [1] }).success).toBe(false);
+  });
+
+  it("startDate と endDate が揃うときのみ終了 < 開始を弾く", () => {
+    expect(
+      updateProjectSchema.safeParse({ startDate: "2024-06-01", endDate: "2024-01-01" }).success,
+    ).toBe(false);
+    expect(
+      updateProjectSchema.safeParse({ startDate: "2024-01-01", endDate: "2024-01-01" }).success,
+    ).toBe(true);
+  });
+
+  it("片方だけの更新は相関チェックの対象外（既存値と突き合わせできないため）", () => {
+    expect(updateProjectSchema.safeParse({ endDate: "2024-01-01" }).success).toBe(true);
+    expect(updateProjectSchema.safeParse({ startDate: "2024-06-01" }).success).toBe(true);
   });
 });
