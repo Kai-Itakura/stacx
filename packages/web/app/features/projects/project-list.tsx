@@ -1,5 +1,6 @@
 import { Link } from "react-router";
 import { Badge } from "~/components/ui/badge";
+import { techToneClass } from "~/lib/tag-color";
 import { type ProjectSummary, toDateInputValue } from "./schema";
 
 function formatPeriod(p: ProjectSummary): string {
@@ -43,9 +44,8 @@ export function ProjectList({ projects }: { projects: ProjectSummary[] }) {
               <p className="text-muted-foreground mt-1 text-sm">{formatPeriod(p)}</p>
               {p.techStack.length > 0 && (
                 <div className="mt-2 flex flex-wrap gap-1.5">
-                  {/* 技術スタックは種類軸のタグと別軸なので、色は付けず無彩色で置く。 */}
                   {p.techStack.map((t) => (
-                    <Badge key={t} variant="secondary">
+                    <Badge key={t} variant="outline" className={techToneClass(t)}>
                       {t}
                     </Badge>
                   ))}

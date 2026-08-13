@@ -13,6 +13,7 @@ import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Textarea } from "~/components/ui/textarea";
+import { techToneClass } from "~/lib/tag-color";
 import { type ProjectSummary, projectFormSchema, toDateInputValue } from "./schema";
 
 type ProjectFormProps = {
@@ -109,7 +110,11 @@ export function ProjectForm({ project, submitLabel }: ProjectFormProps) {
             <span className="text-muted-foreground text-sm">未登録</span>
           ) : (
             techStack.map((t) => (
-              <Badge key={t} variant="secondary" className="h-auto py-1 pr-1.5 pl-3 text-sm">
+              <Badge
+                key={t}
+                variant="outline"
+                className={`h-auto py-1 pr-1.5 pl-3 text-sm ${techToneClass(t)}`}
+              >
                 {t}
                 <button
                   type="button"

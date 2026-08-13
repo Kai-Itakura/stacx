@@ -28,3 +28,20 @@ export function tagTone(name: string): number {
 export function tagToneClass(name: string): string {
   return TONE_CLASSES[tagTone(name) - 1] as string;
 }
+
+const OUTLINE_TONE_CLASSES = [
+  "border-tag-1/40 text-tag-1",
+  "border-tag-2/40 text-tag-2",
+  "border-tag-3/40 text-tag-3",
+  "border-tag-4/40 text-tag-4",
+  "border-tag-5/40 text-tag-5",
+  "border-tag-6/40 text-tag-6",
+] as const;
+
+/**
+ * 技術スタック用のクラス（枠線 + 同系の前景）。
+ * 配色ロジックはタグと共通だが、種類軸のタグ（塗り）と軸を見分けられるよう形を変える。
+ */
+export function techToneClass(name: string): string {
+  return OUTLINE_TONE_CLASSES[tagTone(name) - 1] as string;
+}

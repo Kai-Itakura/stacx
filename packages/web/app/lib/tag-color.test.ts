@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { TAG_TONE_COUNT, tagTone, tagToneClass } from "./tag-color";
+import { TAG_TONE_COUNT, tagTone, tagToneClass, techToneClass } from "./tag-color";
 
 describe("tagTone", () => {
   it("同じ名前は常に同じ色になる", () => {
@@ -26,5 +26,12 @@ describe("tagToneClass", () => {
     expect(tagToneClass("トラブル")).toBe(
       `bg-tag-${tagTone("トラブル")}-subtle text-tag-${tagTone("トラブル")}`,
     );
+  });
+});
+
+describe("techToneClass", () => {
+  it("同じ配色を枠線で返す（タグとは形で区別する）", () => {
+    const tone = tagTone("React");
+    expect(techToneClass("React")).toBe(`border-tag-${tone}/40 text-tag-${tone}`);
   });
 });
