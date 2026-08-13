@@ -64,10 +64,7 @@ export async function action({ request, params }: Route.ActionArgs) {
     json: toStarPayload(submission.value, mode),
   });
   if (!res.ok) return submission.reply({ formErrors: ["STAR の保存に失敗しました"] });
-
-  // 下書き保存は「一旦離れて他の作業へ」なので一覧へ戻す。
-  // 完成は仕上げ直後の状態バッジ（完成）を確認できるよう画面に留まる。
-  return mode === "draft" ? redirect("/memos") : submission.reply();
+  return redirect("/memos");
 }
 
 export default function StarEditorRoute({ loaderData }: Route.ComponentProps) {
