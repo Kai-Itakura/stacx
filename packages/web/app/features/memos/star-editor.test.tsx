@@ -9,7 +9,6 @@ import { type StarEditorMemo, type StarValues, starFormSchema, toStarPayload } f
 
 const memo: StarEditorMemo = {
   id: "m1",
-  title: "LCP を改善",
   body: "クエリ最適化と Redis 導入",
   projectName: "進行中PJ",
   tagNames: ["技術チャレンジ"],
@@ -44,10 +43,9 @@ function renderEditor(props: { values?: StarValues; action?: StubAction }) {
 }
 
 describe("StarEditor", () => {
-  it("元メモを左ペインに表示する", async () => {
+  it("メモを左ペインに表示する", async () => {
     renderEditor({});
-    expect(await screen.findByText("LCP を改善")).toBeInTheDocument();
-    expect(screen.getByText("クエリ最適化と Redis 導入")).toBeInTheDocument();
+    expect(await screen.findByText("クエリ最適化と Redis 導入")).toBeInTheDocument();
     expect(screen.getByText("進行中PJ")).toBeInTheDocument();
     expect(screen.getByText("技術チャレンジ")).toBeInTheDocument();
   });

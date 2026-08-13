@@ -37,11 +37,10 @@ export function StarEditor({ memo, values }: StarEditorProps) {
 
   return (
     <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-      {/* 左: 元メモ */}
+      {/* 左: メモ */}
       <section className="border-border h-fit rounded-lg border p-4">
-        <span className="text-muted-foreground text-xs">元メモ</span>
-        <h2 className="mt-1 font-medium">{memo.title}</h2>
-        <p className="text-muted-foreground mt-2 text-sm whitespace-pre-wrap">{memo.body}</p>
+        <span className="text-muted-foreground text-xs">メモ</span>
+        <p className="mt-2 text-sm whitespace-pre-wrap">{memo.body}</p>
         <div className="mt-3 flex flex-wrap items-center gap-1.5">
           <span className="bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs">
             {memo.projectName}

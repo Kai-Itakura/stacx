@@ -16,10 +16,9 @@ export const starFormSchema = z
     { message: "S/T/A/R のいずれか 1 つは入力してください" },
   );
 
-/** STAR エディタ左ペインに表示する元メモ（loader が RPC レスポンスから整形して渡す）。 */
+/** STAR エディタ左ペインに表示するメモ（loader が RPC レスポンスから整形して渡す）。 */
 export type StarEditorMemo = {
   id: string;
-  title: string;
   body: string;
   projectName: string;
   tagNames: string[];
