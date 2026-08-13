@@ -1,6 +1,7 @@
 import "@testing-library/jest-dom/vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { useState } from "react";
 import { createRoutesStub } from "react-router";
 import { describe, expect, it } from "vitest";
 import { TagList, type TagListItem } from "./tag-list";
@@ -24,7 +25,7 @@ function renderList(tags: TagListItem[], error?: string | null) {
       action: () => ({ error: null }),
     },
   ]);
-  render(<Stub initialEntries={["/tags"]} />);
+  return render(<Stub initialEntries={["/tags"]} />);
 }
 
 describe("TagList", () => {
@@ -65,5 +66,32 @@ describe("TagList", () => {
   it("action のエラーを表示する", async () => {
     renderList([withMemos], "同名のタグが既にあります");
     expect(await screen.findByText("同名のタグが既にあります")).toBeInTheDocument();
+  });
+
+  it("リネーム成功（name が変わる）と編集フォームが閉じる", async () => {
+    const user = userEvent.setup();
+    // loader 再検証で新しい name が届く状況を、同一ツリー内の再レンダリングで再現する。
+    // 木ごと作り直すと key に関係なく state が消えるため、TagList の props だけを差し替える。
+    function Harness() {
+      const [tags, setTags] = useState([withMemos]);
+      return (
+        <>
+          <button type="button" onClick={() => setTags([{ ...withMemos, name: "障害対応" }])}>
+            revalidate
+          </button>
+          <TagList tags={tags} />
+        </>
+      );
+    }
+    const Stub = createRoutesStub([{ path: "/tags", Component: Harness, action: () => ({}) }]);
+    render(<Stub initialEntries={["/tags"]} />);
+
+    await user.click(await screen.findByRole("button", { name: "名前を変更" }));
+    expect(screen.getByLabelText("トラブル の新しい名前")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "revalidate" }));
+
+    expect(await screen.findByText("障害対応")).toBeInTheDocument();
+    expect(screen.queryByLabelText(/新しい名前/)).not.toBeInTheDocument();
   });
 });

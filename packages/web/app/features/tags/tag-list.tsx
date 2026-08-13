@@ -26,8 +26,13 @@ export function TagList({ tags, error }: { tags: TagListItem[]; error?: string |
     <>
       {error && <p className="text-destructive mb-4 text-sm">{error}</p>}
       <ul className="flex flex-col gap-3">
+        {/*
+         * key に name を含めることで、リネーム成功後（loader 再検証で name が変わる）に
+         * 行が再マウントされ、開いたままの編集フォームが閉じる。
+         * 失敗時は name が変わらないため、入力内容を保ったままエラーを出せる。
+         */}
         {tags.map((tag) => (
-          <TagRow key={tag.id} tag={tag} />
+          <TagRow key={`${tag.id}:${tag.name}`} tag={tag} />
         ))}
       </ul>
     </>
