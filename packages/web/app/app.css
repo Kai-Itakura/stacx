@@ -82,32 +82,36 @@
   --muted-foreground: oklch(0.556 0 0);
   --accent: oklch(0.97 0.01 280);
   --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
+  --destructive: oklch(0.577 0.22 27.325);
   --border: oklch(0.922 0 0);
   --input: oklch(0.922 0 0);
   --ring: oklch(0.52 0.2 280);
 
-  /* 状態色。バッジは subtle 背景 + 同系の濃い前景で組む（透過だと地の色に依存して破綻するため対で持つ）。 */
-  --success: oklch(0.45 0.13 150);
-  --success-subtle: oklch(0.95 0.04 150);
-  --warning: oklch(0.48 0.11 70);
-  --warning-subtle: oklch(0.95 0.05 70);
-  --info: oklch(0.5 0.14 240);
-  --info-subtle: oklch(0.95 0.04 240);
+  /*
+   * 状態色。バッジは subtle 背景 + 同系の濃い前景で組む（透過だと地の色に依存して破綻するため対で持つ）。
+   * chroma は sRGB 色域に収まる範囲で指定する。はみ出すと描画がブラウザのクリップ方法と
+   * ディスプレイの色域に依存し、sRGB 画面と P3 画面で色相がずれる。
+   */
+  --success: oklch(0.45 0.12 150);
+  --success-subtle: oklch(0.93 0.05 150);
+  --warning: oklch(0.48 0.1 70);
+  --warning-subtle: oklch(0.93 0.045 70);
+  --info: oklch(0.5 0.11 240);
+  --info-subtle: oklch(0.93 0.033 240);
 
   /* タグ用パレット。primary（インディゴ 280）と混同しないよう色相 260-300 を空ける。 */
   --tag-1: oklch(0.5 0.17 15);
-  --tag-1-subtle: oklch(0.95 0.04 15);
-  --tag-2: oklch(0.48 0.11 70);
-  --tag-2-subtle: oklch(0.95 0.05 70);
-  --tag-3: oklch(0.45 0.13 150);
-  --tag-3-subtle: oklch(0.95 0.04 150);
-  --tag-4: oklch(0.46 0.1 190);
-  --tag-4-subtle: oklch(0.95 0.04 190);
-  --tag-5: oklch(0.5 0.14 240);
-  --tag-5-subtle: oklch(0.95 0.04 240);
+  --tag-1-subtle: oklch(0.93 0.03 15);
+  --tag-2: oklch(0.48 0.1 70);
+  --tag-2-subtle: oklch(0.93 0.045 70);
+  --tag-3: oklch(0.45 0.12 150);
+  --tag-3-subtle: oklch(0.93 0.05 150);
+  --tag-4: oklch(0.46 0.07 190);
+  --tag-4-subtle: oklch(0.93 0.05 190);
+  --tag-5: oklch(0.5 0.11 240);
+  --tag-5-subtle: oklch(0.93 0.033 240);
   --tag-6: oklch(0.5 0.18 330);
-  --tag-6-subtle: oklch(0.95 0.04 330);
+  --tag-6-subtle: oklch(0.93 0.05 330);
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);
@@ -132,7 +136,7 @@
   --card-foreground: oklch(0.985 0 0);
   --popover: oklch(0.205 0 0);
   --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.72 0.16 285);
+  --primary: oklch(0.72 0.14 285);
   --primary-foreground: oklch(0.18 0.03 285);
   --secondary: oklch(0.269 0 0);
   --secondary-foreground: oklch(0.985 0 0);
@@ -140,7 +144,7 @@
   --muted-foreground: oklch(0.708 0 0);
   --accent: oklch(0.28 0.02 285);
   --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
+  --destructive: oklch(0.704 0.178 22.216);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
   --ring: oklch(0.6 0.16 285);
@@ -150,10 +154,10 @@
   --success-subtle: oklch(0.3 0.06 150);
   --warning: oklch(0.82 0.13 75);
   --warning-subtle: oklch(0.3 0.05 75);
-  --info: oklch(0.78 0.13 240);
+  --info: oklch(0.78 0.12 240);
   --info-subtle: oklch(0.3 0.06 240);
 
-  --tag-1: oklch(0.78 0.14 15);
+  --tag-1: oklch(0.78 0.12 15);
   --tag-1-subtle: oklch(0.3 0.07 15);
   --tag-2: oklch(0.82 0.13 75);
   --tag-2-subtle: oklch(0.3 0.05 75);
@@ -161,7 +165,7 @@
   --tag-3-subtle: oklch(0.3 0.06 150);
   --tag-4: oklch(0.8 0.11 190);
   --tag-4-subtle: oklch(0.3 0.05 190);
-  --tag-5: oklch(0.78 0.13 240);
+  --tag-5: oklch(0.78 0.12 240);
   --tag-5-subtle: oklch(0.3 0.06 240);
   --tag-6: oklch(0.78 0.15 330);
   --tag-6-subtle: oklch(0.3 0.07 330);
