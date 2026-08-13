@@ -16,7 +16,7 @@ type StarEditorProps = {
   memo: StarEditorMemo;
   /** 既存の STAR 値（未 STAR 化なら空文字で埋めた値）。 */
   values: StarValues;
-  /** 保存済みの状態。バッジ表示＝保存フィードバックを兼ねる。 */
+  /** 開いた時点の保存済み状態。バッジで下書き/完成を示す。 */
   status: StarStatus;
 };
 
@@ -48,7 +48,7 @@ export function StarEditor({ memo, values, status }: StarEditorProps) {
     defaultValue: values,
     shouldValidate: "onSubmit",
     shouldRevalidate: "onInput",
-    // mode（下書き/完成）で検証ルールが変わる。complete は全項目必須。
+    // 押されたボタン（mode）で検証ルールが変わるため、schema を formData から決める。
     onValidate: ({ formData }) =>
       parseWithZod(formData, { schema: starFormSchema(readMode(formData)) }),
   });
