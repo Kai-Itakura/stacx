@@ -27,6 +27,8 @@ const TagField = ({ tags, formStatus }: TagFieldProps) => {
   };
 
   const addTag = () => {
+    // Enter キーは Button の disabled を経由しないため、ここでも送信中を弾く。
+    if (tagFetcher.state !== "idle") return;
     // メモ/プロジェクトと同じく zod スキーマで検証する。
     const result = tagFormSchema.safeParse({ name: newTag });
     if (!result.success) {
