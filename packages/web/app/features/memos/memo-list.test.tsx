@@ -10,6 +10,7 @@ const base: MemoListItem = {
   createdAt: "2026-07-20T09:00:00.000Z",
   projectName: "進行中PJ",
   tagNames: ["技術チャレンジ"],
+  hasStar: false,
 };
 
 describe("MemoList", () => {
@@ -44,5 +45,23 @@ describe("MemoList", () => {
     render(<MemoList memos={[{ ...base, tagNames: [] }]} />);
     expect(screen.getByText("進行中PJ")).toBeInTheDocument();
     expect(screen.queryByText("技術チャレンジ")).not.toBeInTheDocument();
+  });
+
+  it("未 STAR 化なら「STAR化する」リンクを出す", () => {
+    render(<MemoList memos={[{ ...base, hasStar: false }]} />);
+    expect(screen.getByRole("link", { name: "STAR化する" })).toHaveAttribute(
+      "href",
+      "/memos/m1/star",
+    );
+    expect(screen.queryByText("STAR化済み")).not.toBeInTheDocument();
+  });
+
+  it("STAR 化済みならバッジと編集リンクを出す", () => {
+    render(<MemoList memos={[{ ...base, hasStar: true }]} />);
+    expect(screen.getByText("STAR化済み")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "STARを編集" })).toHaveAttribute(
+      "href",
+      "/memos/m1/star",
+    );
   });
 });

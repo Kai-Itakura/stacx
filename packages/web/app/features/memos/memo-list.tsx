@@ -6,6 +6,8 @@ export type MemoListItem = {
   createdAt: string;
   projectName: string;
   tagNames: string[];
+  /** STAR ログが既にあるか。導線ラベルとバッジの出し分けに使う。 */
+  hasStar: boolean;
 };
 
 /** メモ一覧（タイムライン・作成日降順）。純表示コンポーネント。 */
@@ -43,6 +45,19 @@ export function MemoList({ memos }: { memos: MemoListItem[] }) {
                 {name}
               </span>
             ))}
+          </div>
+          <div className="mt-3 flex items-center justify-end gap-2 border-t pt-3">
+            {m.hasStar && (
+              <span className="bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs">
+                STAR化済み
+              </span>
+            )}
+            <a
+              href={`/memos/${m.id}/star`}
+              className="text-primary text-sm underline-offset-4 hover:underline"
+            >
+              {m.hasStar ? "STARを編集" : "STAR化する"}
+            </a>
           </div>
         </li>
       ))}
