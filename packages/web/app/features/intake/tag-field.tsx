@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useFetcher } from "react-router";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
+import { tagToneClass } from "~/lib/tag-color";
 import type { action } from "~/resources/create-tag";
 import { type IntakeTag, tagFormSchema } from "./schema";
 
@@ -75,10 +76,12 @@ const TagField = ({ tags, formStatus }: TagFieldProps) => {
               type="button"
               onClick={() => toggleTag(tag.id)}
               aria-pressed={selected}
+              // 選択中はタグ色で塗り、非選択は無彩色の枠線。色だけに頼らないよう
+              // 選択状態は ring と aria-pressed でも示す。
               className={
                 selected
-                  ? "bg-primary text-primary-foreground rounded-full px-3 py-1 text-sm"
-                  : "border-input hover:bg-muted rounded-full border px-3 py-1 text-sm"
+                  ? `${tagToneClass(tag.name)} rounded-full px-3 py-1 text-sm ring-2 ring-current/30`
+                  : "border-input hover:bg-muted text-muted-foreground rounded-full border px-3 py-1 text-sm"
               }
             >
               {tag.name}

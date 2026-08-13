@@ -148,7 +148,7 @@ export function AppLayout({ user, children }: { user: User; children: ReactNode 
               {({ isActive }) => (
                 <span
                   className={`flex flex-col items-center gap-0.5 rounded-full px-5 py-1.5 transition-colors ${
-                    isActive ? "bg-muted text-foreground" : "text-muted-foreground"
+                    isActive ? "bg-primary/10 text-primary" : "text-muted-foreground"
                   }`}
                 >
                   <Icon strokeWidth={isActive ? 2.5 : 2} className="h-5 w-5" />

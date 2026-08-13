@@ -9,6 +9,7 @@ import { getZodConstraint, parseWithZod } from "@conform-to/zod/v4";
 import type * as React from "react";
 import { useState } from "react";
 import { Form, Link, useActionData, useNavigation } from "react-router";
+import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Textarea } from "~/components/ui/textarea";
@@ -108,20 +109,17 @@ export function ProjectForm({ project, submitLabel }: ProjectFormProps) {
             <span className="text-muted-foreground text-sm">未登録</span>
           ) : (
             techStack.map((t) => (
-              <span
-                key={t}
-                className="bg-primary text-primary-foreground inline-flex items-center gap-1 rounded-full py-1 pr-1.5 pl-3 text-sm"
-              >
+              <Badge key={t} variant="secondary" className="h-auto py-1 pr-1.5 pl-3 text-sm">
                 {t}
                 <button
                   type="button"
                   aria-label={`${t} を削除`}
                   onClick={() => removeTech(t)}
-                  className="opacity-80 hover:opacity-100"
+                  className="opacity-70 hover:opacity-100"
                 >
                   ×
                 </button>
-              </span>
+              </Badge>
             ))
           )}
         </div>
