@@ -15,12 +15,10 @@ type QuickIntakeProps = {
 
 /** 画面1: クイック・インテーク（メモ作成）フォーム。 */
 export function QuickIntake({ projects, tags }: QuickIntakeProps) {
-  // resource route へ非遷移で送るため fetcher を使う。結果（SubmissionResult）は data で受け取る。
   const memoFetcher = useFetcher<typeof action>();
   const formRef = useRef<HTMLFormElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // 進行中（endDate が null）のプロジェクトを既定選択。無ければ先頭。
   const defaultProjectId = (projects.find((p) => p.endDate === null) ?? projects[0]).id;
   const [projectId, setProjectId] = useState(defaultProjectId);
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
@@ -38,17 +36,13 @@ export function QuickIntake({ projects, tags }: QuickIntakeProps) {
   }, []);
 
   const onTextareaKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    // Enter は改行、Cmd/Ctrl+Enter で保存。
     if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
       e.preventDefault();
       formRef.current?.requestSubmit();
     }
   };
 
-  /**
-   * 入力量に合わせて高さを伸ばす（上限は max-h でクランプされ、以降はスクロール）。
-   * 一度 auto に戻さないと、行を減らしたときに scrollHeight が縮まない。
-   */
+  /** 入力量に合わせて高さを伸ばす。auto を挟まないと行を減らしても scrollHeight が縮まない。 */
   const autoGrow = useCallback(() => {
     const el = textareaRef.current;
     if (!el) return;
@@ -56,16 +50,11 @@ export function QuickIntake({ projects, tags }: QuickIntakeProps) {
     el.style.height = `${el.scrollHeight}px`;
   }, []);
 
-  /*
-   * 保存が成功するたびに入力状態を初期化する。
-   * form.status は 2 回目以降も "success" のままで値が変わらず発火しないため、
-   * 応答オブジェクトそのものを見る。action の submission.reply({ resetForm: true })
-   * は { initialValue: null } を返すので、これを成功の合図として扱う。
-   */
+  // submission.reply({ resetForm: true }) は status を持たず { initialValue: null } を返す。
   useEffect(() => {
     if (memoFetcher.data?.initialValue === null) {
       setSelectedTagIds([]);
-      autoGrow(); // リセット後は 1 行分に戻す
+      autoGrow();
       textareaRef.current?.focus();
     }
   }, [memoFetcher.data, autoGrow]);
@@ -79,7 +68,6 @@ export function QuickIntake({ projects, tags }: QuickIntakeProps) {
       {...getFormProps(form)}
       className="flex flex-col gap-2"
     >
-      {/* 選択肢は入力欄の上に小さく畳んで置き、本文の領域を圧迫しない。 */}
       <IntakeChips
         projects={projects}
         tags={tags}

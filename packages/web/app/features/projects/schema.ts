@@ -12,20 +12,18 @@ export const projectFormSchema = z
       .trim()
       .min(1, "プロジェクト名を入力してください"),
     startDate: z.string({ error: "開始日を入力してください" }).min(1, "開始日を入力してください"),
-    // 空なら「進行中」。
+    /** 空なら進行中。 */
     endDate: z.string().optional(),
     summary: z.string().optional(),
-    // 任意の人数。Conform が空文字→undefined・文字列→number に coerce する。
+    // Conform が空文字→undefined・文字列→number に coerce する。
     teamSize: z
       .number({ error: "数値で入力してください" })
       .int("整数で入力してください")
       .positive("1 以上で入力してください")
       .optional(),
     role: z.string().optional(),
-    // 使用技術スタック。チップ入力を hidden input 複数で載せて配列にする。任意。
     techStack: z.array(z.string()).optional(),
   })
-  // endDate が指定されているときだけ開始 ≤ 終了を要求する（空なら進行中でスルー）。
   // "YYYY-MM-DD" の辞書順に依存せず Date で比較する。
   .refine((v) => !v.endDate || new Date(v.startDate) <= new Date(v.endDate), {
     path: ["endDate"],

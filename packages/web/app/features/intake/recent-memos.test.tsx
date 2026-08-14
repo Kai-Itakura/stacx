@@ -27,7 +27,6 @@ describe("RecentMemos", () => {
     renderRecent([memo()]);
     const link = await screen.findByRole("link", { name: /本番障害の対応/ });
     expect(link).toHaveAttribute("href", "/memos/m1/edit");
-    // 本文の 2 行目は出さない（1 行に収める）
     expect(screen.queryByText(/Redis 導入/)).not.toBeInTheDocument();
   });
 

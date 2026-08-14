@@ -12,13 +12,13 @@ const TONE_CLASSES = [
 
 /**
  * タグ名から配色（1..TAG_TONE_COUNT）を決める。
- * 同じ名前が常に同じ色になるよう FNV-1a の決定的ハッシュを使う（保存はしない）。
+ * 同じ名前が常に同じ色になるよう FNV-1a の決定的ハッシュを使う（色は保存しない）。
  */
 export function tagTone(name: string): number {
   let hash = 0x811c9dc5;
   for (let i = 0; i < name.length; i++) {
     hash ^= name.charCodeAt(i);
-    // FNV prime 16777619 の乗算。32bit に丸めるため Math.imul を使う。
+    // FNV prime の乗算。32bit に丸めるため Math.imul を使う。
     hash = Math.imul(hash, 0x01000193);
   }
   return (Math.abs(hash) % TAG_TONE_COUNT) + 1;
@@ -38,11 +38,7 @@ const UNSELECTED_TONE_CLASSES = [
   "border-tag-6/50 text-tag-6",
 ] as const;
 
-/**
- * 未選択のタグ用クラス（枠線のみ・中身は空）。
- * 薄い塗りだと「状態」に見えてしまい、1 つも選択していないときに未選択と分からない。
- * 空の器として描くことで、比較対象が無くても未選択だと判別できる。
- */
+/** 未選択のタグ用クラス。薄い塗りだと選択済みに見えるため、空の器として枠線だけで描く。 */
 export function tagToneOutlineClass(name: string): string {
   return UNSELECTED_TONE_CLASSES[tagTone(name) - 1] as string;
 }
@@ -56,11 +52,7 @@ const SELECTED_TONE_CLASSES = [
   "bg-tag-6 text-background",
 ] as const;
 
-/**
- * 選択中のタグ用クラス（べったり塗り + 地の色で文字を抜く）。
- * 非選択の subtle 塗りとの明度差で選択状態を示す。前景に --background を使うと
- * ライトでは白抜き・ダークでは黒抜きになり、どちらのテーマでも読める。
- */
+/** 選択中のタグ用クラス。前景に --background を使うことで両テーマとも地の色で文字が抜ける。 */
 export function tagToneSelectedClass(name: string): string {
   return SELECTED_TONE_CLASSES[tagTone(name) - 1] as string;
 }
@@ -74,10 +66,7 @@ const OUTLINE_TONE_CLASSES = [
   "border-tag-6/40 text-tag-6",
 ] as const;
 
-/**
- * 技術スタック用のクラス（枠線 + 同系の前景）。
- * 配色ロジックはタグと共通だが、種類軸のタグ（塗り）と軸を見分けられるよう形を変える。
- */
+/** 技術スタック用のクラス。配色はタグと共通だが、軸の違いが分かるよう塗りでなく枠線で描く。 */
 export function techToneClass(name: string): string {
   return OUTLINE_TONE_CLASSES[tagTone(name) - 1] as string;
 }

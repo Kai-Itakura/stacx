@@ -21,13 +21,7 @@ const NAV_ITEMS = [
   { to: "/projects", label: "プロジェクト", tabLabel: "PJ", icon: FolderKanban, end: false },
 ] as const;
 
-/**
- * モバイルのユーザーメニュー。トリガー（ヘッダー右上のアバター）の直下に開く。
- *
- * 以前は bottom sheet だったが、画面最上部のトリガーに対して画面下部から出るため
- * 視線と指の移動が最大化されていた。項目もテーマとログアウトの 2 つだけで、
- * sheet を使うほどの分量ではない。
- */
+/** モバイルのユーザーメニュー。ヘッダー右上のアバターの直下に開く。 */
 function UserMenu({
   displayName,
   email,
@@ -122,7 +116,6 @@ export function AppLayout({ user, children }: { user: User; children: ReactNode 
         </nav>
 
         <div className="ml-auto flex items-center gap-2">
-          {/* Desktop: tags + theme toggle + username + logout */}
           <div className="hidden items-center gap-2 md:flex">
             <Button asChild variant="ghost" size="icon" aria-label="タグ管理">
               <Link to="/tags">
@@ -138,25 +131,17 @@ export function AppLayout({ user, children }: { user: User; children: ReactNode 
             </form>
           </div>
 
-          {/* Mobile: user avatar → DropdownMenu（トリガーの直下に開く） */}
           <UserMenu displayName={displayName} email={user.email} initial={initial} />
         </div>
       </header>
 
       {/* ─── Page content ─── */}
-      {/*
-       * モバイルの下余白はボトムタブバーの実寸に合わせる。
-       * バーの上端は「bottom(0.75rem) + 高さ(3.5rem) + safe-area」の位置にあるため、
-       * それより多く取ると下端に置いた要素（メモ作成の入力欄）が浮いて見える。
-       * flex 列にして min-h-0 を渡すのは、残り高さを使って
-       * 「上だけスクロール・下に入力欄」を組めるようにするため。
-       */}
+      {/* 下余白の 4.25rem はボトムタブバーの実寸（bottom 0.75rem + 高さ 3.5rem）と揃える。 */}
       <div className="flex min-h-0 flex-1 flex-col pb-[calc(4.25rem+env(safe-area-inset-bottom))] md:pb-0">
         {children}
       </div>
 
-      {/* ─── Bottom tab bar (mobile only, floating glass pill) ─── */}
-      {/* inset-x-4: 左右に 16px のマージンを取って浮かせる。bottom は safe area の上に 12px 追加 */}
+      {/* ─── Bottom tab bar (mobile only) ─── */}
       <nav
         className="fixed inset-x-4 z-30 md:hidden"
         style={{ bottom: "calc(0.75rem + env(safe-area-inset-bottom))" }}

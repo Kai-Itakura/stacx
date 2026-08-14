@@ -29,10 +29,7 @@ const baseLoader: LoaderData = {
   recent: [],
 };
 
-/**
- * action に届いた FormData を記録するスタブ。実 schema で検証し、Conform の
- * SubmissionResult を返す（client 側の lastResult 処理を壊さないため）。
- */
+/** action に届いた FormData を記録するスタブ。実 schema で検証し SubmissionResult を返す。 */
 function captureAction(schema: typeof memoFormSchema | typeof projectFormSchema) {
   const calls: Record<string, unknown>[] = [];
   const fn = async ({ request }: { request: Request }) => {
@@ -70,7 +67,6 @@ function renderHome(opts?: {
       // biome-ignore lint/suspicious/noExplicitAny: stub の Component 型はゆるく、実 route の型と差異がある
       Component: Home as any,
       loader: () => ({ ...baseLoader, ...opts?.loaderData }),
-      // stub は loader をクライアント側で解決するため、初回描画用のフォールバックが要る。
       HydrateFallback: () => null,
     },
     {
@@ -97,7 +93,6 @@ describe("クイック・インテーク画面", () => {
 
   it("進行中（endDate=null）のプロジェクトを既定選択する", async () => {
     renderHome();
-    // 選択中のプロジェクトはチップのラベルに出る
     expect(await screen.findByText("進行中プロジェクト")).toBeInTheDocument();
   });
 
@@ -148,7 +143,6 @@ describe("クイック・インテーク画面", () => {
 
     await user.click(await screen.findByRole("button", { name: "タグを追加" }));
     await user.click(await screen.findByRole("menuitem", { name: "技術チャレンジ" }));
-    // 選択したタグは入力欄の上にチップとして残る
     expect(screen.getByRole("button", { name: "技術チャレンジ を外す" })).toBeInTheDocument();
 
     const textarea = screen.getByPlaceholderText(TEXTAREA);
@@ -179,7 +173,6 @@ describe("クイック・インテーク画面", () => {
       ).not.toBeInTheDocument(),
     );
 
-    // 2 回目も同じようにリセットされること（保存後の状態は毎回同じであるべき）
     await selectTagAndSave("2 本目");
     await waitFor(() =>
       expect(
@@ -204,7 +197,6 @@ describe("クイック・インテーク画面", () => {
 
   it("保存すると直近メモに積まれる（保存できた合図になる）", async () => {
     const user = userEvent.setup();
-    // 保存の成否を伝える手段が「一覧に現れること」なので、
     // loader 再検証で新しいメモが降ってくる状況を再現する。
     const stored: { id: string; body: string; createdAt: string }[] = [];
     const Stub = createRoutesStub([
@@ -262,7 +254,6 @@ describe("クイック・インテーク画面", () => {
     await user.click(screen.getByRole("button", { name: "タグを追加" }));
     await user.type(await screen.findByPlaceholderText("新規タグを追加"), "新タグ{Enter}");
 
-    // 作成成功で入力欄がクリアされる。
     await waitFor(() => expect(screen.getByPlaceholderText("新規タグを追加")).toHaveValue(""));
 
     fireEvent.keyDown(textarea, { key: "Enter", metaKey: true });

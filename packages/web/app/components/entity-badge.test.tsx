@@ -80,7 +80,6 @@ describe("entity badges", () => {
       </>,
     );
     const [tech, tag] = screen.getAllByText("React").map((el) => el.closest("[data-slot='badge']"));
-    // 同名でも軸が違えば見た目が変わる
     expect(tech?.className).not.toBe(tag?.className);
     expect(tech).toHaveAttribute("data-variant", "outline");
   });

@@ -63,9 +63,7 @@ export function StarEditor({ memo, values, status }: StarEditorProps) {
 
   return (
     <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-      {/* 左: メモ */}
       <section className="border-border h-fit rounded-lg border p-4">
-        {/* 上段はメモの文脈（どのプロジェクトか）。本文とタグは下に置く。 */}
         <div className="flex items-center justify-between gap-2">
           <span className="text-muted-foreground text-xs">メモ</span>
           <ProjectBadge id={memo.projectId} name={memo.projectName} active={memo.projectActive} />
@@ -80,7 +78,6 @@ export function StarEditor({ memo, values, status }: StarEditorProps) {
         )}
       </section>
 
-      {/* 右: STAR フォーム */}
       <Form method="post" {...getFormProps(form)} className="flex flex-col gap-4">
         <div className="flex items-center gap-2">
           <Badge variant={badge.variant}>{badge.label}</Badge>

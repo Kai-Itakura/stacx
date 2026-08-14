@@ -25,11 +25,7 @@ type IntakeChipsProps = {
   onToggleTag: (id: string) => void;
 };
 
-/**
- * 入力欄の上に置く選択チップ列。プロジェクトとタグを小さく畳んでおき、
- * 本文の入力領域を圧迫しないようにする（選択はドロップダウンで行う）。
- * 実際の送信値は hidden input で form に載せる。
- */
+/** 入力欄の上に置く選択チップ列。送信値は hidden input で親フォームに載せる。 */
 export function IntakeChips({
   projects,
   tags,
@@ -60,7 +56,6 @@ export function IntakeChips({
     });
   };
 
-  // 作成したタグは自動選択し、入力欄をクリアする。
   useEffect(() => {
     const data = tagFetcher.data;
     if (data?.ok && data.tagId) {
@@ -74,7 +69,6 @@ export function IntakeChips({
 
   return (
     <div className="flex flex-wrap items-center gap-1.5">
-      {/* 送信値は hidden で載せる（チップは見た目の操作に徹する）。 */}
       <input type="hidden" name="projectId" value={project?.id ?? ""} />
       {selectedTagIds.map((id) => (
         <input key={id} type="hidden" name="tagIds" value={id} />
@@ -149,7 +143,7 @@ export function IntakeChips({
                 setTagError(null);
               }}
               onKeyDown={(e) => {
-                // メニュー内なので Enter が親へ伝播しないようにする。
+                // 伝播させると親フォーム（メモ本文）が送信される。
                 if (e.key === "Enter") {
                   e.preventDefault();
                   e.stopPropagation();

@@ -3,14 +3,10 @@ import { applyTheme, THEME_STORAGE_KEY, THEMES, type Theme } from "~/lib/theme";
 
 /**
  * テーマの現在値と循環切り替えを提供する。
- *
- * デスクトップのヘッダーボタン（ThemeToggle）とモバイルのユーザーメニュー項目の
- * 両方から使うため、状態と副作用をここへ集約している。
- * theme.ts を React 非依存に保ちたいので、フックだけ別ファイルに置く。
+ * theme.ts を React 非依存に保つため、フックだけ別ファイルに置く。
  */
 export function useTheme() {
-  // SSR/初回ハイドレーションは server と一致させるため "system" 固定。
-  // 実際の保存値はマウント後に読み込む（インラインスクリプトが先に .dark を適用済み）。
+  // SSR/初回ハイドレーションは server と一致させるため "system" 固定。保存値はマウント後に読む。
   const [theme, setTheme] = useState<Theme>("system");
 
   useEffect(() => {

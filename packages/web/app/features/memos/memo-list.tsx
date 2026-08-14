@@ -40,14 +40,12 @@ export function MemoList({ memos }: { memos: MemoListItem[] }) {
     <ul className="flex flex-col gap-3">
       {memos.map((m) => (
         <li key={m.id} className="border-border rounded-lg border p-4">
-          {/* 上段はメモの文脈（どのプロジェクトか・いつか）。本文とタグは下に置く。 */}
           <div className="flex items-center justify-between gap-2">
             <ProjectBadge id={m.projectId} name={m.projectName} active={m.projectActive} />
             <time className="text-muted-foreground shrink-0 text-xs">
               {m.createdAt.slice(0, 10)}
             </time>
           </div>
-          {/* メモはタイトルを持たないため、本文の先頭行を見出しとして導出する。 */}
           <p className="mt-2 font-medium">{memoExcerpt(m.body)}</p>
           <p className="text-muted-foreground mt-1 line-clamp-3 text-sm whitespace-pre-wrap">
             {m.body}

@@ -30,7 +30,6 @@ describe("MemoList", () => {
 
   it("本文の先頭行を見出しに、本文・プロジェクト名・タグ・作成日を表示する", () => {
     renderList([base]);
-    // タイトルを持たないため、見出しは本文の先頭行から導出される
     expect(screen.getByText("LCP を改善")).toBeInTheDocument();
     expect(screen.getByText(/クエリ最適化/)).toBeInTheDocument();
     expect(screen.getByText("進行中PJ")).toBeInTheDocument();

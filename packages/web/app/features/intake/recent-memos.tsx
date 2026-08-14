@@ -1,13 +1,9 @@
 import { Link } from "react-router";
 import { memoExcerpt } from "~/lib/memo-excerpt";
 
-/** 作成画面に出す直近メモ（loader が新しい順で渡す）。 */
 export type RecentMemo = { id: string; body: string; createdAt: string };
 
-/**
- * 入力欄の上に直近のメモを積む。保存するとここの先頭に現れるため、
- * これ自体が「保存できた」合図を兼ねる（トーストを持たない代わり）。
- */
+/** 入力欄の上に積む直近メモ。渡された順にそのまま並べる。 */
 export function RecentMemos({ memos }: { memos: RecentMemo[] }) {
   if (memos.length === 0) {
     return (
@@ -44,7 +40,7 @@ export function RecentMemos({ memos }: { memos: RecentMemo[] }) {
   );
 }
 
-/** 当日は時刻、それ以前は日付。直近を並べるので細かい日時までは出さない。 */
+/** 当日は時刻、それ以前は日付を返す。 */
 function formatTime(iso: string): string {
   const date = new Date(iso);
   const today = new Date();

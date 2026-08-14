@@ -35,7 +35,6 @@ const TagField = ({ tags, formStatus, initialSelected }: TagFieldProps) => {
   const addTag = () => {
     // Enter キーは Button の disabled を経由しないため、ここでも送信中を弾く。
     if (tagFetcher.state !== "idle") return;
-    // メモ/プロジェクトと同じく zod スキーマで検証する。
     const result = tagFormSchema.safeParse({ name: newTag });
     if (!result.success) {
       setTagError(result.error.issues[0]?.message ?? "タグ名を入力してください");
@@ -55,7 +54,6 @@ const TagField = ({ tags, formStatus, initialSelected }: TagFieldProps) => {
     }
   }, [formStatus]);
 
-  // インライン作成したタグは自動選択し、入力欄をクリア。
   useEffect(() => {
     const data = tagFetcher.data;
     if (data?.ok && data.tagId) {
@@ -65,7 +63,6 @@ const TagField = ({ tags, formStatus, initialSelected }: TagFieldProps) => {
     }
   }, [tagFetcher.data]);
 
-  // クライアント検証エラーを優先し、無ければサーバ（重複等）のエラーを出す。
   const serverError = tagFetcher.data && !tagFetcher.data.ok ? tagFetcher.data.error : null;
   const displayError = tagError ?? serverError;
 
@@ -81,21 +78,17 @@ const TagField = ({ tags, formStatus, initialSelected }: TagFieldProps) => {
               type="button"
               onClick={() => toggleTag(tag.id)}
               aria-pressed={selected}
-              // どのタグかは常に色で分かるようにしつつ、選択状態は「器が埋まっているか」で示す。
-              // 未選択を枠線だけにすると、1 つも選んでいない状態でも未選択だと分かる。
               className={`inline-flex items-center gap-1 rounded-full border px-3 py-1 text-sm transition-colors ${
                 selected
                   ? `${tagToneSelectedClass(tag.name)} border-transparent`
                   : `${tagToneOutlineClass(tag.name)} hover:bg-muted`
               }`}
             >
-              {/* 他画面のタグバッジと同じアイコンを出し、選択中だけチェックに差し替える。 */}
               {selected ? <Check className="h-3.5 w-3.5" /> : <Tag className="h-3.5 w-3.5" />}
               {tag.name}
             </button>
           );
         })}
-        {/* 選択中タグを form に載せる隠しフィールド。 */}
         {[...selectedTags].map((id) => (
           <input key={id} type="hidden" name="tagIds" value={id} />
         ))}

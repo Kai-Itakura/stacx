@@ -4,7 +4,6 @@ import { type RecentMemo, RecentMemos } from "~/features/intake/recent-memos";
 import { apiClient } from "~/lib/api.server";
 import type { Route } from "./+types/home";
 
-/** 入力欄の上に出す件数。全件は /memos に任せる。 */
 const RECENT_LIMIT = 5;
 
 export function meta() {
@@ -22,7 +21,7 @@ export async function loader({ request }: Route.LoaderArgs) {
   const tags = tagsRes.ok ? (await tagsRes.json()).tags : [];
   const memos = memosRes.ok ? (await memosRes.json()).memos : [];
 
-  // listMemos は作成日の降順なので先頭を取るだけでよい。
+  // listMemos が作成日の降順で返すため、並べ替えずに先頭を取る。
   const recent: RecentMemo[] = memos
     .slice(0, RECENT_LIMIT)
     .map((m) => ({ id: m.id, body: m.body, createdAt: m.createdAt }));
@@ -41,7 +40,6 @@ export default function Home({ loaderData }: Route.ComponentProps) {
     );
   }
 
-  // 上（直近メモ）だけをスクロールさせ、入力欄は常に下端に置く。
   return (
     <main className="container mx-auto flex min-h-0 flex-1 flex-col gap-3 p-4 md:max-w-2xl md:p-6">
       <div className="min-h-0 flex-1 overflow-y-auto">
