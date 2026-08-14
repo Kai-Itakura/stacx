@@ -56,13 +56,19 @@ export function QuickIntake({ projects, tags }: QuickIntakeProps) {
     el.style.height = `${el.scrollHeight}px`;
   }, []);
 
+  /*
+   * 保存が成功するたびに入力状態を初期化する。
+   * form.status は 2 回目以降も "success" のままで値が変わらず発火しないため、
+   * 応答オブジェクトそのものを見る。action の submission.reply({ resetForm: true })
+   * は { initialValue: null } を返すので、これを成功の合図として扱う。
+   */
   useEffect(() => {
-    if (form.status === "success") {
+    if (memoFetcher.data?.initialValue === null) {
       setSelectedTagIds([]);
       autoGrow(); // リセット後は 1 行分に戻す
       textareaRef.current?.focus();
     }
-  }, [form.status, autoGrow]);
+  }, [memoFetcher.data, autoGrow]);
 
   return (
     <memoFetcher.Form

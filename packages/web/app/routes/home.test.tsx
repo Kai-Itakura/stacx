@@ -159,6 +159,38 @@ describe("クイック・インテーク画面", () => {
     expect(calls[0].tagIds).toEqual(["t1"]);
   });
 
+  it("保存のたびにタグ選択がリセットされる（2 回目以降も）", async () => {
+    const user = userEvent.setup();
+    const { fn, calls } = captureAction(memoFormSchema);
+    renderHome({ memoAction: fn });
+
+    const selectTagAndSave = async (body: string) => {
+      await user.click(await screen.findByRole("button", { name: "タグを追加" }));
+      await user.click(await screen.findByRole("menuitem", { name: "技術チャレンジ" }));
+      const textarea = screen.getByPlaceholderText(TEXTAREA);
+      await user.type(textarea, body);
+      fireEvent.keyDown(textarea, { key: "Enter", metaKey: true });
+    };
+
+    await selectTagAndSave("1 本目");
+    await waitFor(() =>
+      expect(
+        screen.queryByRole("button", { name: "技術チャレンジ を外す" }),
+      ).not.toBeInTheDocument(),
+    );
+
+    // 2 回目も同じようにリセットされること（保存後の状態は毎回同じであるべき）
+    await selectTagAndSave("2 本目");
+    await waitFor(() =>
+      expect(
+        screen.queryByRole("button", { name: "技術チャレンジ を外す" }),
+      ).not.toBeInTheDocument(),
+    );
+
+    expect(calls).toHaveLength(2);
+    expect(calls[1].tagIds).toEqual(["t1"]);
+  });
+
   it("チップの × でタグを外せる", async () => {
     const user = userEvent.setup();
     renderHome({});
