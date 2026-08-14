@@ -1,5 +1,5 @@
 import type { FormMetadata } from "@conform-to/react";
-import { Check } from "lucide-react";
+import { Check, Tag } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useFetcher } from "react-router";
 import { Button } from "~/components/ui/button";
@@ -78,12 +78,13 @@ const TagField = ({ tags, formStatus }: TagFieldProps) => {
               onClick={() => toggleTag(tag.id)}
               aria-pressed={selected}
               // どのタグかを色で判別できるよう、選択の有無にかかわらずタグ色を出す。
-              // 選択状態は色ではなく ring とチェックアイコン（＋ aria-pressed）で示す。
+              // 選択状態は色ではなく ring とアイコン（＋ aria-pressed）で示す。
               className={`${tagToneClass(tag.name)} inline-flex items-center gap-1 rounded-full px-3 py-1 text-sm transition-shadow ${
                 selected ? "ring-2 ring-current/50" : "hover:ring-2 hover:ring-current/20"
               }`}
             >
-              {selected && <Check className="h-3.5 w-3.5" />}
+              {/* 他画面のタグバッジと同じアイコンを出し、選択中だけチェックに差し替える。 */}
+              {selected ? <Check className="h-3.5 w-3.5" /> : <Tag className="h-3.5 w-3.5" />}
               {tag.name}
             </button>
           );

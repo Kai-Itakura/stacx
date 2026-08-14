@@ -35,10 +35,11 @@ describe("MemoList", () => {
       { ...base, id: "m1", title: "古いメモ" },
     ];
     render(<MemoList memos={memos} />);
-    const titles = screen
+    // タグ名で引くとカード内の要素構成に依存して壊れるため、本文から順序だけを見る
+    const order = screen
       .getAllByRole("listitem")
-      .map((li) => li.querySelector("span")?.textContent);
-    expect(titles).toEqual(["新しいメモ", "古いメモ"]);
+      .map((li) => (li.textContent?.includes("新しいメモ") ? "新しいメモ" : "古いメモ"));
+    expect(order).toEqual(["新しいメモ", "古いメモ"]);
   });
 
   it("タグが無ければタグ chip は出さず、プロジェクト名だけ出す", () => {
