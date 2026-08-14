@@ -13,6 +13,18 @@ import { tagToneClass, techToneClass } from "~/lib/tag-color";
  * プロジェクト。バッジにせず下線付きのテキストで出し、色付き pill のタグと明確に分ける。
  * 進行中は黄・終了は緑のフォルダアイコンで状態を示す。id を渡すと詳細へのリンクになる。
  */
+/**
+ * プロジェクトの状態アイコン。進行中は黄、完了は緑。
+ * メモ側とプロジェクト一覧で同じ意味・同じ色にするため、ここ 1 箇所に定義する。
+ */
+export function ProjectStatusIcon({ active }: { active?: boolean }) {
+  return active ? (
+    <FolderOpen aria-label="進行中" className="text-warning size-4 shrink-0" />
+  ) : (
+    <FolderCheck aria-label="完了" className="text-success size-4 shrink-0" />
+  );
+}
+
 export function ProjectBadge({
   id,
   name,
@@ -25,11 +37,7 @@ export function ProjectBadge({
 }) {
   const content = (
     <>
-      {active ? (
-        <FolderOpen aria-label="進行中" className="text-warning size-4" />
-      ) : (
-        <FolderCheck aria-label="終了" className="text-success size-4" />
-      )}
+      <ProjectStatusIcon active={active} />
       {name}
     </>
   );

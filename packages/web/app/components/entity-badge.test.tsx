@@ -25,15 +25,15 @@ describe("entity badges", () => {
     expect(badgeOf("トラブル")).not.toBeNull();
   });
 
-  it("プロジェクトは進行中と終了をアイコンで示す", () => {
+  it("プロジェクトは進行中と完了をアイコンで示す", () => {
     render(
       <>
         <ProjectBadge name="進行中PJ" active />
-        <ProjectBadge name="終了PJ" active={false} />
+        <ProjectBadge name="完了PJ" active={false} />
       </>,
     );
     expect(screen.getByLabelText("進行中")).toBeInTheDocument();
-    expect(screen.getByLabelText("終了")).toBeInTheDocument();
+    expect(screen.getByLabelText("完了")).toBeInTheDocument();
   });
 
   it("3 種すべてが軸を示すアイコンを持つ", () => {
