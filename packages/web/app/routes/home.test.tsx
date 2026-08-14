@@ -97,7 +97,24 @@ describe("クイック・インテーク画面", () => {
 
   it("進行中（endDate=null）のプロジェクトを既定選択する", async () => {
     renderHome();
-    expect(await screen.findByRole("combobox")).toHaveValue("p2");
+    // 選択中のプロジェクトはチップのラベルに出る
+    expect(await screen.findByText("進行中プロジェクト")).toBeInTheDocument();
+  });
+
+  it("プロジェクトチップから別のプロジェクトへ切り替えられる", async () => {
+    const user = userEvent.setup();
+    const { fn, calls } = captureAction(memoFormSchema);
+    renderHome({ memoAction: fn });
+
+    await user.click(await screen.findByRole("button", { name: /進行中プロジェクト/ }));
+    await user.click(await screen.findByRole("menuitem", { name: /終わったやつ/ }));
+
+    const textarea = screen.getByPlaceholderText(TEXTAREA);
+    await user.type(textarea, "本文");
+    fireEvent.keyDown(textarea, { key: "Enter", metaKey: true });
+
+    await waitFor(() => expect(calls).toHaveLength(1));
+    expect(calls[0].projectId).toBe("p1");
   });
 
   it("Cmd+Enter で本文と選択中プロジェクトを送信する", async () => {
@@ -124,18 +141,33 @@ describe("クイック・インテーク画面", () => {
     expect(calls).toHaveLength(0);
   });
 
-  it("タグ chip を選ぶと tagIds に含めて送信する", async () => {
+  it("タグを選ぶとチップに出て tagIds に含めて送信する", async () => {
     const user = userEvent.setup();
     const { fn, calls } = captureAction(memoFormSchema);
     renderHome({ memoAction: fn });
 
-    const textarea = await screen.findByPlaceholderText(TEXTAREA);
+    await user.click(await screen.findByRole("button", { name: "タグを追加" }));
+    await user.click(await screen.findByRole("menuitem", { name: "技術チャレンジ" }));
+    // 選択したタグは入力欄の上にチップとして残る
+    expect(screen.getByRole("button", { name: "技術チャレンジ を外す" })).toBeInTheDocument();
+
+    const textarea = screen.getByPlaceholderText(TEXTAREA);
     await user.type(textarea, "本文");
-    await user.click(screen.getByRole("button", { name: "技術チャレンジ" }));
     fireEvent.keyDown(textarea, { key: "Enter", metaKey: true });
 
     await waitFor(() => expect(calls).toHaveLength(1));
     expect(calls[0].tagIds).toEqual(["t1"]);
+  });
+
+  it("チップの × でタグを外せる", async () => {
+    const user = userEvent.setup();
+    renderHome({});
+
+    await user.click(await screen.findByRole("button", { name: "タグを追加" }));
+    await user.click(await screen.findByRole("menuitem", { name: "技術チャレンジ" }));
+    await user.click(screen.getByRole("button", { name: "技術チャレンジ を外す" }));
+
+    expect(screen.queryByRole("button", { name: "技術チャレンジ を外す" })).not.toBeInTheDocument();
   });
 
   it("保存すると直近メモに積まれる（保存できた合図になる）", async () => {
@@ -176,22 +208,16 @@ describe("クイック・インテーク画面", () => {
     expect(await screen.findByRole("link", { name: /保存したメモ/ })).toBeInTheDocument();
   });
 
-  it("未選択は枠線のみ・選択中は塗りつぶしで示す", async () => {
+  it("選択中のタグはタグ色で塗って表示する", async () => {
     const user = userEvent.setup();
     renderHome({});
 
-    const chip = await screen.findByRole("button", { name: "技術チャレンジ" });
-    // 1 つも選んでいなくても未選択と分かるよう、器が空（枠線のみ）であること
-    expect(chip.className).toMatch(/border-tag-\d/);
-    expect(chip.className).not.toMatch(/bg-tag-\d/);
-    expect(chip).toHaveAttribute("aria-pressed", "false");
+    await user.click(await screen.findByRole("button", { name: "タグを追加" }));
+    await user.click(await screen.findByRole("menuitem", { name: "技術チャレンジ" }));
 
-    await user.click(chip);
-
-    // 選択中は塗りつぶし + 地の色で文字を抜く
-    expect(chip.className).toMatch(/bg-tag-\d/);
-    expect(chip.className).toContain("text-background");
-    expect(chip).toHaveAttribute("aria-pressed", "true");
+    const chip = screen.getByRole("button", { name: "技術チャレンジ を外す" }).parentElement;
+    expect(chip?.className).toMatch(/bg-tag-\d/);
+    expect(chip?.className).toContain("text-background");
   });
 
   it("新規タグを作成すると自動選択され、送信に含まれる", async () => {
@@ -201,8 +227,8 @@ describe("クイック・インテーク画面", () => {
 
     const textarea = await screen.findByPlaceholderText(TEXTAREA);
     await user.type(textarea, "本文");
-    await user.type(screen.getByPlaceholderText("新規タグを追加"), "新タグ");
-    await user.click(screen.getByRole("button", { name: "追加" }));
+    await user.click(screen.getByRole("button", { name: "タグを追加" }));
+    await user.type(await screen.findByPlaceholderText("新規タグを追加"), "新タグ{Enter}");
 
     // 作成成功で入力欄がクリアされる。
     await waitFor(() => expect(screen.getByPlaceholderText("新規タグを追加")).toHaveValue(""));
@@ -217,7 +243,8 @@ describe("クイック・インテーク画面", () => {
     const { fn, calls } = captureTagAction();
     renderHome({ tagAction: fn });
 
-    await user.click(await screen.findByRole("button", { name: "追加" }));
+    await user.click(await screen.findByRole("button", { name: "タグを追加" }));
+    await user.type(await screen.findByPlaceholderText("新規タグを追加"), "{Enter}");
 
     expect(await screen.findByText("タグ名を入力してください")).toBeInTheDocument();
     expect(calls).toHaveLength(0);

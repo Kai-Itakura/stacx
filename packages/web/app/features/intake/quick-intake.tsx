@@ -1,18 +1,13 @@
-import { getFormProps, getSelectProps, getTextareaProps, useForm } from "@conform-to/react";
+import { getFormProps, getTextareaProps, useForm } from "@conform-to/react";
 import { getZodConstraint, parseWithZod } from "@conform-to/zod/v4";
-import { useEffect, useRef } from "react";
+import { CornerDownLeft } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useFetcher } from "react-router";
 import { Button } from "~/components/ui/button";
 import { Textarea } from "~/components/ui/textarea";
 import type { action } from "~/resources/create-memo";
+import { IntakeChips } from "./intake-chips";
 import { type IntakeProject, type IntakeTag, memoFormSchema } from "./schema";
-import TagField from "./tag-field";
-
-const HINTS = [
-  "数値で表せる成果はある？（例: LCP 2.5s → 1.2s）",
-  "なぜその技術を選んだ？",
-  "チームへの貢献はあった？",
-];
 
 type QuickIntakeProps = {
   projects: IntakeProject[];
@@ -28,15 +23,20 @@ export function QuickIntake({ projects, tags }: QuickIntakeProps) {
 
   // 進行中（endDate が null）のプロジェクトを既定選択。無ければ先頭。
   const defaultProjectId = (projects.find((p) => p.endDate === null) ?? projects[0]).id;
+  const [projectId, setProjectId] = useState(defaultProjectId);
+  const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
 
   const [form, fields] = useForm({
     lastResult: memoFetcher.data,
     constraint: getZodConstraint(memoFormSchema),
-    defaultValue: { projectId: defaultProjectId },
     shouldValidate: "onSubmit",
     shouldRevalidate: "onInput",
     onValidate: ({ formData }) => parseWithZod(formData, { schema: memoFormSchema }),
   });
+
+  const toggleTag = useCallback((id: string) => {
+    setSelectedTagIds((prev) => (prev.includes(id) ? prev.filter((t) => t !== id) : [...prev, id]));
+  }, []);
 
   const onTextareaKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     // Enter は改行、Cmd/Ctrl+Enter で保存。
@@ -48,6 +48,7 @@ export function QuickIntake({ projects, tags }: QuickIntakeProps) {
 
   useEffect(() => {
     if (form.status === "success") {
+      setSelectedTagIds([]);
       textareaRef.current?.focus();
     }
   }, [form.status]);
@@ -59,55 +60,37 @@ export function QuickIntake({ projects, tags }: QuickIntakeProps) {
       action="/resources/memos/create"
       encType="application/x-www-form-urlencoded"
       {...getFormProps(form)}
-      className="flex flex-col gap-4"
+      className="flex flex-col gap-2"
     >
-      <div>
+      {/* 選択肢は入力欄の上に小さく畳んで置き、本文の領域を圧迫しない。 */}
+      <IntakeChips
+        projects={projects}
+        tags={tags}
+        projectId={projectId}
+        onProjectChange={setProjectId}
+        selectedTagIds={selectedTagIds}
+        onToggleTag={toggleTag}
+      />
+
+      <div className="border-input focus-within:border-ring focus-within:ring-ring/50 flex items-end gap-2 rounded-lg border p-2 shadow-xs focus-within:ring-3">
         <Textarea
           {...getTextareaProps(fields.body)}
           ref={textareaRef}
-          rows={4}
+          rows={2}
           autoFocus
           placeholder="いま学んだこと・成果を 1 分でメモ…"
           onKeyDown={onTextareaKeyDown}
-          className="resize-y text-base"
+          // 枠は外側の div が持つので、textarea 自身の枠と影は消す。
+          className="max-h-40 min-h-9 resize-none border-0 p-0 text-base shadow-none focus-visible:ring-0"
         />
-        {/* 画面下部に置くため縦幅を抑える。ヒントは詳細に畳み、必要なときだけ開く。 */}
-        {fields.body.errors ? (
-          <p className="text-destructive mt-1 text-sm">{fields.body.errors[0]}</p>
-        ) : (
-          <details className="text-muted-foreground mt-1.5 text-xs">
-            <summary className="cursor-pointer">書くヒント</summary>
-            <ul className="mt-1 space-y-0.5">
-              {HINTS.map((hint) => (
-                <li key={hint}>・{hint}</li>
-              ))}
-            </ul>
-          </details>
-        )}
+        <Button type="submit" size="icon" aria-label="保存" className="shrink-0">
+          <CornerDownLeft />
+        </Button>
       </div>
 
-      <div className="flex flex-col gap-1.5">
-        <span className="text-sm font-medium">プロジェクト</span>
-        <select
-          {...getSelectProps(fields.projectId)}
-          className="border-input bg-background focus-visible:border-ring focus-visible:ring-ring/50 h-9 rounded-md border px-3 text-sm shadow-xs outline-none focus-visible:ring-3"
-        >
-          {projects.map((p) => (
-            <option key={p.id} value={p.id}>
-              {p.name}
-              {p.endDate === null ? "（進行中）" : ""}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      <TagField tags={tags} formStatus={form.status} />
-
-      <div className="flex items-center justify-end gap-3">
-        {form.errors && <p className="text-destructive mr-auto text-sm">{form.errors[0]}</p>}
-        <span className="text-muted-foreground text-xs">⌘/Ctrl + Enter で保存</span>
-        <Button type="submit">保存</Button>
-      </div>
+      {(fields.body.errors || form.errors) && (
+        <p className="text-destructive text-sm">{fields.body.errors?.[0] ?? form.errors?.[0]}</p>
+      )}
     </memoFetcher.Form>
   );
 }
