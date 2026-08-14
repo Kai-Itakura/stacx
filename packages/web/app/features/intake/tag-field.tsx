@@ -1,10 +1,10 @@
 import type { FormMetadata } from "@conform-to/react";
-import { Check } from "lucide-react";
+import { Check, Tag } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useFetcher } from "react-router";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
-import { tagToneClass } from "~/lib/tag-color";
+import { tagToneOutlineClass, tagToneSelectedClass } from "~/lib/tag-color";
 import type { action } from "~/resources/create-tag";
 import { type IntakeTag, tagFormSchema } from "./schema";
 
@@ -77,13 +77,16 @@ const TagField = ({ tags, formStatus }: TagFieldProps) => {
               type="button"
               onClick={() => toggleTag(tag.id)}
               aria-pressed={selected}
-              // どのタグかを色で判別できるよう、選択の有無にかかわらずタグ色を出す。
-              // 選択状態は色ではなく ring とチェックアイコン（＋ aria-pressed）で示す。
-              className={`${tagToneClass(tag.name)} inline-flex items-center gap-1 rounded-full px-3 py-1 text-sm transition-shadow ${
-                selected ? "ring-2 ring-current/50" : "hover:ring-2 hover:ring-current/20"
+              // どのタグかは常に色で分かるようにしつつ、選択状態は「器が埋まっているか」で示す。
+              // 未選択を枠線だけにすると、1 つも選んでいない状態でも未選択だと分かる。
+              className={`inline-flex items-center gap-1 rounded-full border px-3 py-1 text-sm transition-colors ${
+                selected
+                  ? `${tagToneSelectedClass(tag.name)} border-transparent`
+                  : `${tagToneOutlineClass(tag.name)} hover:bg-muted`
               }`}
             >
-              {selected && <Check className="h-3.5 w-3.5" />}
+              {/* 他画面のタグバッジと同じアイコンを出し、選択中だけチェックに差し替える。 */}
+              {selected ? <Check className="h-3.5 w-3.5" /> : <Tag className="h-3.5 w-3.5" />}
               {tag.name}
             </button>
           );

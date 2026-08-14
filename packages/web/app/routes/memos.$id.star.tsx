@@ -31,12 +31,14 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   const projects = projectsRes.ok ? (await projectsRes.json()).projects : [];
   const tags = tagsRes.ok ? (await tagsRes.json()).tags : [];
 
-  const projectName = new Map(projects.map((p) => [p.id, p.name]));
+  const projectById = new Map(projects.map((p) => [p.id, p]));
   const tagName = new Map(tags.map((t) => [t.id, t.name]));
   const editorMemo: StarEditorMemo = {
     id: memo.id,
     body: memo.body,
-    projectName: projectName.get(memo.projectId) ?? "（不明なプロジェクト）",
+    projectId: memo.projectId,
+    projectName: projectById.get(memo.projectId)?.name ?? "（不明なプロジェクト）",
+    projectActive: projectById.get(memo.projectId)?.endDate == null,
     tagNames: memo.tagIds.map((id) => tagName.get(id)).filter((n): n is string => n != null),
   };
   const values = {

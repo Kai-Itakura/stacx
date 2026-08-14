@@ -41,7 +41,10 @@ export function starFormSchema(mode: StarSaveMode) {
 export type StarEditorMemo = {
   id: string;
   body: string;
+  projectId: string;
   projectName: string;
+  /** 所属プロジェクトが進行中か（終了日が未設定）。 */
+  projectActive: boolean;
   tagNames: string[];
 };
 

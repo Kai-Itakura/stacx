@@ -1,5 +1,5 @@
+import { ProjectBadge, TagBadge } from "~/components/entity-badge";
 import { Badge } from "~/components/ui/badge";
-import { tagToneClass } from "~/lib/tag-color";
 import type { StarStatus } from "./star-schema";
 
 /** メモ一覧の表示用アイテム（route loader が RPC レスポンスから整形して渡す）。 */
@@ -8,7 +8,10 @@ export type MemoListItem = {
   title: string;
   body: string;
   createdAt: string;
+  projectId: string;
   projectName: string;
+  /** 所属プロジェクトが進行中か（終了日が未設定）。 */
+  projectActive: boolean;
   tagNames: string[];
   /** STAR の状態。バッジと導線ラベルの出し分けに使う。 */
   starStatus: StarStatus;
@@ -37,23 +40,24 @@ export function MemoList({ memos }: { memos: MemoListItem[] }) {
     <ul className="flex flex-col gap-3">
       {memos.map((m) => (
         <li key={m.id} className="border-border rounded-lg border p-4">
-          <div className="flex items-baseline justify-between gap-2">
-            <span className="font-medium">{m.title}</span>
+          {/* 上段はメモの文脈（どのプロジェクトか・いつか）。本文とタグは下に置く。 */}
+          <div className="flex items-center justify-between gap-2">
+            <ProjectBadge id={m.projectId} name={m.projectName} active={m.projectActive} />
             <time className="text-muted-foreground shrink-0 text-xs">
               {m.createdAt.slice(0, 10)}
             </time>
           </div>
+          <p className="mt-2 font-medium">{m.title}</p>
           <p className="text-muted-foreground mt-1 line-clamp-3 text-sm whitespace-pre-wrap">
             {m.body}
           </p>
-          <div className="mt-2 flex flex-wrap items-center gap-1.5">
-            <Badge variant="info">{m.projectName}</Badge>
-            {m.tagNames.map((name) => (
-              <Badge key={name} variant="tag" className={tagToneClass(name)}>
-                {name}
-              </Badge>
-            ))}
-          </div>
+          {m.tagNames.length > 0 && (
+            <div className="mt-2 flex flex-wrap items-center gap-1.5">
+              {m.tagNames.map((name) => (
+                <TagBadge key={name} name={name} />
+              ))}
+            </div>
+          )}
           <div className="mt-3 flex items-center justify-end gap-2 border-t pt-3">
             {m.starStatus === "complete" && <Badge variant="success">完成</Badge>}
             {m.starStatus === "draft" && <Badge variant="warning">下書き</Badge>}
