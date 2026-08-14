@@ -1,11 +1,11 @@
 import { ProjectBadge, TagBadge } from "~/components/entity-badge";
 import { Badge } from "~/components/ui/badge";
+import { memoExcerpt } from "~/lib/memo-excerpt";
 import type { StarStatus } from "./star-schema";
 
 /** メモ一覧の表示用アイテム（route loader が RPC レスポンスから整形して渡す）。 */
 export type MemoListItem = {
   id: string;
-  title: string;
   body: string;
   createdAt: string;
   projectId: string;
@@ -47,7 +47,8 @@ export function MemoList({ memos }: { memos: MemoListItem[] }) {
               {m.createdAt.slice(0, 10)}
             </time>
           </div>
-          <p className="mt-2 font-medium">{m.title}</p>
+          {/* メモはタイトルを持たないため、本文の先頭行を見出しとして導出する。 */}
+          <p className="mt-2 font-medium">{memoExcerpt(m.body)}</p>
           <p className="text-muted-foreground mt-1 line-clamp-3 text-sm whitespace-pre-wrap">
             {m.body}
           </p>
@@ -61,6 +62,12 @@ export function MemoList({ memos }: { memos: MemoListItem[] }) {
           <div className="mt-3 flex items-center justify-end gap-2 border-t pt-3">
             {m.starStatus === "complete" && <Badge variant="success">完成</Badge>}
             {m.starStatus === "draft" && <Badge variant="warning">下書き</Badge>}
+            <a
+              href={`/memos/${m.id}/edit`}
+              className="text-primary text-sm underline-offset-4 hover:underline"
+            >
+              編集
+            </a>
             <a
               href={`/memos/${m.id}/star`}
               className="text-primary text-sm underline-offset-4 hover:underline"

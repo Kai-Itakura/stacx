@@ -1,5 +1,5 @@
 import { parseWithZod } from "@conform-to/zod/v4";
-import { deriveTitle, memoFormSchema } from "~/features/intake/schema";
+import { memoFormSchema } from "~/features/intake/schema";
 import { apiClient } from "~/lib/api.server";
 import { requireUser } from "~/lib/auth.server";
 import type { Route } from "./+types/create-memo";
@@ -18,7 +18,7 @@ export async function action({ request }: Route.ActionArgs) {
   if (submission.status !== "success") return submission.reply();
   const { body, projectId, tagIds } = submission.value;
   const res = await client.api.memos.$post({
-    json: { projectId, title: deriveTitle(body), body, tagIds: tagIds ?? [] },
+    json: { projectId, body, tagIds: tagIds ?? [] },
   });
   if (!res.ok) return submission.reply({ formErrors: ["メモの保存に失敗しました"] });
   return submission.reply({ resetForm: true });

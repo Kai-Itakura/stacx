@@ -3,13 +3,14 @@ import { Form, Link } from "react-router";
 import { TagBadge } from "~/components/entity-badge";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
+import { memoExcerpt } from "~/lib/memo-excerpt";
 
 /** タグ管理画面の表示用アイテム（route loader が整形して渡す）。 */
 export type TagListItem = {
   id: string;
   name: string;
-  /** このタグが付いているメモ。タイトルは本文の先頭行から導出済み。 */
-  memos: { id: string; title: string }[];
+  /** このタグが付いているメモ。見出しは本文から導出する。 */
+  memos: { id: string; body: string }[];
 };
 
 export function TagList({ tags, error }: { tags: TagListItem[]; error?: string | null }) {
@@ -102,7 +103,7 @@ function TagRow({ tag }: { tag: TagListItem }) {
                 to={`/memos/${memo.id}/star`}
                 className="text-primary text-sm underline-offset-4 hover:underline"
               >
-                {memo.title}
+                {memoExcerpt(memo.body)}
               </Link>
             </li>
           ))}
