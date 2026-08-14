@@ -29,6 +29,42 @@ export function tagToneClass(name: string): string {
   return TONE_CLASSES[tagTone(name) - 1] as string;
 }
 
+const UNSELECTED_TONE_CLASSES = [
+  "border-tag-1/50 text-tag-1",
+  "border-tag-2/50 text-tag-2",
+  "border-tag-3/50 text-tag-3",
+  "border-tag-4/50 text-tag-4",
+  "border-tag-5/50 text-tag-5",
+  "border-tag-6/50 text-tag-6",
+] as const;
+
+/**
+ * 未選択のタグ用クラス（枠線のみ・中身は空）。
+ * 薄い塗りだと「状態」に見えてしまい、1 つも選択していないときに未選択と分からない。
+ * 空の器として描くことで、比較対象が無くても未選択だと判別できる。
+ */
+export function tagToneOutlineClass(name: string): string {
+  return UNSELECTED_TONE_CLASSES[tagTone(name) - 1] as string;
+}
+
+const SELECTED_TONE_CLASSES = [
+  "bg-tag-1 text-background",
+  "bg-tag-2 text-background",
+  "bg-tag-3 text-background",
+  "bg-tag-4 text-background",
+  "bg-tag-5 text-background",
+  "bg-tag-6 text-background",
+] as const;
+
+/**
+ * 選択中のタグ用クラス（べったり塗り + 地の色で文字を抜く）。
+ * 非選択の subtle 塗りとの明度差で選択状態を示す。前景に --background を使うと
+ * ライトでは白抜き・ダークでは黒抜きになり、どちらのテーマでも読める。
+ */
+export function tagToneSelectedClass(name: string): string {
+  return SELECTED_TONE_CLASSES[tagTone(name) - 1] as string;
+}
+
 const OUTLINE_TONE_CLASSES = [
   "border-tag-1/40 text-tag-1",
   "border-tag-2/40 text-tag-2",
