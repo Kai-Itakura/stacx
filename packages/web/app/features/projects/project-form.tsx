@@ -6,6 +6,7 @@ import {
   useForm,
 } from "@conform-to/react";
 import { getZodConstraint, parseWithZod } from "@conform-to/zod/v4";
+import { Code } from "lucide-react";
 import type * as React from "react";
 import { useState } from "react";
 import { Form, Link, useActionData, useNavigation } from "react-router";
@@ -113,8 +114,9 @@ export function ProjectForm({ project, submitLabel }: ProjectFormProps) {
               <Badge
                 key={t}
                 variant="outline"
-                className={`h-auto py-1 pr-1.5 pl-3 text-sm ${techToneClass(t)}`}
+                className={`h-auto py-1 pr-1.5 pl-2.5 text-sm ${techToneClass(t)}`}
               >
+                <Code />
                 {t}
                 <button
                   type="button"

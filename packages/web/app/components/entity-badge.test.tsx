@@ -19,14 +19,15 @@ describe("entity badges", () => {
     expect(badgeOf("トラブル")).not.toHaveClass("rounded-md");
   });
 
-  it("プロジェクトとタグはそれぞれアイコンを持つ", () => {
+  it("3 種すべてが軸を示すアイコンを持つ", () => {
     const { container } = render(
       <>
         <ProjectBadge name="StacX開発" />
         <TagBadge name="トラブル" />
+        <TechBadge name="React" />
       </>,
     );
-    expect(container.querySelectorAll("svg")).toHaveLength(2);
+    expect(container.querySelectorAll("svg")).toHaveLength(3);
   });
 
   it("タグ名ごとに配色クラスが変わる", () => {

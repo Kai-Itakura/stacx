@@ -1,4 +1,4 @@
-import { FolderKanban, Tag } from "lucide-react";
+import { Code, FolderKanban, Tag } from "lucide-react";
 import { Badge } from "~/components/ui/badge";
 import { tagToneClass, techToneClass } from "~/lib/tag-color";
 
@@ -28,10 +28,11 @@ export function TagBadge({ name }: { name: string }) {
   );
 }
 
-/** 技術スタック。タグ（塗り）と別軸なので枠線で描く。 */
+/** 技術スタック。タグ（塗り）と別軸なので枠線＋コードアイコンで描く。 */
 export function TechBadge({ name }: { name: string }) {
   return (
     <Badge variant="outline" className={techToneClass(name)}>
+      <Code />
       {name}
     </Badge>
   );
