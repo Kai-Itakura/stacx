@@ -83,8 +83,12 @@
   --accent: oklch(0.97 0.01 280);
   --accent-foreground: oklch(0.205 0 0);
   --destructive: oklch(0.577 0.22 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
+  /*
+   * 枠線は WCAG 1.4.11（UI 部品の境界）の 3:1 を満たす濃さにする。
+   * shadcn 既定の 0.922 は白地に対して 1.26:1 で、入力欄の境界が判別しづらかった。
+   */
+  --border: oklch(0.66 0 0);
+  --input: oklch(0.66 0 0);
   --ring: oklch(0.52 0.2 280);
 
   /*
@@ -149,8 +153,9 @@
   --accent: oklch(0.28 0.02 285);
   --accent-foreground: oklch(0.985 0 0);
   --destructive: oklch(0.704 0.178 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
+  /* 暗い地では半透明白を合成した実効色で 3:1 を満たす不透明度にする。 */
+  --border: oklch(1 0 0 / 40%);
+  --input: oklch(1 0 0 / 40%);
   --ring: oklch(0.6 0.16 285);
 
   /* 暗い地に合わせて前景を明るく・subtle を暗く反転させる（light の値のままではコントラストが出ない）。 */
