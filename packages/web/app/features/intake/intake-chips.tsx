@@ -120,8 +120,7 @@ export function IntakeChips({
         </span>
       ))}
 
-      {/* 複数選びながらチップの増減を確認できるよう、開いていてもページを触れるようにする。 */}
-      <DropdownMenu modal={false}>
+      <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <button
             type="button"
@@ -136,14 +135,7 @@ export function IntakeChips({
           <DropdownMenuLabel>タグ</DropdownMenuLabel>
           <DropdownMenuSeparator />
           {tags.map((tag) => (
-            <DropdownMenuItem
-              key={tag.id}
-              // 続けて複数選びたいので、選択してもメニューを閉じない。
-              onSelect={(e) => {
-                e.preventDefault();
-                onToggleTag(tag.id);
-              }}
-            >
+            <DropdownMenuItem key={tag.id} onSelect={() => onToggleTag(tag.id)}>
               {selectedTagIds.includes(tag.id) ? <Check /> : <span className="size-4" />}
               {tag.name}
             </DropdownMenuItem>
