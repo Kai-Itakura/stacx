@@ -14,11 +14,11 @@ export async function loader({ request }: Route.LoaderArgs) {
   const memos = memosRes.ok ? (await memosRes.json()).memos : [];
 
   // tagId → 使用しているメモ。専用 API を足さず、一覧レスポンスの tagIds から引く。
-  const byTag = new Map<string, { id: string; title: string }[]>();
+  const byTag = new Map<string, { id: string; body: string }[]>();
   for (const memo of memos) {
     for (const tagId of memo.tagIds) {
       const list = byTag.get(tagId) ?? [];
-      list.push({ id: memo.id, title: memo.title });
+      list.push({ id: memo.id, body: memo.body });
       byTag.set(tagId, list);
     }
   }

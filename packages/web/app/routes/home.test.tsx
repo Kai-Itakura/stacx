@@ -4,7 +4,7 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { createRoutesStub } from "react-router";
 import { describe, expect, it } from "vitest";
-import { deriveTitle, memoFormSchema, projectFormSchema } from "~/features/intake/schema";
+import { memoFormSchema, projectFormSchema } from "~/features/intake/schema";
 import Home from "~/routes/home";
 
 const TEXTAREA = /1 分でメモ/;
@@ -86,22 +86,6 @@ function renderHome(opts?: {
   ]);
   render(<Stub initialEntries={["/"]} />);
 }
-
-describe("deriveTitle", () => {
-  it("本文の最初の非空行を返す", () => {
-    expect(deriveTitle("  \n\n  LCP を改善\n詳細...")).toBe("LCP を改善");
-  });
-
-  it("100 文字超は末尾を … で短縮する", () => {
-    const title = deriveTitle("あ".repeat(150));
-    expect(title.endsWith("…")).toBe(true);
-    expect([...title]).toHaveLength(101);
-  });
-
-  it("非空行が無ければ空文字", () => {
-    expect(deriveTitle("   \n  ")).toBe("");
-  });
-});
 
 describe("クイック・インテーク画面", () => {
   it("本文テキストエリアにオートフォーカスする", async () => {

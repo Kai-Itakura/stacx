@@ -62,7 +62,7 @@ async function seedTag(userId: string, name: string): Promise<string> {
 async function seedMemo(
   userId: string,
   projectId: string,
-  opts: { title?: string; body?: string; tagIds?: string[] } = {},
+  opts: { body?: string; tagIds?: string[] } = {},
 ): Promise<string> {
   const id = ulid();
   const now = new Date();
@@ -70,7 +70,6 @@ async function seedMemo(
     id,
     userId,
     projectId,
-    title: opts.title ?? "メモ",
     body: opts.body ?? "本文",
     createdAt: now,
     updatedAt: now,
@@ -104,7 +103,7 @@ describe("memo routes", () => {
   it("POST /api/memos 未認証 → 401", async () => {
     const res = await SELF.fetch(`${BASE}/api/memos`, {
       method: "POST",
-      body: JSON.stringify({ projectId: "x", title: "t", body: "b" }),
+      body: JSON.stringify({ projectId: "x", body: "b" }),
     });
     expect(res.status).toBe(401);
   });
@@ -114,20 +113,21 @@ describe("memo routes", () => {
     const projectId = await seedProject(userId);
     const tagId = await seedTag(userId, "タグ");
 
-    const res = await postMemo(cookie, { projectId, title: "学び", body: "本文", tagIds: [tagId] });
+    const res = await postMemo(cookie, { projectId, body: "学び", tagIds: [tagId] });
 
     expect(res.status).toBe(201);
     const { id } = (await res.json()) as { id: string };
     const [memo] = await db.select().from(memos).where(eq(memos.id, id));
-    expect(memo?.title).toBe("学び");
+    expect(memo?.body).toBe("学び");
     const links = await db.select().from(memoTags).where(eq(memoTags.memoId, id));
     expect(links.map((l) => l.tagId)).toEqual([tagId]);
   });
 
-  it("POST title 空 → 400（schema 検証）", async () => {
+  it("POST body 空 → 400（schema 検証）", async () => {
     const { cookie, userId } = await loginAs("alice");
     const projectId = await seedProject(userId);
-    expect((await postMemo(cookie, { projectId, title: "  ", body: "b" })).status).toBe(400);
+    expect((await postMemo(cookie, { projectId, body: "  " })).status).toBe(400);
+    expect((await postMemo(cookie, { projectId })).status).toBe(400);
   });
 
   it("POST 他人の projectId → 400 project_not_found", async () => {
@@ -135,7 +135,7 @@ describe("memo routes", () => {
     const bob = await loginAs("bob");
     const bobsProject = await seedProject(bob.userId);
 
-    const res = await postMemo(alice.cookie, { projectId: bobsProject, title: "t", body: "b" });
+    const res = await postMemo(alice.cookie, { projectId: bobsProject, body: "b" });
     expect(res.status).toBe(400);
     expect((await res.json()) as { error: string }).toEqual({ error: "project_not_found" });
   });
@@ -145,30 +145,30 @@ describe("memo routes", () => {
     const bob = await loginAs("bob");
     const pa = await seedProject(userId);
     const pb = await seedProject(userId);
-    await seedMemo(userId, pa, { title: "a1" });
-    await seedMemo(userId, pb, { title: "b1" });
-    await seedMemo(bob.userId, await seedProject(bob.userId), { title: "他人" });
+    await seedMemo(userId, pa, { body: "a1" });
+    await seedMemo(userId, pb, { body: "b1" });
+    await seedMemo(bob.userId, await seedProject(bob.userId), { body: "他人" });
 
     const all = (await (await SELF.fetch(`${BASE}/api/memos`, { headers: { cookie } })).json()) as {
-      memos: { title: string }[];
+      memos: { body: string }[];
     };
-    expect(all.memos.map((m) => m.title).sort()).toEqual(["a1", "b1"]);
+    expect(all.memos.map((m) => m.body).sort()).toEqual(["a1", "b1"]);
 
     const filtered = (await (
       await SELF.fetch(`${BASE}/api/memos?projectId=${pa}`, { headers: { cookie } })
-    ).json()) as { memos: { title: string }[] };
-    expect(filtered.memos.map((m) => m.title)).toEqual(["a1"]);
+    ).json()) as { memos: { body: string }[] };
+    expect(filtered.memos.map((m) => m.body)).toEqual(["a1"]);
   });
 
   it("GET /:id 自分のメモは 200 で tagIds 込みで返す", async () => {
     const { cookie, userId } = await loginAs("alice");
     const t = await seedTag(userId, "トラブル");
-    const id = await seedMemo(userId, await seedProject(userId), { title: "学び", tagIds: [t] });
+    const id = await seedMemo(userId, await seedProject(userId), { body: "学び", tagIds: [t] });
 
     const res = await SELF.fetch(`${BASE}/api/memos/${id}`, { headers: { cookie } });
 
     expect(res.status).toBe(200);
-    const json = (await res.json()) as { memo: { id: string; title: string; tagIds: string[] } };
+    const json = (await res.json()) as { memo: { id: string; body: string; tagIds: string[] } };
     expect(json.memo.id).toBe(id);
     expect(json.memo.tagIds).toEqual([t]);
   });
@@ -211,10 +211,10 @@ describe("memo routes", () => {
     expect(await db.select().from(memos).where(eq(memos.id, id))).toHaveLength(1);
   });
 
-  it("PUT /:id で title と tagIds を更新 → 200 で id を返し、永続化される", async () => {
+  it("PUT /:id で body と tagIds を更新 → 200 で id を返し、永続化される", async () => {
     const { cookie, userId } = await loginAs("alice");
     const id = await seedMemo(userId, await seedProject(userId), {
-      title: "旧",
+      body: "旧",
       tagIds: [await seedTag(userId, "タグ")],
     });
     const newTagId = await seedTag(userId, "新しいタグ");
@@ -222,13 +222,13 @@ describe("memo routes", () => {
     const res = await SELF.fetch(`${BASE}/api/memos/${id}`, {
       method: "PUT",
       headers: { cookie, "content-type": "application/json" },
-      body: JSON.stringify({ title: "新", tagIds: [newTagId] }),
+      body: JSON.stringify({ body: "新", tagIds: [newTagId] }),
     });
 
     expect(res.status).toBe(200);
     expect(((await res.json()) as { id: string }).id).toBe(id);
     const [memo] = await db.select().from(memos).where(eq(memos.id, id));
-    expect(memo?.title).toBe("新");
+    expect(memo?.body).toBe("新");
     const links = await db.select().from(memoTags).where(eq(memoTags.memoId, id));
     expect(links.map((l) => l.tagId)).toEqual([newTagId]);
   });
@@ -254,7 +254,7 @@ describe("memo routes", () => {
     const res = await SELF.fetch(`${BASE}/api/memos/${id}`, {
       method: "PUT",
       headers: { cookie: bob.cookie, "content-type": "application/json" },
-      body: JSON.stringify({ title: "乗っ取り" }),
+      body: JSON.stringify({ body: "乗っ取り" }),
     });
 
     expect(res.status).toBe(404);

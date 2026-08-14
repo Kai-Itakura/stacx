@@ -65,7 +65,7 @@ async function seedMemoWithTag(cookie: string, tagId: string): Promise<string> {
   const memo = await SELF.fetch(`${BASE}/api/memos`, {
     method: "POST",
     headers: { cookie, "content-type": "application/json" },
-    body: JSON.stringify({ projectId, title: "t", body: "b", tagIds: [tagId] }),
+    body: JSON.stringify({ projectId, body: "b", tagIds: [tagId] }),
   });
   const { id } = (await memo.json()) as { id: string };
   return id;

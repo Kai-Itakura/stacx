@@ -10,8 +10,8 @@ const withMemos: TagListItem = {
   id: "t1",
   name: "トラブル",
   memos: [
-    { id: "m1", title: "本番障害の対応" },
-    { id: "m2", title: "DB 接続エラー" },
+    { id: "m1", body: "本番障害の対応" },
+    { id: "m2", body: "DB 接続エラー" },
   ],
 };
 

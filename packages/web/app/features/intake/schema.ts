@@ -23,16 +23,6 @@ export const tagFormSchema = z.object({
   name: z.string({ error: "タグ名を入力してください" }).trim().min(1, "タグ名を入力してください"),
 });
 
-/** 本文の最初の非空行をタイトルにする（長い場合は短縮）。 */
-export function deriveTitle(body: string): string {
-  const firstLine =
-    body
-      .split("\n")
-      .map((line) => line.trim())
-      .find((line) => line.length > 0) ?? "";
-  return firstLine.length > 100 ? `${firstLine.slice(0, 100)}…` : firstLine;
-}
-
 /** クイック・インテーク画面が必要とする Project / Tag の最小形（loader の結果から渡す）。 */
 export type IntakeProject = { id: string; name: string; endDate: string | null };
 export type IntakeTag = { id: string; name: string };

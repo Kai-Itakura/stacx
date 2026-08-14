@@ -3,11 +3,10 @@ import { z } from "zod";
 // メモのリクエスト検証スキーマ。`.brand()` で出力型を branded type にし、
 // safeParse / parse を通した値しかドメイン層へ渡せないことを型で保証する。
 
-/** POST /memos 用。tagIds 未指定は空配列に正規化。projectId は生成時に固定。 */
+/** POST /memos 用。tagIds 未指定は空配列に正規化。 */
 export const createMemoSchema = z
   .object({
     projectId: z.string().min(1),
-    title: z.string().trim().min(1),
     body: z.string().trim().min(1),
     tagIds: z.array(z.string().min(1)).default([]),
   })
@@ -17,12 +16,13 @@ export const createMemoSchema = z
 export type CreateMemoInput = z.infer<typeof createMemoSchema>;
 
 /**
- * PUT /memos/:id 用。部分更新。projectId は含まない（メモは Project 間を移動しない）。
+ * PUT /memos/:id 用。部分更新。
  * tagIds が present ならタグ集合を完全置換、absent なら変更しない。
+ * projectId が present なら所属プロジェクトを移す（所有はドメイン層で確認する）。
  */
 export const updateMemoSchema = z
   .object({
-    title: z.string().trim().min(1),
+    projectId: z.string().min(1),
     body: z.string().trim().min(1),
     tagIds: z.array(z.string().min(1)),
   })

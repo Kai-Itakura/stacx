@@ -22,7 +22,6 @@ export async function loader({ request }: Route.LoaderArgs) {
   const tagName = new Map(tags.map((t) => [t.id, t.name]));
   const items: MemoListItem[] = memos.map((m) => ({
     id: m.id,
-    title: m.title,
     body: m.body,
     createdAt: m.createdAt,
     projectId: m.projectId,

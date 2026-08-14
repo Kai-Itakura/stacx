@@ -20,7 +20,7 @@ export type CreateMemoResult =
 
 export type UpdateMemoResult =
   | { ok: true; id: string }
-  | { ok: false; reason: "not_found" | "tag_not_found" };
+  | { ok: false; reason: "not_found" | "tag_not_found" | "project_not_found" };
 
 /** 呼び出し User が当該 Project を所有しているか。 */
 async function ownsProject(db: DB, userId: string, projectId: string): Promise<boolean> {
@@ -65,7 +65,6 @@ export async function createMemo(
     id,
     userId,
     projectId: input.projectId,
-    title: input.title,
     body: input.body,
     createdAt: now,
     updatedAt: now,
@@ -117,6 +116,7 @@ export async function getMemo(db: DB, userId: string, id: string): Promise<MemoV
 /**
  * 呼び出し User のメモを更新する。所有していなければ not_found。
  * tagIds が present ならタグ集合を完全置換（全 tagId は所有必須）、absent なら変更しない。
+ * projectId が present なら移動先 Project も所有必須。
  * 成功時は id のみ返す（レスポンスに必要なのは id だけなので更新後の再読込はしない）。
  */
 export async function updateMemo(
@@ -125,11 +125,16 @@ export async function updateMemo(
   id: string,
   input: UpdateMemoInput,
 ): Promise<UpdateMemoResult> {
-  const set: Partial<Pick<Memo, "title" | "body">> & { updatedAt: Date } = {
+  const set: Partial<Pick<Memo, "body" | "projectId">> & { updatedAt: Date } = {
     updatedAt: new Date(),
   };
-  if (input.title !== undefined) set.title = input.title;
   if (input.body !== undefined) set.body = input.body;
+  if (input.projectId !== undefined) {
+    if (!(await ownsProject(db, userId, input.projectId))) {
+      return { ok: false, reason: "project_not_found" };
+    }
+    set.projectId = input.projectId;
+  }
 
   const own = and(eq(memos.id, id), eq(memos.userId, userId));
 
