@@ -10,6 +10,8 @@ export type MemoListItem = {
   createdAt: string;
   projectId: string;
   projectName: string;
+  /** 所属プロジェクトが進行中か（終了日が未設定）。 */
+  projectActive: boolean;
   tagNames: string[];
   /** STAR の状態。バッジと導線ラベルの出し分けに使う。 */
   starStatus: StarStatus;
@@ -40,7 +42,7 @@ export function MemoList({ memos }: { memos: MemoListItem[] }) {
         <li key={m.id} className="border-border rounded-lg border p-4">
           {/* 上段はメモの文脈（どのプロジェクトか・いつか）。本文とタグは下に置く。 */}
           <div className="flex items-center justify-between gap-2">
-            <ProjectBadge id={m.projectId} name={m.projectName} />
+            <ProjectBadge id={m.projectId} name={m.projectName} active={m.projectActive} />
             <time className="text-muted-foreground shrink-0 text-xs">
               {m.createdAt.slice(0, 10)}
             </time>

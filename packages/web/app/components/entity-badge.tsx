@@ -1,4 +1,4 @@
-import { Code, FolderKanban, Tag } from "lucide-react";
+import { Code, FolderCheck, FolderOpen, Tag } from "lucide-react";
 import { Link } from "react-router";
 import { Badge } from "~/components/ui/badge";
 import { tagToneClass, techToneClass } from "~/lib/tag-color";
@@ -10,21 +10,37 @@ import { tagToneClass, techToneClass } from "~/lib/tag-color";
  */
 
 /**
- * プロジェクト。角丸四角＋フォルダアイコンで、pill のタグと形から区別する。
- * 色は 1 色に固定する（プロジェクトごとに色を振ると一覧が煩雑になるため）。
- * id を渡すとプロジェクト詳細へのリンクになる。
+ * プロジェクト。バッジにせず下線付きのテキストで出し、色付き pill のタグと明確に分ける。
+ * 進行中は黄・終了は緑のフォルダアイコンで状態を示す。id を渡すと詳細へのリンクになる。
  */
-export function ProjectBadge({ id, name }: { id?: string; name: string }) {
-  const badge = (
-    <Badge variant="info" className="rounded-md">
-      <FolderKanban />
+export function ProjectBadge({
+  id,
+  name,
+  active,
+}: {
+  id?: string;
+  name: string;
+  /** 進行中（終了日が未設定）か。 */
+  active?: boolean;
+}) {
+  const content = (
+    <>
+      {active ? (
+        <FolderOpen aria-label="進行中" className="text-warning size-4" />
+      ) : (
+        <FolderCheck aria-label="終了" className="text-success size-4" />
+      )}
       {name}
-    </Badge>
+    </>
   );
-  if (!id) return badge;
+  const className = "inline-flex items-center gap-1 text-sm";
+  if (!id) return <span className={className}>{content}</span>;
   return (
-    <Link to={`/projects/${id}`} className="rounded-md hover:opacity-80">
-      {badge}
+    <Link
+      to={`/projects/${id}`}
+      className={`${className} underline underline-offset-4 hover:opacity-80`}
+    >
+      {content}
     </Link>
   );
 }

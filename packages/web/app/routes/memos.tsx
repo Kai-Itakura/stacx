@@ -17,8 +17,8 @@ export async function loader({ request }: Route.LoaderArgs) {
   const projects = projectsRes.ok ? (await projectsRes.json()).projects : [];
   const tags = tagsRes.ok ? (await tagsRes.json()).tags : [];
 
-  // projectId → 名前 / tagId → 名前 を引くマップを作り、表示用に整形する。
-  const projectName = new Map(projects.map((p) => [p.id, p.name]));
+  // projectId → プロジェクト / tagId → 名前 を引くマップを作り、表示用に整形する。
+  const projectById = new Map(projects.map((p) => [p.id, p]));
   const tagName = new Map(tags.map((t) => [t.id, t.name]));
   const items: MemoListItem[] = memos.map((m) => ({
     id: m.id,
@@ -26,7 +26,8 @@ export async function loader({ request }: Route.LoaderArgs) {
     body: m.body,
     createdAt: m.createdAt,
     projectId: m.projectId,
-    projectName: projectName.get(m.projectId) ?? "（不明なプロジェクト）",
+    projectName: projectById.get(m.projectId)?.name ?? "（不明なプロジェクト）",
+    projectActive: projectById.get(m.projectId)?.endDate == null,
     tagNames: m.tagIds.map((id) => tagName.get(id)).filter((n): n is string => n != null),
     starStatus: m.starStatus,
   }));

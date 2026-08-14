@@ -14,16 +14,26 @@ function render(ui: React.ReactNode) {
 const badgeOf = (label: string) => screen.getByText(label).closest("[data-slot='badge']");
 
 describe("entity badges", () => {
-  it("プロジェクトとタグは形が異なる（pill か角丸四角か）", () => {
+  it("プロジェクトはバッジにせず、タグとは見た目の種類から分ける", () => {
     render(
       <>
         <ProjectBadge name="StacX開発" />
         <TagBadge name="トラブル" />
       </>,
     );
-    // 同じ行に並ぶため、色ではなく形で区別できる必要がある
-    expect(badgeOf("StacX開発")).toHaveClass("rounded-md");
-    expect(badgeOf("トラブル")).not.toHaveClass("rounded-md");
+    expect(badgeOf("StacX開発")).toBeNull();
+    expect(badgeOf("トラブル")).not.toBeNull();
+  });
+
+  it("プロジェクトは進行中と終了をアイコンで示す", () => {
+    render(
+      <>
+        <ProjectBadge name="進行中PJ" active />
+        <ProjectBadge name="終了PJ" active={false} />
+      </>,
+    );
+    expect(screen.getByLabelText("進行中")).toBeInTheDocument();
+    expect(screen.getByLabelText("終了")).toBeInTheDocument();
   });
 
   it("3 種すべてが軸を示すアイコンを持つ", () => {
@@ -50,9 +60,11 @@ describe("entity badges", () => {
     expect(a).not.toBe(b);
   });
 
-  it("id を渡すとプロジェクト詳細へのリンクになる", () => {
+  it("id を渡すと下線付きのプロジェクト詳細リンクになる", () => {
     render(<ProjectBadge id="p1" name="StacX開発" />);
-    expect(screen.getByRole("link", { name: "StacX開発" })).toHaveAttribute("href", "/projects/p1");
+    const link = screen.getByRole("link", { name: /StacX開発/ });
+    expect(link).toHaveAttribute("href", "/projects/p1");
+    expect(link).toHaveClass("underline");
   });
 
   it("id が無ければリンクにしない", () => {

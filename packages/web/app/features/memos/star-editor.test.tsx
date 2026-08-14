@@ -19,6 +19,7 @@ const memo: StarEditorMemo = {
   body: "クエリ最適化と Redis 導入",
   projectId: "p1",
   projectName: "進行中PJ",
+  projectActive: true,
   tagNames: ["技術チャレンジ"],
 };
 
