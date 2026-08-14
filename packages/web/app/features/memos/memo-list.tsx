@@ -1,5 +1,5 @@
+import { ProjectBadge, TagBadge } from "~/components/entity-badge";
 import { Badge } from "~/components/ui/badge";
-import { tagToneClass } from "~/lib/tag-color";
 import type { StarStatus } from "./star-schema";
 
 /** メモ一覧の表示用アイテム（route loader が RPC レスポンスから整形して渡す）。 */
@@ -47,11 +47,9 @@ export function MemoList({ memos }: { memos: MemoListItem[] }) {
             {m.body}
           </p>
           <div className="mt-2 flex flex-wrap items-center gap-1.5">
-            <Badge variant="info">{m.projectName}</Badge>
+            <ProjectBadge name={m.projectName} />
             {m.tagNames.map((name) => (
-              <Badge key={name} variant="tag" className={tagToneClass(name)}>
-                {name}
-              </Badge>
+              <TagBadge key={name} name={name} />
             ))}
           </div>
           <div className="mt-3 flex items-center justify-end gap-2 border-t pt-3">

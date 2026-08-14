@@ -1,9 +1,8 @@
 import { useState } from "react";
 import { Form, Link } from "react-router";
-import { Badge } from "~/components/ui/badge";
+import { TagBadge } from "~/components/entity-badge";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
-import { tagToneClass } from "~/lib/tag-color";
 
 /** タグ管理画面の表示用アイテム（route loader が整形して渡す）。 */
 export type TagListItem = {
@@ -66,9 +65,7 @@ function TagRow({ tag }: { tag: TagListItem }) {
           </Form>
         ) : (
           <>
-            <Badge variant="tag" className={tagToneClass(tag.name)}>
-              {tag.name}
-            </Badge>
+            <TagBadge name={tag.name} />
             <div className="flex items-center gap-2">
               <Button type="button" variant="outline" size="sm" onClick={() => setRenaming(true)}>
                 名前を変更

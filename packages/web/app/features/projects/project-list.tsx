@@ -1,6 +1,6 @@
 import { Link } from "react-router";
+import { TechBadge } from "~/components/entity-badge";
 import { Badge } from "~/components/ui/badge";
-import { techToneClass } from "~/lib/tag-color";
 import { type ProjectSummary, toDateInputValue } from "./schema";
 
 function formatPeriod(p: ProjectSummary): string {
@@ -45,9 +45,7 @@ export function ProjectList({ projects }: { projects: ProjectSummary[] }) {
               {p.techStack.length > 0 && (
                 <div className="mt-2 flex flex-wrap gap-1.5">
                   {p.techStack.map((t) => (
-                    <Badge key={t} variant="outline" className={techToneClass(t)}>
-                      {t}
-                    </Badge>
+                    <TechBadge key={t} name={t} />
                   ))}
                 </div>
               )}
