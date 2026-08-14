@@ -46,12 +46,24 @@ export function QuickIntake({ projects, tags }: QuickIntakeProps) {
     }
   };
 
+  /**
+   * 入力量に合わせて高さを伸ばす（上限は max-h でクランプされ、以降はスクロール）。
+   * 一度 auto に戻さないと、行を減らしたときに scrollHeight が縮まない。
+   */
+  const autoGrow = useCallback(() => {
+    const el = textareaRef.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = `${el.scrollHeight}px`;
+  }, []);
+
   useEffect(() => {
     if (form.status === "success") {
       setSelectedTagIds([]);
+      autoGrow(); // リセット後は 1 行分に戻す
       textareaRef.current?.focus();
     }
-  }, [form.status]);
+  }, [form.status, autoGrow]);
 
   return (
     <memoFetcher.Form
@@ -76,10 +88,11 @@ export function QuickIntake({ projects, tags }: QuickIntakeProps) {
         <Textarea
           {...getTextareaProps(fields.body)}
           ref={textareaRef}
-          rows={2}
+          rows={1}
           autoFocus
           placeholder="いま学んだこと・成果を 1 分でメモ…"
           onKeyDown={onTextareaKeyDown}
+          onInput={autoGrow}
           // 枠は外側の div が持つので、textarea 自身の枠と影は消す。
           className="max-h-40 min-h-9 resize-none border-0 p-0 text-base shadow-none focus-visible:ring-0"
         />
