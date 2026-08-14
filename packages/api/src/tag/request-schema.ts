@@ -11,3 +11,13 @@ export const createTagSchema = z
 
 /** 検証済みのタグ作成入力。createTagSchema.parse の出力としてのみ得られる。 */
 export type CreateTagInput = z.infer<typeof createTagSchema>;
+
+/** PUT /tags/:id 用。リネームのみ扱うため name だけを受ける。 */
+export const updateTagSchema = z
+  .object({
+    name: z.string().trim().min(1),
+  })
+  .brand<"UpdateTagInput">();
+
+/** 検証済みのタグ更新入力。updateTagSchema.parse の出力としてのみ得られる。 */
+export type UpdateTagInput = z.infer<typeof updateTagSchema>;
