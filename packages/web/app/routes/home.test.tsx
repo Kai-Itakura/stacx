@@ -152,6 +152,24 @@ describe("クイック・インテーク画面", () => {
     expect(calls[0].tagIds).toEqual(["t1"]);
   });
 
+  it("未選択は枠線のみ・選択中は塗りつぶしで示す", async () => {
+    const user = userEvent.setup();
+    renderHome({});
+
+    const chip = await screen.findByRole("button", { name: "技術チャレンジ" });
+    // 1 つも選んでいなくても未選択と分かるよう、器が空（枠線のみ）であること
+    expect(chip.className).toMatch(/border-tag-\d/);
+    expect(chip.className).not.toMatch(/bg-tag-\d/);
+    expect(chip).toHaveAttribute("aria-pressed", "false");
+
+    await user.click(chip);
+
+    // 選択中は塗りつぶし + 地の色で文字を抜く
+    expect(chip.className).toMatch(/bg-tag-\d/);
+    expect(chip.className).toContain("text-background");
+    expect(chip).toHaveAttribute("aria-pressed", "true");
+  });
+
   it("新規タグを作成すると自動選択され、送信に含まれる", async () => {
     const user = userEvent.setup();
     const { fn, calls } = captureAction(memoFormSchema);
