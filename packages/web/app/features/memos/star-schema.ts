@@ -41,6 +41,7 @@ export function starFormSchema(mode: StarSaveMode) {
 export type StarEditorMemo = {
   id: string;
   body: string;
+  projectId: string;
   projectName: string;
   tagNames: string[];
 };

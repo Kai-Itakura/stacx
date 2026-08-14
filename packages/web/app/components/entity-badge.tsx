@@ -1,4 +1,5 @@
 import { Code, FolderKanban, Tag } from "lucide-react";
+import { Link } from "react-router";
 import { Badge } from "~/components/ui/badge";
 import { tagToneClass, techToneClass } from "~/lib/tag-color";
 
@@ -8,13 +9,23 @@ import { tagToneClass, techToneClass } from "~/lib/tag-color";
  * 見た目の差をここ 1 箇所に集約し、画面間でズレないようにする。
  */
 
-/** プロジェクト。角丸四角＋フォルダアイコンで、pill のタグと形から区別する。 */
-export function ProjectBadge({ name }: { name: string }) {
-  return (
+/**
+ * プロジェクト。角丸四角＋フォルダアイコンで、pill のタグと形から区別する。
+ * 色は 1 色に固定する（プロジェクトごとに色を振ると一覧が煩雑になるため）。
+ * id を渡すとプロジェクト詳細へのリンクになる。
+ */
+export function ProjectBadge({ id, name }: { id?: string; name: string }) {
+  const badge = (
     <Badge variant="info" className="rounded-md">
       <FolderKanban />
       {name}
     </Badge>
+  );
+  if (!id) return badge;
+  return (
+    <Link to={`/projects/${id}`} className="rounded-md hover:opacity-80">
+      {badge}
+    </Link>
   );
 }
 

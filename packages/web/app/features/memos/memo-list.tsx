@@ -8,6 +8,7 @@ export type MemoListItem = {
   title: string;
   body: string;
   createdAt: string;
+  projectId: string;
   projectName: string;
   tagNames: string[];
   /** STAR の状態。バッジと導線ラベルの出し分けに使う。 */
@@ -39,7 +40,7 @@ export function MemoList({ memos }: { memos: MemoListItem[] }) {
         <li key={m.id} className="border-border rounded-lg border p-4">
           {/* 上段はメモの文脈（どのプロジェクトか・いつか）。本文とタグは下に置く。 */}
           <div className="flex items-center justify-between gap-2">
-            <ProjectBadge name={m.projectName} />
+            <ProjectBadge id={m.projectId} name={m.projectName} />
             <time className="text-muted-foreground shrink-0 text-xs">
               {m.createdAt.slice(0, 10)}
             </time>

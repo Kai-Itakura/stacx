@@ -68,7 +68,7 @@ export function StarEditor({ memo, values, status }: StarEditorProps) {
         {/* 上段はメモの文脈（どのプロジェクトか）。本文とタグは下に置く。 */}
         <div className="flex items-center justify-between gap-2">
           <span className="text-muted-foreground text-xs">メモ</span>
-          <ProjectBadge name={memo.projectName} />
+          <ProjectBadge id={memo.projectId} name={memo.projectName} />
         </div>
         <p className="mt-2 text-sm whitespace-pre-wrap">{memo.body}</p>
         {memo.tagNames.length > 0 && (

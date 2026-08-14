@@ -1,7 +1,14 @@
 import "@testing-library/jest-dom/vitest";
-import { render, screen } from "@testing-library/react";
+import { render as rtlRender, screen } from "@testing-library/react";
+import { createRoutesStub } from "react-router";
 import { describe, expect, it } from "vitest";
 import { ProjectBadge, TagBadge, TechBadge } from "./entity-badge";
+
+/** ProjectBadge が Link を含み得るため、router 内で描画する。 */
+function render(ui: React.ReactNode) {
+  const Stub = createRoutesStub([{ path: "/", Component: () => <>{ui}</> }]);
+  return rtlRender(<Stub initialEntries={["/"]} />);
+}
 
 /** バッジ本体（data-slot="badge"）を取り出す。 */
 const badgeOf = (label: string) => screen.getByText(label).closest("[data-slot='badge']");
@@ -41,6 +48,16 @@ describe("entity badges", () => {
     const b = badgeOf("学び")?.className ?? "";
     expect(a).toMatch(/tag-\d/);
     expect(a).not.toBe(b);
+  });
+
+  it("id を渡すとプロジェクト詳細へのリンクになる", () => {
+    render(<ProjectBadge id="p1" name="StacX開発" />);
+    expect(screen.getByRole("link", { name: "StacX開発" })).toHaveAttribute("href", "/projects/p1");
+  });
+
+  it("id が無ければリンクにしない", () => {
+    render(<ProjectBadge name="StacX開発" />);
+    expect(screen.queryByRole("link")).not.toBeInTheDocument();
   });
 
   it("技術スタックは枠線で描き、タグと形で区別できる", () => {

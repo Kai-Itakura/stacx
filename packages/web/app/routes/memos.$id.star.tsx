@@ -36,6 +36,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   const editorMemo: StarEditorMemo = {
     id: memo.id,
     body: memo.body,
+    projectId: memo.projectId,
     projectName: projectName.get(memo.projectId) ?? "（不明なプロジェクト）",
     tagNames: memo.tagIds.map((id) => tagName.get(id)).filter((n): n is string => n != null),
   };

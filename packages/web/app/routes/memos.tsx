@@ -25,6 +25,7 @@ export async function loader({ request }: Route.LoaderArgs) {
     title: m.title,
     body: m.body,
     createdAt: m.createdAt,
+    projectId: m.projectId,
     projectName: projectName.get(m.projectId) ?? "（不明なプロジェクト）",
     tagNames: m.tagIds.map((id) => tagName.get(id)).filter((n): n is string => n != null),
     starStatus: m.starStatus,
