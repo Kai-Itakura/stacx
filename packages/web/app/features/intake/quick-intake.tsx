@@ -94,7 +94,10 @@ export function QuickIntake({ projects, tags }: QuickIntakeProps) {
           onKeyDown={onTextareaKeyDown}
           onInput={autoGrow}
           // 枠は外側の div が持つので、textarea 自身の枠と影は消す。
-          className="max-h-40 min-h-9 resize-none border-0 p-0 text-base shadow-none focus-visible:ring-0"
+          // min-h-0 は Textarea 既定の min-h-16 打ち消し。残すと 1 行でも 64px の
+          // 高さになり、テキストが上端に寄ってボタンとズレる。
+          // py-1 は 1 行（24px）+ 8px でアイコンボタン（32px）と高さを揃えるため。
+          className="max-h-40 min-h-0 resize-none border-0 px-0 py-1 text-base shadow-none focus-visible:ring-0"
         />
         <Button type="submit" size="icon" aria-label="保存" className="shrink-0">
           <CornerDownLeft />
