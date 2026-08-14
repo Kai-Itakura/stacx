@@ -34,10 +34,10 @@ async function seedTag(userId: string, name: string): Promise<string> {
   return id;
 }
 
-const createInput = (o: { projectId: string; title?: string; body?: string; tagIds?: string[] }) =>
-  createMemoSchema.parse({ title: "タイトル", body: "本文", ...o });
+const createInput = (o: { projectId: string; body?: string; tagIds?: string[] }) =>
+  createMemoSchema.parse({ body: "本文", ...o });
 
-const updateInput = (o: { title?: string; body?: string; tagIds?: string[] }) =>
+const updateInput = (o: { projectId?: string; body?: string; tagIds?: string[] }) =>
   updateMemoSchema.parse(o);
 
 async function resetAll() {
@@ -51,7 +51,7 @@ async function resetAll() {
 describe("createMemo", () => {
   beforeEach(resetAll);
 
-  it("title/body/projectId/userId/タイムスタンプを採番し、tagIds で memo_tags を張る", async () => {
+  it("body/projectId/userId/タイムスタンプを採番し、tagIds で memo_tags を張る", async () => {
     const userId = await seedUser();
     const projectId = await seedProject(userId);
     const t1 = await seedTag(userId, "トラブル");
@@ -114,13 +114,9 @@ describe("listMemos / getMemo", () => {
     const me = await seedUser();
     const other = await seedUser();
     const p = await seedProject(me);
-    const r1 = await createMemo(db, me, createInput({ projectId: p, title: "古い" }));
-    const r2 = await createMemo(db, me, createInput({ projectId: p, title: "新しい" }));
-    await createMemo(
-      db,
-      other,
-      createInput({ projectId: await seedProject(other), title: "他人" }),
-    );
+    const r1 = await createMemo(db, me, createInput({ projectId: p, body: "古い" }));
+    const r2 = await createMemo(db, me, createInput({ projectId: p, body: "新しい" }));
+    await createMemo(db, other, createInput({ projectId: await seedProject(other), body: "他人" }));
     // createdAt を明示的にずらして順序を決定的にする
     if (r1.ok)
       await db
@@ -135,27 +131,27 @@ describe("listMemos / getMemo", () => {
 
     const list = await listMemos(db, me);
 
-    expect(list.map((m) => m.title)).toEqual(["新しい", "古い"]);
+    expect(list.map((m) => m.body)).toEqual(["新しい", "古い"]);
   });
 
   it("projectId で絞り込める", async () => {
     const me = await seedUser();
     const pa = await seedProject(me, "A");
     const pb = await seedProject(me, "B");
-    await createMemo(db, me, createInput({ projectId: pa, title: "a1" }));
-    await createMemo(db, me, createInput({ projectId: pb, title: "b1" }));
+    await createMemo(db, me, createInput({ projectId: pa, body: "a1" }));
+    await createMemo(db, me, createInput({ projectId: pb, body: "b1" }));
 
     const list = await listMemos(db, me, { projectId: pa });
 
-    expect(list.map((m) => m.title)).toEqual(["a1"]);
+    expect(list.map((m) => m.body)).toEqual(["a1"]);
   });
 
   it("STAR ログの状態を starStatus で返す（none/draft/complete）", async () => {
     const me = await seedUser();
     const p = await seedProject(me);
-    const draft = await createMemo(db, me, createInput({ projectId: p, title: "draft" }));
-    const done = await createMemo(db, me, createInput({ projectId: p, title: "done" }));
-    await createMemo(db, me, createInput({ projectId: p, title: "plain" }));
+    const draft = await createMemo(db, me, createInput({ projectId: p, body: "draft" }));
+    const done = await createMemo(db, me, createInput({ projectId: p, body: "done" }));
+    await createMemo(db, me, createInput({ projectId: p, body: "plain" }));
     assert(draft.ok && done.ok, "メモのシード作成失敗");
     await upsertStarLog(db, me, draft.memo.id, {
       situation: "S",
@@ -170,10 +166,10 @@ describe("listMemos / getMemo", () => {
     } as UpsertStarInput);
 
     const list = await listMemos(db, me);
-    const byTitle = new Map(list.map((m) => [m.title, m.starStatus]));
-    expect(byTitle.get("draft")).toBe("draft");
-    expect(byTitle.get("done")).toBe("complete");
-    expect(byTitle.get("plain")).toBe("none");
+    const byBody = new Map(list.map((m) => [m.body, m.starStatus]));
+    expect(byBody.get("draft")).toBe("draft");
+    expect(byBody.get("done")).toBe("complete");
+    expect(byBody.get("plain")).toBe("none");
   });
 
   it("getMemo は自分のメモを tagIds 込みで返し、他人のは null", async () => {
@@ -194,7 +190,7 @@ describe("listMemos / getMemo", () => {
 describe("updateMemo", () => {
   beforeEach(resetAll);
 
-  it("title/body を更新し、tagIds present でタグ集合を置換する", async () => {
+  it("body を更新し、tagIds present でタグ集合を置換する", async () => {
     const me = await seedUser();
     const p = await seedProject(me);
     const t1 = await seedTag(me, "旧");
@@ -203,13 +199,40 @@ describe("updateMemo", () => {
     assert(created.ok, "メモのシード作成失敗");
     const id = created.memo.id;
 
-    const result = await updateMemo(db, me, id, updateInput({ title: "改名", tagIds: [t2] }));
+    const result = await updateMemo(db, me, id, updateInput({ body: "改名", tagIds: [t2] }));
 
     assert(result.ok, "更新失敗");
     expect(result.id).toBe(id);
     const updated = await getMemo(db, me, id);
-    expect(updated?.title).toBe("改名");
+    expect(updated?.body).toBe("改名");
     expect(updated?.tagIds).toEqual([t2]); // t1 は外れ t2 に置換
+  });
+
+  it("projectId を指定すると所属プロジェクトを移せる", async () => {
+    const me = await seedUser();
+    const from = await seedProject(me, "移動元");
+    const to = await seedProject(me, "移動先");
+    const created = await createMemo(db, me, createInput({ projectId: from }));
+    assert(created.ok, "メモのシード作成失敗");
+
+    const result = await updateMemo(db, me, created.memo.id, updateInput({ projectId: to }));
+
+    assert(result.ok, "更新失敗");
+    expect((await getMemo(db, me, created.memo.id))?.projectId).toBe(to);
+  });
+
+  it("他人の Project へは移せない → project_not_found（元のまま）", async () => {
+    const me = await seedUser();
+    const other = await seedUser();
+    const mine = await seedProject(me);
+    const foreign = await seedProject(other);
+    const created = await createMemo(db, me, createInput({ projectId: mine }));
+    assert(created.ok, "メモのシード作成失敗");
+
+    const result = await updateMemo(db, me, created.memo.id, updateInput({ projectId: foreign }));
+
+    expect(result).toEqual({ ok: false, reason: "project_not_found" });
+    expect((await getMemo(db, me, created.memo.id))?.projectId).toBe(mine);
   });
 
   it("tagIds 未指定なら タグは変更しない", async () => {
@@ -250,7 +273,6 @@ describe("updateMemo", () => {
       me,
       createInput({
         projectId: project,
-        title: "dummy title",
         body: "dummy memo",
         tagIds: [myTag],
       }),
@@ -263,7 +285,6 @@ describe("updateMemo", () => {
         me,
         created.memo.id,
         updateInput({
-          title: "dummy title",
           body: "dummy memo",
           tagIds: [myTag, ohtersTag],
         }),
@@ -285,7 +306,7 @@ describe("updateMemo", () => {
     assert(created.ok, "メモのシード作成失敗");
     const id = created.memo.id;
 
-    expect(await updateMemo(db, me, id, updateInput({ title: "乗っ取り" }))).toEqual({
+    expect(await updateMemo(db, me, id, updateInput({ body: "乗っ取り" }))).toEqual({
       ok: false,
       reason: "not_found",
     });

@@ -50,7 +50,6 @@ async function seedMemo(userId: string): Promise<string> {
     id: memoId,
     userId,
     projectId,
-    title: "t",
     body: "b",
     createdAt: now,
     updatedAt: now,
