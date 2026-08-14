@@ -65,20 +65,24 @@ export function QuickIntake({ projects, tags }: QuickIntakeProps) {
         <Textarea
           {...getTextareaProps(fields.body)}
           ref={textareaRef}
-          rows={8}
+          rows={4}
           autoFocus
           placeholder="いま学んだこと・成果を 1 分でメモ…"
           onKeyDown={onTextareaKeyDown}
           className="resize-y text-base"
         />
+        {/* 画面下部に置くため縦幅を抑える。ヒントは詳細に畳み、必要なときだけ開く。 */}
         {fields.body.errors ? (
           <p className="text-destructive mt-1 text-sm">{fields.body.errors[0]}</p>
         ) : (
-          <ul className="text-muted-foreground mt-2 space-y-0.5 text-xs">
-            {HINTS.map((hint) => (
-              <li key={hint}>・{hint}</li>
-            ))}
-          </ul>
+          <details className="text-muted-foreground mt-1.5 text-xs">
+            <summary className="cursor-pointer">書くヒント</summary>
+            <ul className="mt-1 space-y-0.5">
+              {HINTS.map((hint) => (
+                <li key={hint}>・{hint}</li>
+              ))}
+            </ul>
+          </details>
         )}
       </div>
 

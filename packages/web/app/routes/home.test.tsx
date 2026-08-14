@@ -13,6 +13,7 @@ type LoaderData = {
   user: { name: string | null; email: string | null };
   projects: { id: string; name: string; endDate: string | null }[];
   tags: { id: string; name: string }[];
+  recent: { id: string; body: string; createdAt: string }[];
 };
 
 const baseLoader: LoaderData = {
@@ -25,6 +26,7 @@ const baseLoader: LoaderData = {
     { id: "t1", name: "技術チャレンジ" },
     { id: "t2", name: "チーム改善" },
   ],
+  recent: [],
 };
 
 /**
@@ -134,6 +136,44 @@ describe("クイック・インテーク画面", () => {
 
     await waitFor(() => expect(calls).toHaveLength(1));
     expect(calls[0].tagIds).toEqual(["t1"]);
+  });
+
+  it("保存すると直近メモに積まれる（保存できた合図になる）", async () => {
+    const user = userEvent.setup();
+    // 保存の成否を伝える手段が「一覧に現れること」なので、
+    // loader 再検証で新しいメモが降ってくる状況を再現する。
+    const stored: { id: string; body: string; createdAt: string }[] = [];
+    const Stub = createRoutesStub([
+      {
+        path: "/",
+        // biome-ignore lint/suspicious/noExplicitAny: stub の Component 型は実 route と差異がある
+        Component: Home as any,
+        loader: () => ({ ...baseLoader, recent: [...stored] }),
+        HydrateFallback: () => null,
+      },
+      {
+        path: "/resources/memos/create",
+        action: async ({ request }: { request: Request }) => {
+          const fd = await request.formData();
+          stored.unshift({
+            id: `m${stored.length + 1}`,
+            body: String(fd.get("body")),
+            createdAt: new Date().toISOString(),
+          });
+          return { status: "success" };
+        },
+      },
+      { path: "/resources/tags/create", action: () => ({ ok: true, tagId: "t-new" }) },
+    ]);
+    render(<Stub initialEntries={["/"]} />);
+
+    expect(await screen.findByText(/まだメモがありません/)).toBeInTheDocument();
+
+    const textarea = await screen.findByPlaceholderText(TEXTAREA);
+    await user.type(textarea, "保存したメモ");
+    fireEvent.keyDown(textarea, { key: "Enter", metaKey: true });
+
+    expect(await screen.findByRole("link", { name: /保存したメモ/ })).toBeInTheDocument();
   });
 
   it("未選択は枠線のみ・選択中は塗りつぶしで示す", async () => {
