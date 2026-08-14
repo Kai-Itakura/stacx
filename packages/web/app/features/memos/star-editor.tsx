@@ -2,10 +2,10 @@ import { getFormProps, getTextareaProps, type SubmissionResult, useForm } from "
 import { getZodConstraint, parseWithZod } from "@conform-to/zod/v4";
 import type { ReactNode } from "react";
 import { Form, Link, useActionData, useNavigation } from "react-router";
+import { ProjectBadge, TagBadge } from "~/components/entity-badge";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import { Textarea } from "~/components/ui/textarea";
-import { tagToneClass } from "~/lib/tag-color";
 import {
   type StarEditorMemo,
   type StarSaveMode,
@@ -65,16 +65,19 @@ export function StarEditor({ memo, values, status }: StarEditorProps) {
     <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
       {/* 左: メモ */}
       <section className="border-border h-fit rounded-lg border p-4">
-        <span className="text-muted-foreground text-xs">メモ</span>
-        <p className="mt-2 text-sm whitespace-pre-wrap">{memo.body}</p>
-        <div className="mt-3 flex flex-wrap items-center gap-1.5">
-          <Badge variant="info">{memo.projectName}</Badge>
-          {memo.tagNames.map((name) => (
-            <Badge key={name} variant="tag" className={tagToneClass(name)}>
-              {name}
-            </Badge>
-          ))}
+        {/* 上段はメモの文脈（どのプロジェクトか）。本文とタグは下に置く。 */}
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-muted-foreground text-xs">メモ</span>
+          <ProjectBadge id={memo.projectId} name={memo.projectName} active={memo.projectActive} />
         </div>
+        <p className="mt-2 text-sm whitespace-pre-wrap">{memo.body}</p>
+        {memo.tagNames.length > 0 && (
+          <div className="mt-3 flex flex-wrap items-center gap-1.5">
+            {memo.tagNames.map((name) => (
+              <TagBadge key={name} name={name} />
+            ))}
+          </div>
+        )}
       </section>
 
       {/* 右: STAR フォーム */}

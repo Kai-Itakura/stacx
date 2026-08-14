@@ -99,19 +99,23 @@
   --info: oklch(0.5 0.11 240);
   --info-subtle: oklch(0.93 0.033 240);
 
-  /* タグ用パレット。primary（インディゴ 280）と混同しないよう色相 260-300 を空ける。 */
-  --tag-1: oklch(0.5 0.17 15);
-  --tag-1-subtle: oklch(0.93 0.03 15);
-  --tag-2: oklch(0.48 0.1 70);
-  --tag-2-subtle: oklch(0.93 0.045 70);
-  --tag-3: oklch(0.45 0.12 150);
-  --tag-3-subtle: oklch(0.93 0.05 150);
-  --tag-4: oklch(0.46 0.07 190);
-  --tag-4-subtle: oklch(0.93 0.05 190);
-  --tag-5: oklch(0.5 0.11 240);
-  --tag-5-subtle: oklch(0.93 0.033 240);
-  --tag-6: oklch(0.5 0.18 330);
-  --tag-6-subtle: oklch(0.93 0.05 330);
+  /*
+   * タグ用パレット。状態色（success 150 / warning 70 / info 240）・destructive 27・
+   * primary 280 と値が重複するとバッジが見分けられなくなるため、これらから
+   * 色相を 30 度以上離した帯（ライム / ティール〜シアン / マゼンタ〜ピンク）だけを使う。
+   */
+  --tag-1: oklch(0.47 0.09 110);
+  --tag-1-subtle: oklch(0.93 0.05 110);
+  --tag-2: oklch(0.47 0.07 190);
+  --tag-2-subtle: oklch(0.93 0.05 190);
+  --tag-3: oklch(0.47 0.07 210);
+  --tag-3-subtle: oklch(0.93 0.05 210);
+  --tag-4: oklch(0.47 0.18 310);
+  --tag-4-subtle: oklch(0.93 0.04 310);
+  --tag-5: oklch(0.47 0.18 330);
+  --tag-5-subtle: oklch(0.93 0.05 330);
+  --tag-6: oklch(0.47 0.17 350);
+  --tag-6-subtle: oklch(0.93 0.03 350);
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);
@@ -157,18 +161,18 @@
   --info: oklch(0.78 0.12 240);
   --info-subtle: oklch(0.3 0.06 240);
 
-  --tag-1: oklch(0.78 0.12 15);
-  --tag-1-subtle: oklch(0.3 0.07 15);
-  --tag-2: oklch(0.82 0.13 75);
-  --tag-2-subtle: oklch(0.3 0.05 75);
-  --tag-3: oklch(0.8 0.15 150);
-  --tag-3-subtle: oklch(0.3 0.06 150);
-  --tag-4: oklch(0.8 0.11 190);
-  --tag-4-subtle: oklch(0.3 0.05 190);
-  --tag-5: oklch(0.78 0.12 240);
-  --tag-5-subtle: oklch(0.3 0.06 240);
-  --tag-6: oklch(0.78 0.15 330);
-  --tag-6-subtle: oklch(0.3 0.07 330);
+  --tag-1: oklch(0.79 0.15 110);
+  --tag-1-subtle: oklch(0.3 0.05 110);
+  --tag-2: oklch(0.79 0.12 190);
+  --tag-2-subtle: oklch(0.3 0.04 190);
+  --tag-3: oklch(0.79 0.12 210);
+  --tag-3-subtle: oklch(0.3 0.04 210);
+  --tag-4: oklch(0.79 0.12 310);
+  --tag-4-subtle: oklch(0.3 0.06 310);
+  --tag-5: oklch(0.79 0.15 330);
+  --tag-5-subtle: oklch(0.3 0.06 330);
+  --tag-6: oklch(0.79 0.13 350);
+  --tag-6-subtle: oklch(0.3 0.06 350);
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);
