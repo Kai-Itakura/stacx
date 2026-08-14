@@ -12,8 +12,7 @@ function renderList(memos: MemoListItem[]) {
 
 const base: MemoListItem = {
   id: "m1",
-  title: "LCP を改善",
-  body: "クエリ最適化と Redis 導入で p99 を 280ms に",
+  body: "LCP を改善\nクエリ最適化と Redis 導入で p99 を 280ms に",
   createdAt: "2026-07-20T09:00:00.000Z",
   projectId: "p1",
   projectName: "進行中PJ",
@@ -29,8 +28,9 @@ describe("MemoList", () => {
     expect(screen.getByRole("link", { name: "最初のメモを書く" })).toHaveAttribute("href", "/");
   });
 
-  it("タイトル・本文・プロジェクト名・タグ・作成日を表示する", () => {
+  it("本文の先頭行を見出しに、本文・プロジェクト名・タグ・作成日を表示する", () => {
     renderList([base]);
+    // タイトルを持たないため、見出しは本文の先頭行から導出される
     expect(screen.getByText("LCP を改善")).toBeInTheDocument();
     expect(screen.getByText(/クエリ最適化/)).toBeInTheDocument();
     expect(screen.getByText("進行中PJ")).toBeInTheDocument();
@@ -40,8 +40,8 @@ describe("MemoList", () => {
 
   it("渡された順（=loader が降順整形）でそのまま並べる", () => {
     const memos: MemoListItem[] = [
-      { ...base, id: "m2", title: "新しいメモ" },
-      { ...base, id: "m1", title: "古いメモ" },
+      { ...base, id: "m2", body: "新しいメモ" },
+      { ...base, id: "m1", body: "古いメモ" },
     ];
     renderList(memos);
     // タグ名で引くとカード内の要素構成に依存して壊れるため、本文から順序だけを見る

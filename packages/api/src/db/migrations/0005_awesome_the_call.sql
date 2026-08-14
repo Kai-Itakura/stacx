@@ -1,0 +1,1 @@
+ALTER TABLE `memos` DROP COLUMN `title`;

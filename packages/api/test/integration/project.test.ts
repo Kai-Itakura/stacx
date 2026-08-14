@@ -198,12 +198,12 @@ describe("deleteProject", () => {
     const doomed = await createMemo(
       db,
       me,
-      createMemoSchema.parse({ projectId: target, title: "消える", body: "本文", tagIds: [tagId] }),
+      createMemoSchema.parse({ projectId: target, body: "本文", tagIds: [tagId] }),
     );
     const kept = await createMemo(
       db,
       me,
-      createMemoSchema.parse({ projectId: survivor, title: "残る", body: "本文" }),
+      createMemoSchema.parse({ projectId: survivor, body: "本文" }),
     );
     assert(doomed.ok && kept.ok, "Memo のシード作成失敗");
 

@@ -11,11 +11,15 @@ import { type IntakeTag, tagFormSchema } from "./schema";
 type TagFieldProps = {
   tags: IntakeTag[];
   formStatus: FormMetadata["status"];
+  /** 編集時の初期選択。作成時は空。 */
+  initialSelected?: string[];
 };
 
-const TagField = ({ tags, formStatus }: TagFieldProps) => {
+const TagField = ({ tags, formStatus, initialSelected }: TagFieldProps) => {
   const tagFetcher = useFetcher<typeof action>();
-  const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set());
+  const [selectedTags, setSelectedTags] = useState<Set<string>>(
+    () => new Set(initialSelected ?? []),
+  );
   const [newTag, setNewTag] = useState("");
   const [tagError, setTagError] = useState<string | null>(null);
 

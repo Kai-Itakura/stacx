@@ -4,6 +4,7 @@ export default [
   layout("routes/app-layout.tsx", [
     index("routes/home.tsx"),
     route("memos", "routes/memos.tsx"),
+    route("memos/:id/edit", "routes/memos.$id.edit.tsx"),
     route("memos/:id/star", "routes/memos.$id.star.tsx"),
     route("projects", "routes/projects.tsx"),
     route("projects/new", "routes/projects.new.tsx"),
