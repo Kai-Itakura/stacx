@@ -145,7 +145,9 @@ export function AppLayout({ user, children }: { user: User; children: ReactNode 
 
       {/* ─── Page content ─── */}
       {/* pb-28 on mobile clears the floating bottom tab bar */}
-      <div className="flex-1 pb-28 md:pb-0">{children}</div>
+      {/* flex 列にして min-h-0 を渡すのは、メモ作成画面が残り高さを使って
+          「上だけスクロール・下に入力欄」を組めるようにするため。 */}
+      <div className="flex min-h-0 flex-1 flex-col pb-28 md:pb-0">{children}</div>
 
       {/* ─── Bottom tab bar (mobile only, floating glass pill) ─── */}
       {/* inset-x-4: 左右に 16px のマージンを取って浮かせる。bottom は safe area の上に 12px 追加 */}
