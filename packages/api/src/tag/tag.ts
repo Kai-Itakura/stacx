@@ -2,7 +2,7 @@ import { and, asc, eq } from "drizzle-orm";
 import type { DB } from "../auth/session";
 import { type Tag, tags } from "../db/schema";
 import { ulid } from "../id";
-import type { CreateTagInput } from "./request-schema";
+import type { CreateTagInput, UpdateTagInput } from "./request-schema";
 
 /** タグ作成の結果。同名既存なら作成せず duplicate を返す（暗黙作成しない）。 */
 export type CreateTagResult = { ok: true; tag: Tag } | { ok: false; reason: "duplicate" };
@@ -32,6 +32,36 @@ export async function createTag(
   } catch (err) {
     // 同一 User が同名を持つと UNIQUE(userId, name) が INSERT を弾く。正規の重複なので
     // duplicate に変換する。それ以外の例外は握りつぶさず 500（onError）に委ねる。
+    if (isUniqueViolation(err)) return { ok: false, reason: "duplicate" };
+    throw err;
+  }
+}
+
+/** タグ更新の結果。同名既存なら duplicate、他人の・存在しないタグなら not_found。 */
+export type UpdateTagResult =
+  | { ok: true; tag: Tag }
+  | { ok: false; reason: "duplicate" | "not_found" };
+
+/**
+ * 呼び出し User が所有するタグをリネームする。
+ * 削除→再作成と違い memo_tags は変わらないため、メモとの紐付けは維持される。
+ * 重複判定は createTag と同じく UNIQUE(userId, name) 制約に委ねる。
+ */
+export async function updateTag(
+  db: DB,
+  userId: string,
+  id: string,
+  input: UpdateTagInput,
+): Promise<UpdateTagResult> {
+  try {
+    const rows = await db
+      .update(tags)
+      .set({ name: input.name })
+      .where(and(eq(tags.id, id), eq(tags.userId, userId)))
+      .returning();
+    const tag = rows[0];
+    return tag ? { ok: true, tag } : { ok: false, reason: "not_found" };
+  } catch (err) {
     if (isUniqueViolation(err)) return { ok: false, reason: "duplicate" };
     throw err;
   }

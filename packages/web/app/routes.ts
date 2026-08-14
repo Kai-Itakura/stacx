@@ -8,6 +8,7 @@ export default [
     route("projects", "routes/projects.tsx"),
     route("projects/new", "routes/projects.new.tsx"),
     route("projects/:id", "routes/projects.$id.tsx"),
+    route("tags", "routes/tags.tsx"),
   ]),
   route("login", "routes/login.tsx"),
   // actions専用ルート

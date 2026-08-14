@@ -2,8 +2,8 @@ import { Hono } from "hono";
 import { authMiddleware } from "../auth/index";
 import type { AppEnv } from "../types";
 import { jsonValidator } from "../validation";
-import { createTagSchema } from "./request-schema";
-import { createTag, deleteTag, listTags } from "./tag";
+import { createTagSchema, updateTagSchema } from "./request-schema";
+import { createTag, deleteTag, listTags, updateTag } from "./tag";
 
 /**
  * タグの作成 / 一覧 / 削除ルート。/api/tags 配下にマウントする。
@@ -19,6 +19,13 @@ export const tagApp = new Hono<AppEnv>()
   .get("/", async (c) => {
     const list = await listTags(c.var.db, c.var.user.id);
     return c.json({ tags: list });
+  })
+  .put("/:id", jsonValidator(updateTagSchema), async (c) => {
+    const result = await updateTag(c.var.db, c.var.user.id, c.req.param("id"), c.req.valid("json"));
+    if (!result.ok) {
+      return c.json({ error: result.reason }, result.reason === "duplicate" ? 409 : 404);
+    }
+    return c.json({ tag: result.tag });
   })
   .delete("/:id", async (c) => {
     const deleted = await deleteTag(c.var.db, c.var.user.id, c.req.param("id"));

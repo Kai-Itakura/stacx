@@ -1,4 +1,4 @@
-import { FolderKanban, LogOut, NotebookText, PenLine } from "lucide-react";
+import { FolderKanban, LogOut, NotebookText, PenLine, Tags } from "lucide-react";
 import type { ReactNode } from "react";
 import { Link, NavLink } from "react-router";
 import { THEME_ICON, ThemeToggle } from "~/components/theme-toggle";
@@ -59,6 +59,12 @@ function UserMenu({
           )}
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
+        <DropdownMenuItem asChild>
+          <Link to="/tags">
+            <Tags />
+            タグ管理
+          </Link>
+        </DropdownMenuItem>
         <DropdownMenuItem
           onSelect={(e) => {
             e.preventDefault();
@@ -116,8 +122,13 @@ export function AppLayout({ user, children }: { user: User; children: ReactNode 
         </nav>
 
         <div className="ml-auto flex items-center gap-2">
-          {/* Desktop: theme toggle + username + logout */}
+          {/* Desktop: tags + theme toggle + username + logout */}
           <div className="hidden items-center gap-2 md:flex">
+            <Button asChild variant="ghost" size="icon" aria-label="タグ管理">
+              <Link to="/tags">
+                <Tags />
+              </Link>
+            </Button>
             <ThemeToggle />
             <span className="text-muted-foreground text-sm">{displayName}</span>
             <form method="post" action="/resources/logout">
