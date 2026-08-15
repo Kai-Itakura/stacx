@@ -54,7 +54,10 @@ export function QuickIntake({ projects, tags }: QuickIntakeProps) {
     }
   };
 
-  /** 入力量に合わせて高さを伸ばす。auto を挟まないと行を減らしても scrollHeight が縮まない。 */
+  /**
+   * 入力量に合わせて高さを伸ばす。auto を挟まないと行を減らしても scrollHeight が縮まない。
+   * 基底 Textarea の field-sizing-content は Firefox が未対応のため、JS 側でも持つ。
+   */
   const autoGrow = useCallback(() => {
     const el = textareaRef.current;
     if (!el) return;
@@ -97,7 +100,7 @@ export function QuickIntake({ projects, tags }: QuickIntakeProps) {
         placeholder="いま学んだこと・成果を 1 分でメモ…"
         onKeyDown={onTextareaKeyDown}
         onInput={autoGrow}
-        className="max-h-40 resize-none text-base"
+        className="max-h-40 min-h-0 resize-none text-base"
       />
 
       {(fields.body.errors || form.errors) && (
