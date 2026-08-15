@@ -21,13 +21,7 @@ const NAV_ITEMS = [
   { to: "/projects", label: "プロジェクト", tabLabel: "PJ", icon: FolderKanban, end: false },
 ] as const;
 
-/**
- * モバイルのユーザーメニュー。トリガー（ヘッダー右上のアバター）の直下に開く。
- *
- * 以前は bottom sheet だったが、画面最上部のトリガーに対して画面下部から出るため
- * 視線と指の移動が最大化されていた。項目もテーマとログアウトの 2 つだけで、
- * sheet を使うほどの分量ではない。
- */
+/** モバイルのユーザーメニュー。ヘッダー右上のアバターの直下に開く。 */
 function UserMenu({
   displayName,
   email,
@@ -94,14 +88,12 @@ export function AppLayout({ user, children }: { user: User; children: ReactNode 
 
   return (
     <div className="flex min-h-svh flex-col">
-      {/* ─── Top header ─── */}
       <header className="bg-background/80 border-b sticky top-0 z-30 flex h-14 items-center px-4 backdrop-blur-sm">
         <Link to="/" className="flex items-center gap-2">
           <img src="/favicon.svg" alt="StacX" className="h-7 w-7 rounded-md" />
           <span className="font-semibold tracking-tight">StacX</span>
         </Link>
 
-        {/* Desktop nav (md+) */}
         <nav className="ml-6 hidden items-center gap-1 md:flex">
           {NAV_ITEMS.map(({ to, label, end }) => (
             <NavLink
@@ -122,7 +114,6 @@ export function AppLayout({ user, children }: { user: User; children: ReactNode 
         </nav>
 
         <div className="ml-auto flex items-center gap-2">
-          {/* Desktop: tags + theme toggle + username + logout */}
           <div className="hidden items-center gap-2 md:flex">
             <Button asChild variant="ghost" size="icon" aria-label="タグ管理">
               <Link to="/tags">
@@ -138,17 +129,15 @@ export function AppLayout({ user, children }: { user: User; children: ReactNode 
             </form>
           </div>
 
-          {/* Mobile: user avatar → DropdownMenu（トリガーの直下に開く） */}
           <UserMenu displayName={displayName} email={user.email} initial={initial} />
         </div>
       </header>
 
-      {/* ─── Page content ─── */}
-      {/* pb-28 on mobile clears the floating bottom tab bar */}
-      <div className="flex-1 pb-28 md:pb-0">{children}</div>
+      {/* 下余白の 4.25rem はボトムタブバーの実寸（bottom 0.75rem + 高さ 3.5rem）と揃える。 */}
+      <div className="flex min-h-0 flex-1 flex-col pb-[calc(4.25rem+env(safe-area-inset-bottom))] md:pb-0">
+        {children}
+      </div>
 
-      {/* ─── Bottom tab bar (mobile only, floating glass pill) ─── */}
-      {/* inset-x-4: 左右に 16px のマージンを取って浮かせる。bottom は safe area の上に 12px 追加 */}
       <nav
         className="fixed inset-x-4 z-30 md:hidden"
         style={{ bottom: "calc(0.75rem + env(safe-area-inset-bottom))" }}

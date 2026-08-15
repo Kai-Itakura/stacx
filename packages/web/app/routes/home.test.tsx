@@ -13,6 +13,7 @@ type LoaderData = {
   user: { name: string | null; email: string | null };
   projects: { id: string; name: string; endDate: string | null }[];
   tags: { id: string; name: string }[];
+  recent: { id: string; body: string; createdAt: string }[];
 };
 
 const baseLoader: LoaderData = {
@@ -25,12 +26,10 @@ const baseLoader: LoaderData = {
     { id: "t1", name: "技術チャレンジ" },
     { id: "t2", name: "チーム改善" },
   ],
+  recent: [],
 };
 
-/**
- * action に届いた FormData を記録するスタブ。実 schema で検証し、Conform の
- * SubmissionResult を返す（client 側の lastResult 処理を壊さないため）。
- */
+/** action に届いた FormData を記録するスタブ。実 schema で検証し SubmissionResult を返す。 */
 function captureAction(schema: typeof memoFormSchema | typeof projectFormSchema) {
   const calls: Record<string, unknown>[] = [];
   const fn = async ({ request }: { request: Request }) => {
@@ -68,7 +67,6 @@ function renderHome(opts?: {
       // biome-ignore lint/suspicious/noExplicitAny: stub の Component 型はゆるく、実 route の型と差異がある
       Component: Home as any,
       loader: () => ({ ...baseLoader, ...opts?.loaderData }),
-      // stub は loader をクライアント側で解決するため、初回描画用のフォールバックが要る。
       HydrateFallback: () => null,
     },
     {
@@ -95,7 +93,23 @@ describe("クイック・インテーク画面", () => {
 
   it("進行中（endDate=null）のプロジェクトを既定選択する", async () => {
     renderHome();
-    expect(await screen.findByRole("combobox")).toHaveValue("p2");
+    expect(await screen.findByText("進行中プロジェクト")).toBeInTheDocument();
+  });
+
+  it("プロジェクトチップから別のプロジェクトへ切り替えられる", async () => {
+    const user = userEvent.setup();
+    const { fn, calls } = captureAction(memoFormSchema);
+    renderHome({ memoAction: fn });
+
+    await user.click(await screen.findByRole("button", { name: /進行中プロジェクト/ }));
+    await user.click(await screen.findByRole("menuitem", { name: /終わったやつ/ }));
+
+    const textarea = screen.getByPlaceholderText(TEXTAREA);
+    await user.type(textarea, "本文");
+    fireEvent.keyDown(textarea, { key: "Enter", metaKey: true });
+
+    await waitFor(() => expect(calls).toHaveLength(1));
+    expect(calls[0].projectId).toBe("p1");
   });
 
   it("Cmd+Enter で本文と選択中プロジェクトを送信する", async () => {
@@ -122,36 +136,127 @@ describe("クイック・インテーク画面", () => {
     expect(calls).toHaveLength(0);
   });
 
-  it("タグ chip を選ぶと tagIds に含めて送信する", async () => {
+  it("タグを選ぶとチップに出て tagIds に含めて送信する", async () => {
     const user = userEvent.setup();
     const { fn, calls } = captureAction(memoFormSchema);
     renderHome({ memoAction: fn });
 
-    const textarea = await screen.findByPlaceholderText(TEXTAREA);
+    await user.click(await screen.findByRole("button", { name: "タグを追加" }));
+    await user.click(await screen.findByRole("menuitem", { name: "技術チャレンジ" }));
+    expect(screen.getByRole("button", { name: "技術チャレンジ を外す" })).toBeInTheDocument();
+
+    const textarea = screen.getByPlaceholderText(TEXTAREA);
     await user.type(textarea, "本文");
-    await user.click(screen.getByRole("button", { name: "技術チャレンジ" }));
     fireEvent.keyDown(textarea, { key: "Enter", metaKey: true });
 
     await waitFor(() => expect(calls).toHaveLength(1));
     expect(calls[0].tagIds).toEqual(["t1"]);
   });
 
-  it("未選択は枠線のみ・選択中は塗りつぶしで示す", async () => {
+  it("保存のたびにタグ選択がリセットされる（2 回目以降も）", async () => {
+    const user = userEvent.setup();
+    const { fn, calls } = captureAction(memoFormSchema);
+    renderHome({ memoAction: fn });
+
+    const selectTagAndSave = async (body: string) => {
+      await user.click(await screen.findByRole("button", { name: "タグを追加" }));
+      await user.click(await screen.findByRole("menuitem", { name: "技術チャレンジ" }));
+      const textarea = screen.getByPlaceholderText(TEXTAREA);
+      await user.type(textarea, body);
+      fireEvent.keyDown(textarea, { key: "Enter", metaKey: true });
+    };
+
+    await selectTagAndSave("1 本目");
+    await waitFor(() =>
+      expect(
+        screen.queryByRole("button", { name: "技術チャレンジ を外す" }),
+      ).not.toBeInTheDocument(),
+    );
+
+    await selectTagAndSave("2 本目");
+    await waitFor(() =>
+      expect(
+        screen.queryByRole("button", { name: "技術チャレンジ を外す" }),
+      ).not.toBeInTheDocument(),
+    );
+
+    expect(calls).toHaveLength(2);
+    expect(calls[1].tagIds).toEqual(["t1"]);
+  });
+
+  // jsdom は採寸しない（scrollHeight が常に 0）ため、px ではなくインライン height を見る。
+  it("保存すると入力欄の高さ指定が外れる", async () => {
+    const user = userEvent.setup();
+    const { fn } = captureAction(memoFormSchema);
+    renderHome({ memoAction: fn });
+
+    const textarea = await screen.findByPlaceholderText(TEXTAREA);
+    await user.type(textarea, "1 行目\n2 行目\n3 行目");
+    expect(textarea.style.height).not.toBe("");
+
+    fireEvent.keyDown(textarea, { key: "Enter", metaKey: true });
+
+    await waitFor(() => expect(textarea.style.height).toBe(""));
+  });
+
+  it("チップの × でタグを外せる", async () => {
     const user = userEvent.setup();
     renderHome({});
 
-    const chip = await screen.findByRole("button", { name: "技術チャレンジ" });
-    // 1 つも選んでいなくても未選択と分かるよう、器が空（枠線のみ）であること
-    expect(chip.className).toMatch(/border-tag-\d/);
-    expect(chip.className).not.toMatch(/bg-tag-\d/);
-    expect(chip).toHaveAttribute("aria-pressed", "false");
+    await user.click(await screen.findByRole("button", { name: "タグを追加" }));
+    await user.click(await screen.findByRole("menuitem", { name: "技術チャレンジ" }));
+    await user.click(screen.getByRole("button", { name: "技術チャレンジ を外す" }));
 
-    await user.click(chip);
+    expect(screen.queryByRole("button", { name: "技術チャレンジ を外す" })).not.toBeInTheDocument();
+  });
 
-    // 選択中は塗りつぶし + 地の色で文字を抜く
-    expect(chip.className).toMatch(/bg-tag-\d/);
-    expect(chip.className).toContain("text-background");
-    expect(chip).toHaveAttribute("aria-pressed", "true");
+  it("保存すると直近メモに積まれる（保存できた合図になる）", async () => {
+    const user = userEvent.setup();
+    // loader 再検証で新しいメモが降ってくる状況を再現する。
+    const stored: { id: string; body: string; createdAt: string }[] = [];
+    const Stub = createRoutesStub([
+      {
+        path: "/",
+        // biome-ignore lint/suspicious/noExplicitAny: stub の Component 型は実 route と差異がある
+        Component: Home as any,
+        loader: () => ({ ...baseLoader, recent: [...stored] }),
+        HydrateFallback: () => null,
+      },
+      {
+        path: "/resources/memos/create",
+        action: async ({ request }: { request: Request }) => {
+          const fd = await request.formData();
+          stored.unshift({
+            id: `m${stored.length + 1}`,
+            body: String(fd.get("body")),
+            createdAt: new Date().toISOString(),
+          });
+          return { status: "success" };
+        },
+      },
+      { path: "/resources/tags/create", action: () => ({ ok: true, tagId: "t-new" }) },
+    ]);
+    render(<Stub initialEntries={["/"]} />);
+
+    expect(await screen.findByText(/まだメモがありません/)).toBeInTheDocument();
+
+    const textarea = await screen.findByPlaceholderText(TEXTAREA);
+    await user.type(textarea, "保存したメモ");
+    fireEvent.keyDown(textarea, { key: "Enter", metaKey: true });
+
+    expect(await screen.findByRole("link", { name: /保存したメモ/ })).toBeInTheDocument();
+  });
+
+  it("選択中のタグはタグ色で塗って表示する", async () => {
+    const user = userEvent.setup();
+    renderHome({});
+
+    await user.click(await screen.findByRole("button", { name: "タグを追加" }));
+    await user.click(await screen.findByRole("menuitem", { name: "技術チャレンジ" }));
+
+    const chip = screen.getByRole("button", { name: "技術チャレンジ を外す" }).parentElement;
+    expect(chip?.className).toMatch(/bg-tag-\d/);
+    expect(chip?.className).toContain("text-background");
   });
 
   it("新規タグを作成すると自動選択され、送信に含まれる", async () => {
@@ -161,10 +266,9 @@ describe("クイック・インテーク画面", () => {
 
     const textarea = await screen.findByPlaceholderText(TEXTAREA);
     await user.type(textarea, "本文");
-    await user.type(screen.getByPlaceholderText("新規タグを追加"), "新タグ");
-    await user.click(screen.getByRole("button", { name: "追加" }));
+    await user.click(screen.getByRole("button", { name: "タグを追加" }));
+    await user.type(await screen.findByPlaceholderText("新規タグを追加"), "新タグ{Enter}");
 
-    // 作成成功で入力欄がクリアされる。
     await waitFor(() => expect(screen.getByPlaceholderText("新規タグを追加")).toHaveValue(""));
 
     fireEvent.keyDown(textarea, { key: "Enter", metaKey: true });
@@ -177,7 +281,8 @@ describe("クイック・インテーク画面", () => {
     const { fn, calls } = captureTagAction();
     renderHome({ tagAction: fn });
 
-    await user.click(await screen.findByRole("button", { name: "追加" }));
+    await user.click(await screen.findByRole("button", { name: "タグを追加" }));
+    await user.type(await screen.findByPlaceholderText("新規タグを追加"), "{Enter}");
 
     expect(await screen.findByText("タグ名を入力してください")).toBeInTheDocument();
     expect(calls).toHaveLength(0);

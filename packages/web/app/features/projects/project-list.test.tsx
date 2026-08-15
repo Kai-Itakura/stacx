@@ -34,7 +34,6 @@ describe("ProjectList", () => {
   it("進行中（endDate=null）のプロジェクトは進行中アイコンを出す", async () => {
     renderList([{ ...base, id: "p1", name: "進行中PJ", endDate: null }]);
     expect(await screen.findByText("進行中PJ")).toBeInTheDocument();
-    // メモ側のプロジェクト表示と同じアイコン・同じ意味で示す
     expect(screen.getByLabelText("進行中")).toBeInTheDocument();
     expect(screen.queryByLabelText("完了")).not.toBeInTheDocument();
   });

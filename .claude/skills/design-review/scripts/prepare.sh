@@ -64,11 +64,13 @@ VALUES ('$PROJECT_ID', '$USER_ID', '工場生産管理システム', $START_DATE
 INSERT INTO tags (id, user_id, name, created_at)
 VALUES ('t_eff', '$USER_ID', '効率化', $NOW), ('t_tech', '$USER_ID', '技術選定', $NOW);
 
-INSERT INTO memos (id, user_id, project_id, title, body, created_at, updated_at) VALUES
- ('m_review_1', '$USER_ID', '$PROJECT_ID', 'D1 のバッチ書き込みで整合性を担保した',
-  'memo_tags の delete/insert を db.batch で 1 原子操作にまとめ、途中失敗でタグだけ消える状態を防いだ。', $NOW, $NOW),
- ('m_review_2', '$USER_ID', '$PROJECT_ID', 'LCP を 2.5s から 1.2s に改善',
-  '画像の遅延読み込みとフォントの preload で初期描画を短縮。計測は Lighthouse。', $NOW, $NOW);
+INSERT INTO memos (id, user_id, project_id, body, created_at, updated_at) VALUES
+ ('m_review_1', '$USER_ID', '$PROJECT_ID',
+  'D1 のバッチ書き込みで整合性を担保した
+memo_tags の delete/insert を db.batch で 1 原子操作にまとめ、途中失敗でタグだけ消える状態を防いだ。', $NOW, $NOW),
+ ('m_review_2', '$USER_ID', '$PROJECT_ID',
+  'LCP を 2.5s から 1.2s に改善
+画像の遅延読み込みとフォントの preload で初期描画を短縮。計測は Lighthouse。', $NOW, $NOW);
 
 INSERT INTO memo_tags (memo_id, tag_id) VALUES ('m_review_1', 't_tech'), ('m_review_2', 't_eff');
 SQL

@@ -20,5 +20,7 @@ export default defineConfig({
     environment: "./test/environment-jsdom-undici.ts",
     setupFiles: ["./test/setup.ts"],
     include: ["app/**/*.test.{ts,tsx}"],
+    // 日付表示はローカルタイムゾーン依存。固定しないと実行環境（ローカル JST / CI UTC）で結果が変わる。
+    env: { TZ: "Asia/Tokyo" },
   },
 });
