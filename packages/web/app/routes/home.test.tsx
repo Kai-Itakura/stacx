@@ -184,6 +184,25 @@ describe("クイック・インテーク画面", () => {
     expect(calls[1].tagIds).toEqual(["t1"]);
   });
 
+  /*
+   * Conform のフォームリセットはこの effect より後に走るため、保存時点の本文を測って
+   * 高さを付け直すと伸びたままになる。jsdom は採寸しないので、インライン height が
+   * 外れて CSS に戻ることを見る。
+   */
+  it("保存すると入力欄の高さ指定が外れる", async () => {
+    const user = userEvent.setup();
+    const { fn } = captureAction(memoFormSchema);
+    renderHome({ memoAction: fn });
+
+    const textarea = await screen.findByPlaceholderText(TEXTAREA);
+    await user.type(textarea, "1 行目\n2 行目\n3 行目");
+    expect(textarea.style.height).not.toBe("");
+
+    fireEvent.keyDown(textarea, { key: "Enter", metaKey: true });
+
+    await waitFor(() => expect(textarea.style.height).toBe(""));
+  });
+
   it("チップの × でタグを外せる", async () => {
     const user = userEvent.setup();
     renderHome({});

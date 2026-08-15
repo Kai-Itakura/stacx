@@ -69,10 +69,12 @@ export function QuickIntake({ projects, tags }: QuickIntakeProps) {
   useEffect(() => {
     if (memoFetcher.data?.initialValue === null) {
       setSelectedTagIds(new Set());
-      autoGrow();
+      // Conform のフォームリセットはこの後に走る。ここで採寸すると保存前の本文を測って
+      // 高さを付け直してしまうので、指定を外して CSS に戻す。
+      if (textareaRef.current) textareaRef.current.style.height = "";
       textareaRef.current?.focus();
     }
-  }, [memoFetcher.data, autoGrow]);
+  }, [memoFetcher.data]);
 
   return (
     <memoFetcher.Form
