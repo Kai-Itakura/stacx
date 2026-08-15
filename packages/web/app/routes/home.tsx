@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from "react";
 import { EmptyProjectState } from "~/features/intake/empty-project-state";
 import { QuickIntake } from "~/features/intake/quick-intake";
 import { type RecentMemo, RecentMemos } from "~/features/intake/recent-memos";
@@ -31,6 +32,17 @@ export async function loader({ request }: Route.LoaderArgs) {
 
 export default function Home({ loaderData }: Route.ComponentProps) {
   const { projects, tags, recent } = loaderData;
+  const composerRef = useRef<HTMLDivElement>(null);
+  const [composerHeight, setComposerHeight] = useState(0);
+
+  // Composer の高さはタグの折り返しと本文の行数で変わるため、下余白は定数にできない。
+  useEffect(() => {
+    const el = composerRef.current;
+    if (!el) return;
+    const observer = new ResizeObserver(([entry]) => setComposerHeight(entry.contentRect.height));
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
   if (projects.length === 0) {
     return (
@@ -41,11 +53,23 @@ export default function Home({ loaderData }: Route.ComponentProps) {
   }
 
   return (
-    <main className="container mx-auto flex min-h-0 flex-1 flex-col gap-3 p-4 md:max-w-2xl md:p-6">
-      <div className="min-h-0 flex-1 overflow-y-auto">
+    <>
+      <main
+        className="container mx-auto min-h-0 flex-1 overflow-y-auto p-4 md:max-w-2xl md:p-6"
+        style={{ paddingBottom: composerHeight }}
+      >
         <RecentMemos memos={recent} />
+      </main>
+
+      {/* 4.25rem はボトムタブバーの実寸（bottom 0.75rem + 高さ 3.5rem）。 */}
+      <div
+        ref={composerRef}
+        className="bg-background/80 fixed inset-x-0 bottom-[calc(4.25rem+env(safe-area-inset-bottom))] z-20 backdrop-blur-sm md:bottom-0"
+      >
+        <div className="container mx-auto px-4 pt-2 pb-3 md:max-w-2xl md:px-6">
+          <QuickIntake projects={projects} tags={tags} />
+        </div>
       </div>
-      <QuickIntake projects={projects} tags={tags} />
-    </main>
+    </>
   );
 }
