@@ -1,5 +1,6 @@
 import { getFormProps, getTextareaProps, useForm } from "@conform-to/react";
 import { getZodConstraint, parseWithZod } from "@conform-to/zod/v4";
+import { CornerDownLeft } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useFetcher } from "react-router";
 import { Button } from "~/components/ui/button";
@@ -72,6 +73,8 @@ export function QuickIntake({ projects, tags }: QuickIntakeProps) {
     }
   }, [memoFetcher.data]);
 
+  const invalid = Boolean(fields.body.errors || form.errors);
+
   return (
     <memoFetcher.Form
       ref={formRef}
@@ -91,24 +94,39 @@ export function QuickIntake({ projects, tags }: QuickIntakeProps) {
         onSelectTag={selectTag}
       />
 
-      <Textarea
-        {...getTextareaProps(fields.body)}
-        ref={textareaRef}
-        autoFocus
-        placeholder="いま学んだこと・成果を 1 分でメモ…"
-        onKeyDown={onTextareaKeyDown}
-        onInput={autoGrow}
-        className="max-h-40 min-h-0 resize-none text-base"
-      />
+      {/* 枠が二重にならないよう、枠線・リング・エラー表示は外側だけが持つ。 */}
+      <div
+        className={`bg-background flex items-end gap-2 rounded-2xl border py-1.5 pr-1.5 pl-3 transition-colors focus-within:ring-3 ${
+          invalid
+            ? "border-destructive focus-within:border-destructive focus-within:ring-destructive/20"
+            : "border-input focus-within:border-ring focus-within:ring-ring/50"
+        }`}
+      >
+        <Textarea
+          {...getTextareaProps(fields.body)}
+          ref={textareaRef}
+          autoFocus
+          placeholder="いま学んだこと・成果を 1 分でメモ…"
+          onKeyDown={onTextareaKeyDown}
+          onInput={autoGrow}
+          className="max-h-40 min-h-0 flex-1 resize-none rounded-none border-0 bg-transparent px-0 py-1.5 text-base shadow-none focus-visible:border-0 focus-visible:ring-0 aria-invalid:border-0 aria-invalid:ring-0 dark:bg-transparent"
+        />
+        <Button
+          type="submit"
+          size="icon"
+          aria-label="保存"
+          title="⌘/Ctrl + Enter で保存"
+          className="size-9 shrink-0 rounded-xl"
+        >
+          <CornerDownLeft />
+        </Button>
+      </div>
 
       {(fields.body.errors || form.errors) && (
-        <p className="text-destructive text-sm">{fields.body.errors?.[0] ?? form.errors?.[0]}</p>
+        <p className="text-destructive px-3 text-sm">
+          {fields.body.errors?.[0] ?? form.errors?.[0]}
+        </p>
       )}
-
-      <div className="flex items-center justify-end gap-3">
-        <span className="text-muted-foreground text-xs">⌘/Ctrl + Enter で保存</span>
-        <Button type="submit">保存</Button>
-      </div>
     </memoFetcher.Form>
   );
 }

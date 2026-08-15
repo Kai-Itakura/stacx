@@ -17,4 +17,14 @@ Object.defineProperty(window, "matchMedia", {
   }),
 });
 
+// jsdom は ResizeObserver も実装しない。採寸はしないので、購読だけ成立させる。
+vi.stubGlobal(
+  "ResizeObserver",
+  class {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+  },
+);
+
 afterEach(() => cleanup());
