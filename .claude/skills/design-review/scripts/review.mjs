@@ -52,14 +52,25 @@ const OUT = arg(
 
 /** この環境の Chromium を探す。playwright install は実行しない（環境で禁止）。 */
 function findChromium() {
+  if (process.env.CHROMIUM_PATH) return process.env.CHROMIUM_PATH;
+
   const root = "/opt/pw-browsers";
-  if (!fs.existsSync(root)) return undefined;
-  const candidates = fs
-    .readdirSync(root)
-    .filter((d) => d.startsWith("chromium") && !d.includes("headless_shell"))
-    .map((d) => path.join(root, d, "chrome-linux", "chrome"))
-    .filter((p) => fs.existsSync(p));
-  return candidates[0]; // 見つからなければ undefined → playwright の既定解決に任せる
+  if (fs.existsSync(root)) {
+    const bundled = fs
+      .readdirSync(root)
+      .filter((d) => d.startsWith("chromium") && !d.includes("headless_shell"))
+      .map((d) => path.join(root, d, "chrome-linux", "chrome"))
+      .filter((p) => fs.existsSync(p));
+    if (bundled[0]) return bundled[0];
+  }
+
+  // playwright 同梱ブラウザが無い環境（開発者のローカル等）ではシステムの Chromium を使う。
+  const system = [
+    "/usr/bin/chromium",
+    "/usr/bin/chromium-browser",
+    "/usr/bin/google-chrome-stable",
+  ];
+  return system.find((p) => fs.existsSync(p)); // 無ければ undefined → playwright の既定解決に任せる
 }
 
 /**

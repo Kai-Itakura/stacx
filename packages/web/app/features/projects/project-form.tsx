@@ -27,7 +27,6 @@ type ProjectFormProps = {
 export function ProjectForm({ project, submitLabel }: ProjectFormProps) {
   const lastResult = useActionData<SubmissionResult | undefined>();
   const navigation = useNavigation();
-  // techStack は自由入力チップ。client state で持ち、hidden input で form に載せる。
   const [techStack, setTechStack] = useState<string[]>(project?.techStack ?? []);
   const [techInput, setTechInput] = useState("");
 
@@ -53,7 +52,6 @@ export function ProjectForm({ project, submitLabel }: ProjectFormProps) {
 
   const addTech = () => {
     const value = techInput.trim();
-    // 空・重複は追加しない（入力欄はクリア）。
     if (value && !techStack.includes(value)) setTechStack((prev) => [...prev, value]);
     setTechInput("");
   };
@@ -130,7 +128,6 @@ export function ProjectForm({ project, submitLabel }: ProjectFormProps) {
             ))
           )}
         </div>
-        {/* 選択中の techStack を form に載せる隠しフィールド。 */}
         {techStack.map((t) => (
           <input key={t} type="hidden" name="techStack" value={t} />
         ))}

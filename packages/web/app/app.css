@@ -83,14 +83,14 @@
   --accent: oklch(0.97 0.01 280);
   --accent-foreground: oklch(0.205 0 0);
   --destructive: oklch(0.577 0.22 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
+  /* 枠線は WCAG 1.4.11（UI 部品の境界）の 3:1 を満たす濃さにする。 */
+  --border: oklch(0.66 0 0);
+  --input: oklch(0.66 0 0);
   --ring: oklch(0.52 0.2 280);
 
   /*
-   * 状態色。バッジは subtle 背景 + 同系の濃い前景で組む（透過だと地の色に依存して破綻するため対で持つ）。
-   * chroma は sRGB 色域に収まる範囲で指定する。はみ出すと描画がブラウザのクリップ方法と
-   * ディスプレイの色域に依存し、sRGB 画面と P3 画面で色相がずれる。
+   * 状態色。バッジは subtle 背景 + 同系の濃い前景の対で組む。
+   * chroma は sRGB 色域内に収める。はみ出すと sRGB 画面と P3 画面で色相がずれる。
    */
   --success: oklch(0.45 0.12 150);
   --success-subtle: oklch(0.93 0.05 150);
@@ -101,8 +101,7 @@
 
   /*
    * タグ用パレット。状態色（success 150 / warning 70 / info 240）・destructive 27・
-   * primary 280 と値が重複するとバッジが見分けられなくなるため、これらから
-   * 色相を 30 度以上離した帯（ライム / ティール〜シアン / マゼンタ〜ピンク）だけを使う。
+   * primary 280 から色相を 30 度以上離す。近いとバッジの意味が見分けられなくなる。
    */
   --tag-1: oklch(0.47 0.09 110);
   --tag-1-subtle: oklch(0.93 0.05 110);
@@ -149,11 +148,11 @@
   --accent: oklch(0.28 0.02 285);
   --accent-foreground: oklch(0.985 0 0);
   --destructive: oklch(0.704 0.178 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
+  /* 暗い地では半透明白を合成した実効色で 3:1 を満たす不透明度にする。 */
+  --border: oklch(1 0 0 / 40%);
+  --input: oklch(1 0 0 / 40%);
   --ring: oklch(0.6 0.16 285);
 
-  /* 暗い地に合わせて前景を明るく・subtle を暗く反転させる（light の値のままではコントラストが出ない）。 */
   --success: oklch(0.8 0.15 150);
   --success-subtle: oklch(0.3 0.06 150);
   --warning: oklch(0.82 0.13 75);

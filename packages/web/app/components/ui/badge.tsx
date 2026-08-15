@@ -19,7 +19,7 @@ const badgeVariants = cva(
         success: "bg-success-subtle text-success",
         warning: "bg-warning-subtle text-warning",
         info: "bg-info-subtle text-info",
-        // タグは色をタグ名から決めるため、配色は tone で受ける（tagToneClass を使う）。
+        // 配色はタグ名から決まるため className（tagToneClass）で受ける。
         tag: "",
       },
     },

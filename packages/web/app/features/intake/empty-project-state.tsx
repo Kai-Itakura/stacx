@@ -8,7 +8,6 @@ import { projectFormSchema } from "./schema";
 
 /** プロジェクトが 0 件のときの空状態。名前だけの簡易作成を出す（開始日は今日）。 */
 export function EmptyProjectState() {
-  // resource route へ非遷移で送る。作成成功後は loader の再検証で QuickIntake に切り替わる。
   const projectFetcher = useFetcher<typeof action>();
   const [form, fields] = useForm({
     lastResult: projectFetcher.data,
