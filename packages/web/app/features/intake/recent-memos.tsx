@@ -18,7 +18,11 @@ export function RecentMemos({ memos }: { memos: RecentMemo[] }) {
     <div className="flex flex-col gap-2">
       <div className="flex items-baseline justify-between gap-2">
         <span className="text-muted-foreground text-xs">直近のメモ</span>
-        <Link to="/memos" className="text-primary text-xs underline-offset-4 hover:underline">
+        {/* -m-1.5/p-1.5 は見た目を変えずにタップ領域を 24px 以上にする（WCAG 2.5.8 AA）。 */}
+        <Link
+          to="/memos"
+          className="text-primary -m-1.5 p-1.5 text-xs underline-offset-4 hover:underline"
+        >
           すべて見る
         </Link>
       </div>
