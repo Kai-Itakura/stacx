@@ -1,4 +1,5 @@
 import { Link } from "react-router";
+import { toLocalDay } from "~/lib/format-date";
 import { memoExcerpt } from "~/lib/memo-excerpt";
 
 export type RecentMemo = { id: string; body: string; createdAt: string };
@@ -50,5 +51,5 @@ function formatTime(iso: string): string {
     date.getDate() === today.getDate();
   return sameDay
     ? `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`
-    : iso.slice(0, 10);
+    : toLocalDay(iso);
 }

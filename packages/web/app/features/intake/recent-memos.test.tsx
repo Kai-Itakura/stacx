@@ -58,4 +58,11 @@ describe("RecentMemos", () => {
     expect(await screen.findByText("14:05")).toBeInTheDocument();
     expect(screen.getByText("2026-07-20")).toBeInTheDocument();
   });
+
+  // UTC の日付を切り出すと、JST では日付境界をまたぐメモが 1 日前に見える。
+  it("日付はローカルタイムゾーンで判定する", async () => {
+    renderRecent([memo({ createdAt: "2026-07-20T22:00:00.000Z" })]);
+
+    expect(await screen.findByText("2026-07-21")).toBeInTheDocument();
+  });
 });

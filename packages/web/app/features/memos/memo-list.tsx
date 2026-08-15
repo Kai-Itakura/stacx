@@ -1,5 +1,6 @@
 import { ProjectBadge, TagBadge } from "~/components/entity-badge";
 import { Badge } from "~/components/ui/badge";
+import { toLocalDay } from "~/lib/format-date";
 import { memoExcerpt } from "~/lib/memo-excerpt";
 import type { StarStatus } from "./star-schema";
 
@@ -43,7 +44,7 @@ export function MemoList({ memos }: { memos: MemoListItem[] }) {
           <div className="flex items-center justify-between gap-2">
             <ProjectBadge id={m.projectId} name={m.projectName} active={m.projectActive} />
             <time className="text-muted-foreground shrink-0 text-xs">
-              {m.createdAt.slice(0, 10)}
+              {toLocalDay(m.createdAt)}
             </time>
           </div>
           <p className="mt-2 font-medium">{memoExcerpt(m.body)}</p>
