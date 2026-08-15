@@ -21,8 +21,10 @@ type IntakeChipsProps = {
   tags: IntakeTag[];
   projectId: string;
   onProjectChange: (id: string) => void;
-  selectedTagIds: string[];
+  selectedTagIds: Set<string>;
   onToggleTag: (id: string) => void;
+  /** 冪等に選択する。effect から呼ぶので、再実行されても状態が動かないこと。 */
+  onSelectTag: (id: string) => void;
 };
 
 /** 入力欄の上に置く選択チップ列。送信値は hidden input で親フォームに載せる。 */
@@ -33,13 +35,14 @@ export function IntakeChips({
   onProjectChange,
   selectedTagIds,
   onToggleTag,
+  onSelectTag,
 }: IntakeChipsProps) {
   const tagFetcher = useFetcher<typeof action>();
   const [newTag, setNewTag] = useState("");
   const [tagError, setTagError] = useState<string | null>(null);
 
   const project = projects.find((p) => p.id === projectId) ?? projects[0];
-  const selected = tags.filter((t) => selectedTagIds.includes(t.id));
+  const selected = tags.filter((t) => selectedTagIds.has(t.id));
 
   const addTag = () => {
     if (tagFetcher.state !== "idle") return;
@@ -59,10 +62,10 @@ export function IntakeChips({
   useEffect(() => {
     const data = tagFetcher.data;
     if (data?.ok && data.tagId) {
-      onToggleTag(data.tagId);
+      onSelectTag(data.tagId);
       setNewTag("");
     }
-  }, [tagFetcher.data, onToggleTag]);
+  }, [tagFetcher.data, onSelectTag]);
 
   const serverError = tagFetcher.data && !tagFetcher.data.ok ? tagFetcher.data.error : null;
   const displayError = tagError ?? serverError;
@@ -70,7 +73,7 @@ export function IntakeChips({
   return (
     <div className="flex flex-wrap items-center gap-1.5">
       <input type="hidden" name="projectId" value={project?.id ?? ""} />
-      {selectedTagIds.map((id) => (
+      {[...selectedTagIds].map((id) => (
         <input key={id} type="hidden" name="tagIds" value={id} />
       ))}
 
@@ -130,7 +133,7 @@ export function IntakeChips({
           <DropdownMenuSeparator />
           {tags.map((tag) => (
             <DropdownMenuItem key={tag.id} onSelect={() => onToggleTag(tag.id)}>
-              {selectedTagIds.includes(tag.id) ? <Check /> : <span className="size-4" />}
+              {selectedTagIds.has(tag.id) ? <Check /> : <span className="size-4" />}
               {tag.name}
             </DropdownMenuItem>
           ))}

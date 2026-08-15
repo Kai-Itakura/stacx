@@ -21,7 +21,7 @@ export function QuickIntake({ projects, tags }: QuickIntakeProps) {
 
   const defaultProjectId = (projects.find((p) => p.endDate === null) ?? projects[0]).id;
   const [projectId, setProjectId] = useState(defaultProjectId);
-  const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
+  const [selectedTagIds, setSelectedTagIds] = useState<Set<string>>(() => new Set());
 
   const [form, fields] = useForm({
     lastResult: memoFetcher.data,
@@ -32,7 +32,19 @@ export function QuickIntake({ projects, tags }: QuickIntakeProps) {
   });
 
   const toggleTag = useCallback((id: string) => {
-    setSelectedTagIds((prev) => (prev.includes(id) ? prev.filter((t) => t !== id) : [...prev, id]));
+    setSelectedTagIds((prev) => {
+      const next = new Set(prev);
+      if (!next.delete(id)) next.add(id);
+      return next;
+    });
+  }, []);
+
+  /**
+   * 選択済みなら同じ Set を返す。effect から呼ぶため、再実行されても状態が動かない
+   * 必要がある（新しい Set を返すと再レンダーが連鎖して止まらなくなる）。
+   */
+  const selectTag = useCallback((id: string) => {
+    setSelectedTagIds((prev) => (prev.has(id) ? prev : new Set(prev).add(id)));
   }, []);
 
   const onTextareaKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -53,7 +65,7 @@ export function QuickIntake({ projects, tags }: QuickIntakeProps) {
   // submission.reply({ resetForm: true }) は status を持たず { initialValue: null } を返す。
   useEffect(() => {
     if (memoFetcher.data?.initialValue === null) {
-      setSelectedTagIds([]);
+      setSelectedTagIds(new Set());
       autoGrow();
       textareaRef.current?.focus();
     }
@@ -75,6 +87,7 @@ export function QuickIntake({ projects, tags }: QuickIntakeProps) {
         onProjectChange={setProjectId}
         selectedTagIds={selectedTagIds}
         onToggleTag={toggleTag}
+        onSelectTag={selectTag}
       />
 
       <Textarea
