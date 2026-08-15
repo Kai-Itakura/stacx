@@ -18,7 +18,7 @@ export function tagTone(name: string): number {
   let hash = 0x811c9dc5;
   for (let i = 0; i < name.length; i++) {
     hash ^= name.charCodeAt(i);
-    // FNV prime の乗算。32bit に丸めるため Math.imul を使う。
+    // 32bit に丸めるため Math.imul を使う。
     hash = Math.imul(hash, 0x01000193);
   }
   return (Math.abs(hash) % TAG_TONE_COUNT) + 1;

@@ -88,14 +88,12 @@ export function AppLayout({ user, children }: { user: User; children: ReactNode 
 
   return (
     <div className="flex min-h-svh flex-col">
-      {/* ─── Top header ─── */}
       <header className="bg-background/80 border-b sticky top-0 z-30 flex h-14 items-center px-4 backdrop-blur-sm">
         <Link to="/" className="flex items-center gap-2">
           <img src="/favicon.svg" alt="StacX" className="h-7 w-7 rounded-md" />
           <span className="font-semibold tracking-tight">StacX</span>
         </Link>
 
-        {/* Desktop nav (md+) */}
         <nav className="ml-6 hidden items-center gap-1 md:flex">
           {NAV_ITEMS.map(({ to, label, end }) => (
             <NavLink
@@ -135,13 +133,11 @@ export function AppLayout({ user, children }: { user: User; children: ReactNode 
         </div>
       </header>
 
-      {/* ─── Page content ─── */}
       {/* 下余白の 4.25rem はボトムタブバーの実寸（bottom 0.75rem + 高さ 3.5rem）と揃える。 */}
       <div className="flex min-h-0 flex-1 flex-col pb-[calc(4.25rem+env(safe-area-inset-bottom))] md:pb-0">
         {children}
       </div>
 
-      {/* ─── Bottom tab bar (mobile only) ─── */}
       <nav
         className="fixed inset-x-4 z-30 md:hidden"
         style={{ bottom: "calc(0.75rem + env(safe-area-inset-bottom))" }}

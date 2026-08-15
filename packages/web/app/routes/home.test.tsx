@@ -184,11 +184,7 @@ describe("クイック・インテーク画面", () => {
     expect(calls[1].tagIds).toEqual(["t1"]);
   });
 
-  /*
-   * Conform のフォームリセットはこの effect より後に走るため、保存時点の本文を測って
-   * 高さを付け直すと伸びたままになる。jsdom は採寸しないので、インライン height が
-   * 外れて CSS に戻ることを見る。
-   */
+  // jsdom は採寸しない（scrollHeight が常に 0）ため、px ではなくインライン height を見る。
   it("保存すると入力欄の高さ指定が外れる", async () => {
     const user = userEvent.setup();
     const { fn } = captureAction(memoFormSchema);

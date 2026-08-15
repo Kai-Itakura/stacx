@@ -39,10 +39,7 @@ export function QuickIntake({ projects, tags }: QuickIntakeProps) {
     });
   }, []);
 
-  /**
-   * 選択済みなら同じ Set を返す。effect から呼ぶため、再実行されても状態が動かない
-   * 必要がある（新しい Set を返すと再レンダーが連鎖して止まらなくなる）。
-   */
+  /** 新しい Set を返すと effect の再実行と再レンダーが連鎖するため、選択済みなら prev を返す。 */
   const selectTag = useCallback((id: string) => {
     setSelectedTagIds((prev) => (prev.has(id) ? prev : new Set(prev).add(id)));
   }, []);
@@ -69,8 +66,7 @@ export function QuickIntake({ projects, tags }: QuickIntakeProps) {
   useEffect(() => {
     if (memoFetcher.data?.initialValue === null) {
       setSelectedTagIds(new Set());
-      // Conform のフォームリセットはこの後に走る。ここで採寸すると保存前の本文を測って
-      // 高さを付け直してしまうので、指定を外して CSS に戻す。
+      // Conform のリセットは 1 レンダー後なので、ここで採寸すると保存前の本文を測ってしまう。
       if (textareaRef.current) textareaRef.current.style.height = "";
       textareaRef.current?.focus();
     }

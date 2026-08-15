@@ -23,7 +23,7 @@ type IntakeChipsProps = {
   onProjectChange: (id: string) => void;
   selectedTagIds: Set<string>;
   onToggleTag: (id: string) => void;
-  /** 冪等に選択する。effect から呼ぶので、再実行されても状態が動かないこと。 */
+  /** effect から呼ぶため冪等であること。 */
   onSelectTag: (id: string) => void;
 };
 
