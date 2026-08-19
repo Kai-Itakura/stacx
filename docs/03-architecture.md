@@ -46,12 +46,13 @@ api worker "stacx-api" (Cloudflare Workers / Hono API)
 　↓ Drizzle ORM
 Cloudflare D1 (SQLite)
 　├─ users
+　├─ user_identities
 　├─ sessions
 　├─ projects
 　├─ memos
 　├─ star_logs
-　├─ tech_decisions
-　└─ tags
+　├─ tags
+　└─ memo_tags
 
 別経路:
 Cloudflare Workers ⇄ Google IdP (OIDC)
