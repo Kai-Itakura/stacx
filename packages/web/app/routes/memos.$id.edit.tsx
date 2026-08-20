@@ -1,5 +1,6 @@
 import { parseWithZod } from "@conform-to/zod/v4";
-import { redirect } from "react-router";
+import { Form, redirect } from "react-router";
+import { Button } from "~/components/ui/button";
 import { memoFormSchema } from "~/features/intake/schema";
 import { MemoForm } from "~/features/memos/memo-form";
 import { apiClient } from "~/lib/api.server";
@@ -33,7 +34,16 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 export async function action({ request, params }: Route.ActionArgs) {
   await requireUser(request);
   const client = apiClient(request);
-  const submission = parseWithZod(await request.formData(), { schema: memoFormSchema });
+  const formData = await request.formData();
+
+  // 削除はフォームの検証を通さない副作用。確認は UI 側で行う。
+  if (formData.get("intent") === "delete") {
+    const res = await client.api.memos[":id"].$delete({ param: { id: params.id } });
+    if (!res.ok) throw new Response("削除に失敗しました", { status: 500 });
+    return redirect("/memos");
+  }
+
+  const submission = parseWithZod(formData, { schema: memoFormSchema });
   if (submission.status !== "success") return submission.reply();
 
   const { body, projectId, tagIds } = submission.value;
@@ -52,6 +62,23 @@ export default function EditMemo({ loaderData }: Route.ComponentProps) {
       <h1 className="text-xl font-bold">メモを編集</h1>
       <div className="mt-6">
         <MemoForm memo={memo} projects={projects} tags={tags} />
+      </div>
+
+      <div className="mt-8 border-t pt-6">
+        <Form
+          method="post"
+          onSubmit={(e) => {
+            // star_logs は memo_id の FK が cascade なので、STAR 化した内容も一緒に消える。
+            if (!confirm("このメモを削除しますか？STAR 化した内容も一緒に削除されます。")) {
+              e.preventDefault();
+            }
+          }}
+        >
+          <input type="hidden" name="intent" value="delete" />
+          <Button type="submit" variant="destructive">
+            メモを削除
+          </Button>
+        </Form>
       </div>
     </main>
   );
