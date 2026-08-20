@@ -9,6 +9,13 @@ import type { action } from "~/resources/create-memo";
 import { IntakeChips } from "./intake-chips";
 import { type IntakeProject, type IntakeTag, memoFormSchema } from "./schema";
 
+/** 入力時のヒント（US-03）。後で経歴書に使える形で書くための視点を思い出させる。 */
+const HINTS = [
+  "数値で表せる成果はある？（例: LCP 2.5s → 1.2s）",
+  "なぜその技術を選んだ？",
+  "チームへの貢献はあった？",
+] as const;
+
 type QuickIntakeProps = {
   projects: IntakeProject[];
   tags: IntakeTag[];
@@ -84,6 +91,12 @@ export function QuickIntake({ projects, tags }: QuickIntakeProps) {
       {...getFormProps(form)}
       className="flex flex-col gap-2"
     >
+      <ul className="text-muted-foreground list-inside list-disc space-y-0.5 px-1 text-xs">
+        {HINTS.map((h) => (
+          <li key={h}>{h}</li>
+        ))}
+      </ul>
+
       <IntakeChips
         projects={projects}
         tags={tags}
