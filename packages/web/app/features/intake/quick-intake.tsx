@@ -9,10 +9,7 @@ import type { action } from "~/resources/create-memo";
 import { IntakeChips } from "./intake-chips";
 import { type IntakeProject, type IntakeTag, memoFormSchema } from "./schema";
 
-/**
- * 入力時のヒント（US-03）。後で経歴書に使える形で書くための視点を思い出させる。
- * 「なぜその技術を選んだ？」は US-06（技術選定の理由）を促す唯一の導線でもある。
- */
+/** 入力時のヒント（US-03）。後で経歴書に使える形で書くための視点を思い出させる。 */
 const HINTS = [
   "数値で表せる成果はある？（例: LCP 2.5s → 1.2s）",
   "なぜその技術を選んだ？",
