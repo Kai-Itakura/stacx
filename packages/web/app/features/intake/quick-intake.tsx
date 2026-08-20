@@ -9,6 +9,16 @@ import type { action } from "~/resources/create-memo";
 import { IntakeChips } from "./intake-chips";
 import { type IntakeProject, type IntakeTag, memoFormSchema } from "./schema";
 
+/**
+ * 入力時のヒント（US-03）。後で経歴書に使える形で書くための視点を思い出させる。
+ * 「なぜその技術を選んだ？」は US-06（技術選定の理由）を促す唯一の導線でもある。
+ */
+const HINTS = [
+  "数値で表せる成果はある？（例: LCP 2.5s → 1.2s）",
+  "なぜその技術を選んだ？",
+  "チームへの貢献はあった？",
+] as const;
+
 type QuickIntakeProps = {
   projects: IntakeProject[];
   tags: IntakeTag[];
@@ -23,6 +33,8 @@ export function QuickIntake({ projects, tags }: QuickIntakeProps) {
   const defaultProjectId = (projects.find((p) => p.endDate === null) ?? projects[0]).id;
   const [projectId, setProjectId] = useState(defaultProjectId);
   const [selectedTagIds, setSelectedTagIds] = useState<Set<string>>(() => new Set());
+  // 下部固定で行数を増やせないため 1 件ずつ出し、保存のたびに次の観点へ送る。
+  const [hintIndex, setHintIndex] = useState(0);
 
   const [form, fields] = useForm({
     lastResult: memoFetcher.data,
@@ -67,6 +79,7 @@ export function QuickIntake({ projects, tags }: QuickIntakeProps) {
   useEffect(() => {
     if (memoFetcher.data?.initialValue === null) {
       setSelectedTagIds(new Set());
+      setHintIndex((i) => (i + 1) % HINTS.length);
       // Conform のリセットは 1 レンダー後なので、ここで採寸すると保存前の本文を測ってしまう。
       if (textareaRef.current) textareaRef.current.style.height = "";
       textareaRef.current?.focus();
@@ -84,6 +97,8 @@ export function QuickIntake({ projects, tags }: QuickIntakeProps) {
       {...getFormProps(form)}
       className="flex flex-col gap-2"
     >
+      <p className="text-muted-foreground px-1 text-xs">{HINTS[hintIndex]}</p>
+
       <IntakeChips
         projects={projects}
         tags={tags}
