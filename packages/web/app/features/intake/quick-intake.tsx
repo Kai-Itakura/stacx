@@ -33,8 +33,6 @@ export function QuickIntake({ projects, tags }: QuickIntakeProps) {
   const defaultProjectId = (projects.find((p) => p.endDate === null) ?? projects[0]).id;
   const [projectId, setProjectId] = useState(defaultProjectId);
   const [selectedTagIds, setSelectedTagIds] = useState<Set<string>>(() => new Set());
-  // 下部固定で行数を増やせないため 1 件ずつ出し、保存のたびに次の観点へ送る。
-  const [hintIndex, setHintIndex] = useState(0);
 
   const [form, fields] = useForm({
     lastResult: memoFetcher.data,
@@ -79,7 +77,6 @@ export function QuickIntake({ projects, tags }: QuickIntakeProps) {
   useEffect(() => {
     if (memoFetcher.data?.initialValue === null) {
       setSelectedTagIds(new Set());
-      setHintIndex((i) => (i + 1) % HINTS.length);
       // Conform のリセットは 1 レンダー後なので、ここで採寸すると保存前の本文を測ってしまう。
       if (textareaRef.current) textareaRef.current.style.height = "";
       textareaRef.current?.focus();
@@ -97,7 +94,11 @@ export function QuickIntake({ projects, tags }: QuickIntakeProps) {
       {...getFormProps(form)}
       className="flex flex-col gap-2"
     >
-      <p className="text-muted-foreground px-1 text-xs">{HINTS[hintIndex]}</p>
+      <ul className="text-muted-foreground list-inside list-disc space-y-0.5 px-1 text-xs">
+        {HINTS.map((h) => (
+          <li key={h}>{h}</li>
+        ))}
+      </ul>
 
       <IntakeChips
         projects={projects}
