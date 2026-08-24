@@ -1,11 +1,17 @@
-import { parseWithZod } from "@conform-to/zod/v4";
 import { Form, redirect } from "react-router";
+import { z } from "zod";
 import { Button } from "~/components/ui/button";
 import { memoFormSchema } from "~/features/intake/schema";
 import { MemoForm } from "~/features/memos/memo-form";
+import { handleAction, unexpectedErrorSubmissionReply } from "~/lib/action-dispatcher.server";
 import { apiClient } from "~/lib/api.server";
 import { requireUser } from "~/lib/auth.server";
 import type { Route } from "./+types/memos.$id.edit";
+
+const actionSchema = z.discriminatedUnion("intent", [
+  memoFormSchema.extend({ intent: z.literal("edit") }),
+  z.object({ intent: z.literal("delete") }),
+]);
 
 export function meta(_: Route.MetaArgs) {
   return [{ title: "メモを編集 | StacX" }];
@@ -34,25 +40,46 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 export async function action({ request, params }: Route.ActionArgs) {
   await requireUser(request);
   const client = apiClient(request);
-  const formData = await request.formData();
 
-  // 削除はフォームの検証を通さない副作用。確認は UI 側で行う。
-  if (formData.get("intent") === "delete") {
-    const res = await client.api.memos[":id"].$delete({ param: { id: params.id } });
-    if (!res.ok) throw new Response("削除に失敗しました", { status: 500 });
-    return redirect("/memos");
-  }
+  return handleAction(request, actionSchema, {
+    edit: async ({ projectId, body, tagIds }, submissionReply) => {
+      try {
+        const res = await client.api.memos[":id"].$put({
+          param: {
+            id: params.id,
+          },
+          json: {
+            projectId,
+            body,
+            tagIds,
+          },
+        });
 
-  const submission = parseWithZod(formData, { schema: memoFormSchema });
-  if (submission.status !== "success") return submission.reply();
+        if (!res.ok) {
+          return submissionReply({ formErrors: ["メモの更新に失敗しました。"] });
+        }
 
-  const { body, projectId, tagIds } = submission.value;
-  const res = await client.api.memos[":id"].$put({
-    param: { id: params.id },
-    json: { body, projectId, tagIds: tagIds ?? [] },
+        return redirect("/memos");
+      } catch (error) {
+        console.error("⚡️", error);
+        return unexpectedErrorSubmissionReply(submissionReply);
+      }
+    },
+    delete: async (_, submissionReply) => {
+      try {
+        const res = await client.api.memos[":id"].$delete({ param: { id: params.id } });
+
+        if (!res.ok) {
+          return submissionReply({ formErrors: ["削除に失敗しました。"] });
+        }
+
+        return redirect("/memos");
+      } catch (error) {
+        console.error("⚡️", error);
+        return unexpectedErrorSubmissionReply(submissionReply);
+      }
+    },
   });
-  if (!res.ok) return submission.reply({ formErrors: ["メモの更新に失敗しました"] });
-  return redirect("/memos");
 }
 
 export default function EditMemo({ loaderData }: Route.ComponentProps) {

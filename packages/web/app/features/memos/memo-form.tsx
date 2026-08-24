@@ -74,6 +74,7 @@ export function MemoForm({ memo, projects, tags }: MemoFormProps) {
         <Button asChild variant="ghost" type="button">
           <Link to="/memos">キャンセル</Link>
         </Button>
+        <input type="hidden" name="intent" value="edit" />
         <Button type="submit" disabled={submitting}>
           保存
         </Button>
