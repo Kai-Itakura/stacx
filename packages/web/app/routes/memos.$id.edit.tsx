@@ -61,7 +61,7 @@ export async function action({ request, params }: Route.ActionArgs) {
 
         return redirect("/memos");
       } catch (error) {
-        console.error("⚡️", error);
+        console.error(error);
         return unexpectedErrorSubmissionReply(submissionReply);
       }
     },
@@ -75,7 +75,7 @@ export async function action({ request, params }: Route.ActionArgs) {
 
         return redirect("/memos");
       } catch (error) {
-        console.error("⚡️", error);
+        console.error(error);
         return unexpectedErrorSubmissionReply(submissionReply);
       }
     },

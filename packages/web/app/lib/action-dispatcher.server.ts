@@ -29,7 +29,12 @@ export async function handleAction<Schema extends ZodUnionWithIntent>(
   }
 
   const payload = submission.value;
+  // 制約の z.ZodType<{ intent: string }> が intent を string に潰すため、payload.intent は
+  // リテラルの union に解決されない。そのままでは handlers の添字に使えないのでキーを広げる。
   const handler = handlers[payload.intent as keyof typeof handlers];
+  // ユニオンの添字なので handler は関数型の union になり、引数型は各 payload の交差
+  // （intent が衝突するため到達不能）になる。never はあらゆる型に代入できるのでこれを満たす。
+  // 実行時の対応は payload.intent で引いたことが担保している。
   return handler(payload as never, submission.reply);
 }
 

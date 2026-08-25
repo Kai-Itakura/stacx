@@ -18,7 +18,7 @@ export async function action({ request }: Route.ActionArgs) {
   if (submission.status !== "success") return submission.reply();
   const { body, projectId, tagIds } = submission.value;
   const res = await client.api.memos.$post({
-    json: { projectId, body, tagIds: tagIds ?? [] },
+    json: { projectId, body, tagIds },
   });
   if (!res.ok) return submission.reply({ formErrors: ["メモの保存に失敗しました"] });
   return submission.reply({ resetForm: true });
