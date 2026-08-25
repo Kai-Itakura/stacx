@@ -44,6 +44,19 @@ function renderEdit(action?: StubAction) {
 
 afterEach(() => vi.unstubAllGlobals());
 
+describe("メモ編集画面の保存", () => {
+  // action は判別子でハンドラを引くため、送られないと保存が丸ごと無反応になる。
+  it("保存すると intent=edit を送る", async () => {
+    const user = userEvent.setup();
+    const { fn, intents } = captureAction();
+    renderEdit(fn);
+
+    await user.click(await screen.findByRole("button", { name: "保存" }));
+
+    await waitFor(() => expect(intents).toEqual(["edit"]));
+  });
+});
+
 describe("メモ編集画面の削除", () => {
   it("確認に同意すると intent=delete を送る", async () => {
     vi.stubGlobal(
