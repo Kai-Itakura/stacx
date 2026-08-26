@@ -23,7 +23,6 @@ export async function handleAction<Schema extends ZodUnionWithIntent>(
 ) {
   const formData = await request.formData();
   const submission = parseWithZod(formData, { schema });
-  console.log("🔥", submission);
   if (submission.status !== "success") {
     return submission.reply();
   }
