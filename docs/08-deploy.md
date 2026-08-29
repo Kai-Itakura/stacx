@@ -16,8 +16,8 @@ StacX を Cloudflare Workers に最小構成でデプロイする手順。まず
 | production | `stacx-api` | `stacx` | `stacx-db` | https://stacx.itakai199969-e42.workers.dev |
 
 **D1・secret・Google のリダイレクト URI はすべて環境ごとに独立**している。
-以下の手順は production を例に書いているが、staging を用意する場合は `--env staging` に読み替えて
-同じことを一通り行う必要がある（→ #65 / #66）。
+両環境とも構築済み。以下の手順は production を例に書いているが、環境を作り直す場合は
+`--env staging` に読み替えて同じことを一通り行う。
 
 ---
 
