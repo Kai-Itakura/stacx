@@ -74,6 +74,20 @@
 
 ---
 
+## 実装の決めごと
+
+コードを読んでも意図が分からない、明示的に下した判断を書く。
+
+### `handleAction` は同一 action 内の intent 分岐にのみ使う
+
+`app/lib/action-dispatcher.server.ts` の `handleAction` は、1 つの action に責務の違う処理が同居している場合（例: 編集と削除が同じ画面から飛ぶ）の分岐に使う。**URL が分かれている resource route を 1 つの intent 付き action にまとめない**。
+
+まとめると戻り値の union がその action の全分岐の和になり、`useFetcher<typeof action>()` の消費側で自分が送った intent の結果に絞れなくなる。実行時には起きない分岐を型のために書く羽目になる。
+
+責務が 1 つの action は `handleAction` を使わず素の `parseWithZod` で書く。
+
+---
+
 ## 関連ドキュメント
 
 - `docs/01-product-vision.md` - プロダクトビジョン・ユーザーストーリー

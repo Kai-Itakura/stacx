@@ -16,6 +16,12 @@ export type ActionHandlers<Payload extends WithIntent> = {
   ) => Promise<ActionResult>;
 };
 
+/**
+ * 1 つの action に責務の違う処理が同居する場合に、intent でハンドラを引く。
+ *
+ * URL が分かれている resource route はまとめない。戻り値の union がその action の
+ * 全分岐の和になり、`useFetcher<typeof action>()` の消費側で絞れなくなるため。
+ */
 export async function handleAction<Schema extends ZodUnionWithIntent>(
   request: Request,
   schema: Schema,
