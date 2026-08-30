@@ -21,10 +21,12 @@ type ProjectFormProps = {
   /** 編集時の初期値。未指定なら新規作成。 */
   project?: ProjectSummary;
   submitLabel: string;
+  /** action が intent で分岐する画面で送る判別子。 */
+  intent?: string;
 };
 
 /** プロジェクトの作成/編集で共用するフォーム（Conform + zod）。 */
-export function ProjectForm({ project, submitLabel }: ProjectFormProps) {
+export function ProjectForm({ project, submitLabel, intent }: ProjectFormProps) {
   const lastResult = useActionData<SubmissionResult | undefined>();
   const navigation = useNavigation();
   const [techStack, setTechStack] = useState<string[]>(project?.techStack ?? []);
@@ -64,6 +66,8 @@ export function ProjectForm({ project, submitLabel }: ProjectFormProps) {
       {...getFormProps(form)}
       className="flex flex-col gap-4"
     >
+      {intent && <input type="hidden" name="intent" value={intent} />}
+
       <Field htmlFor={fields.name.id} label="プロジェクト名" errors={fields.name.errors}>
         <Input {...getInputProps(fields.name, { type: "text" })} autoFocus />
       </Field>

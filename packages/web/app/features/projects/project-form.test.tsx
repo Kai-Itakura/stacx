@@ -21,11 +21,13 @@ function captureAction() {
 
 type StubAction = Parameters<typeof createRoutesStub>[0][number]["action"];
 
-function renderForm(props: { project?: ProjectSummary; action?: StubAction }) {
+function renderForm(props: { project?: ProjectSummary; action?: StubAction; intent?: string }) {
   const Stub = createRoutesStub([
     {
       path: "/projects/edit",
-      Component: () => <ProjectForm project={props.project} submitLabel="保存" />,
+      Component: () => (
+        <ProjectForm project={props.project} submitLabel="保存" intent={props.intent} />
+      ),
       action: props.action ?? (() => ({ ok: true })),
     },
     { path: "/projects", Component: () => <div>一覧</div> },
@@ -34,6 +36,43 @@ function renderForm(props: { project?: ProjectSummary; action?: StubAction }) {
 }
 
 describe("ProjectForm", () => {
+  // action は判別子でハンドラを引くため、送られないと保存が丸ごと無反応になる。
+  it("intent を渡すと送信に含める", async () => {
+    const user = userEvent.setup();
+    const intents: (string | null)[] = [];
+    renderForm({
+      intent: "edit",
+      action: async ({ request }: { request: Request }) => {
+        intents.push((await request.formData()).get("intent") as string | null);
+        return null;
+      },
+    });
+
+    await user.type(screen.getByLabelText("プロジェクト名"), "案件A");
+    await user.type(screen.getByLabelText("開始日"), "2024-01-01");
+    await user.click(screen.getByRole("button", { name: "保存" }));
+
+    await waitFor(() => expect(intents).toEqual(["edit"]));
+  });
+
+  it("intent を渡さなければ送信に含めない", async () => {
+    const user = userEvent.setup();
+    const keys: string[][] = [];
+    renderForm({
+      action: async ({ request }: { request: Request }) => {
+        keys.push([...(await request.formData()).keys()]);
+        return null;
+      },
+    });
+
+    await user.type(screen.getByLabelText("プロジェクト名"), "案件A");
+    await user.type(screen.getByLabelText("開始日"), "2024-01-01");
+    await user.click(screen.getByRole("button", { name: "保存" }));
+
+    await waitFor(() => expect(keys).toHaveLength(1));
+    expect(keys[0]).not.toContain("intent");
+  });
+
   it("必須項目が揃えば payload を送信する", async () => {
     const user = userEvent.setup();
     const { fn, payloads } = captureAction();
