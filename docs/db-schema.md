@@ -10,8 +10,10 @@ erDiagram
   users ||--o{ projects : "owns"
   users ||--o{ tags : "owns"
   users ||--o{ memos : "owns"
+  users ||--o{ star_logs : "owns"
   projects ||--o{ memos : "contains"
   memos ||--o{ memo_tags : "tagged by"
+  memos ||--o| star_logs : "elaborated as"
   tags ||--o{ memo_tags : "applied to"
 
   users {
@@ -69,8 +71,20 @@ erDiagram
     text id PK
     text user_id FK "→ users.id (cascade)"
     text project_id FK "→ projects.id (cascade)"
-    text title
     text body
+    integer created_at
+    integer updated_at
+  }
+
+  star_logs {
+    text id PK
+    text user_id FK "→ users.id (cascade)"
+    text memo_id FK "→ memos.id (cascade), UQ"
+    text situation "null 可"
+    text task "null 可"
+    text action "null 可"
+    text result "null 可"
+    text status "draft | complete, default draft"
     integer created_at
     integer updated_at
   }
@@ -88,7 +102,8 @@ erDiagram
 - **`projects.tech_stack` は JSON 配列**。絞り込み軸にしないため正規化しない（grill 決定）。表示専用。
 - **`tags` は第一級エンティティ**で `(user_id, name)` 一意。Memo とは `memo_tags` で多対多。タイムラインの絞り込み軸。
 - **`memos` は Project とのコンポジション**。生成時に 1 つの Project へ固定的に属し移動しない。`project_id` は `ON DELETE CASCADE` で、Project 削除時に Memo も連鎖削除される（[ADR 0005](./adr/0005-project-deletion-cascades-memos.md)）。
+- **`star_logs` は 1 Memo : 1 STAR**（`memo_id` に一意制約）。S/T/A/R は下書きを許すため全カラム任意で、「1 項目以上」はリクエスト検証側で担保する。`status` が `complete` のものだけがレジュメ生成の対象。
 - **`memo_tags` の両 FK も cascade**。Memo 削除・Tag 削除のどちらでも中間行が掃除される。
-- **削除の連鎖の頂点は `users`**。アカウント削除で配下（identities / sessions / projects / tags / memos / memo_tags）がすべて消える。
+- **削除の連鎖の頂点は `users`**。アカウント削除で配下（identities / sessions / projects / tags / memos / star_logs / memo_tags）がすべて消える。
 
 > 注意: SQLite の `ON DELETE CASCADE` は FK 強制が有効な接続でのみ働く。D1 ランタイムでの実挙動は統合テストで検証する。

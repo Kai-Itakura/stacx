@@ -33,8 +33,12 @@
     # 型チェック
     pnpm typecheck    # = pnpm -r typecheck
 
-    # Lint
-    pnpm lint         # = pnpm -r lint
+    # テスト
+    pnpm test         # = pnpm -r test
+
+    # Lint / format（ルートの Biome を全パッケージへ一括で当てる）
+    pnpm lint         # = biome lint .      検査のみ
+    pnpm check        # = biome check --write .   lint + format + import 整列を修正
 
     # ビルド
     pnpm build        # = pnpm -r build
@@ -233,9 +237,6 @@ CD の staging ジョブと production ジョブは**独立**していて、`nee
 D1 のマイグレーションは**不可逆**（ロールバックできない）。破壊的な SQL を本番で初めて実行することに
 なるため、`stg` を飛ばさないことが唯一の防波堤になっている。
 
-現状これを止めているのは**この運用の約束のみで、仕組みでは担保されていない**。
-ブランチ保護や承認ゲートによる担保は #67 で検討中。
-
 ### 仕組みでの担保
 
 `main` への PR は `stg` からのみ許可される（`.github/workflows/restrict-pr-source.yml`）。
@@ -276,7 +277,7 @@ Conventional Commits を採用:
 
 ## ローカル開発の同一オリジン化（Vite dev proxy）
 
-web と api は別ポートで起動するが、ブラウザから見て同一オリジンになるよう Vite proxy で `/api/*` を api ワーカーに転送する。これにより本番 (path 分割同一オリジン、ADR 0001) と挙動が一致し、CORS / cross-origin Cookie の設定が不要になる。
+web と api は別ポートで起動するが、ブラウザから見て同一オリジンになるよう Vite proxy で `/api/*` を api ワーカーに転送する。これにより本番（web worker が `/api/*` を Service Binding で api worker へ中継する同一オリジン構成、ADR 0006）と挙動が一致し、CORS / cross-origin Cookie の設定が不要になる。
 
     // packages/web/vite.config.ts
     export default defineConfig({
@@ -302,5 +303,6 @@ web からの API 呼び出しは常に相対パス `/api/...` を使う。`VITE
 - wrangler dev が `localhost:8787` で起動しているか
 
 ### Hono RPC の型が反映されない
-- API 側で `app.routes` を export しているか
-- フロント側で型インポートのパスが合っているか
+- API 側で `.route()` を繋いだ結果から `AppType` を export しているか（`packages/api/src/index.ts`）。
+  `app` そのものを型に使うとルートの型が乗らない
+- `pnpm --filter @stacx/web typecheck` を流したか（`react-router typegen` が走る）

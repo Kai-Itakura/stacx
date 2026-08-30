@@ -83,3 +83,6 @@
 - `docs/05-auth.md` - OIDC 認証設計
 - `docs/06-development.md` - 開発フロー・コマンド一覧
 - `docs/07-testing.md` - テスト方針（TDD / Vitest + workers-pool）
+- `docs/08-deploy.md` - 初期構築・手動デプロイ手順
+- `docs/db-schema.md` - 全テーブルの ER 図と設計意図
+- `docs/adr/` - 個別の設計判断の記録（採用理由・不採用理由・結果）
