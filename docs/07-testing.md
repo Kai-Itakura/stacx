@@ -111,11 +111,12 @@ pnpm --filter @stacx/api test:coverage   # カバレッジ計測 + しきい値�
 
 ## CI（GitHub Actions）
 
-`.github/workflows/ci.yml` が **PR と main への push** で起動し、以下を実行する。ローカルで流し忘れても CI が拾う。
+`.github/workflows/ci.yml` が **`main` / `stg` への PR と push** で起動し、以下を実行する。ローカルで流し忘れても CI が拾う。
 
 1. `biome ci .`（lint + format 検証、書き込みなし）
 2. `pnpm -r typecheck`（worker + 設定ファイル）
-3. `pnpm --filter @stacx/api test:coverage`（テスト + カバレッジしきい値）
+3. `pnpm --filter @stacx/api test:coverage`（api のテスト + カバレッジしきい値）
+4. `pnpm --filter @stacx/web test`（web のテスト。しきい値は設けていない）
 
 いずれかが失敗すると PR がマージできない（ブランチ保護を設定する場合）。
 

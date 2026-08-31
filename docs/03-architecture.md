@@ -10,26 +10,39 @@ stacx/
 ├── packages/
 │   ├── web/             # React Router v7 フロントエンド
 │   │   ├── app/
-│   │   │   ├── routes/
-│   │   │   ├── components/
-│   │   │   ├── lib/
+│   │   │   ├── routes.ts        # ルート定義（routes/ と resources/ を登録）
+│   │   │   ├── routes/          # 画面ルート（loader + action + コンポーネント）
+│   │   │   ├── resources/       # UI を持たない action 専用ルート（fetcher の送信先）
+│   │   │   ├── features/        # 機能単位のコンポーネント・スキーマ（intake / memos / projects / tags）
+│   │   │   ├── components/      # 機能横断の UI（ui/ は shadcn/ui 生成物）
+│   │   │   ├── lib/             # API クライアント・認証・純粋な整形関数
 │   │   │   └── root.tsx
+│   │   ├── workers/app.ts       # Workers エントリ（/api/* を Service Binding へ中継）
 │   │   ├── public/
+│   │   ├── wrangler.jsonc
 │   │   └── package.json
 │   └── api/             # Hono on Workers バックエンド
 │       ├── src/
-│       │   ├── routes/
+│       │   ├── index.ts         # Hono アプリ組み立て・AppType export
+│       │   ├── auth/            # 認証（providers/ routes/ session / cookie / account）
+│       │   ├── memo/            # ドメインごとに index.ts / <domain>.ts / request-schema.ts
+│       │   ├── project/
+│       │   ├── star/
+│       │   ├── tag/
 │       │   ├── db/
 │       │   │   ├── schema.ts
 │       │   │   └── migrations/
-│       │   ├── auth/
-│       │   ├── middleware/
-│       │   └── index.ts
+│       │   ├── error.ts         # onError（未捕捉例外を JSON に揃える）
+│       │   └── validation.ts
+│       ├── test/                # 横断・E2E テストとテスト用インフラ
 │       ├── wrangler.toml
 │       └── package.json
 ├── pnpm-workspace.yaml
 └── package.json
 ```
+
+api は URL ではなく**ドメイン単位**でディレクトリを切る（`routes/` や `middleware/` は置かない）。
+各ドメインは `index.ts`（Hono サブアプリ）/ `<domain>.ts`（ロジック）/ `request-schema.ts`（Zod）の 3 点構成。
 
 ---
 

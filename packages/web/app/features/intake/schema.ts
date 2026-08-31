@@ -7,7 +7,9 @@ export const memoFormSchema = z.object({
   projectId: z
     .string({ error: "プロジェクトを選択してください" })
     .min(1, "プロジェクトを選択してください"),
-  tagIds: z.array(z.string()).optional(),
+  // 未選択だと hidden input が 1 つも出ず tagIds が届かない。API は absent を
+  // 「タグを変更しない」と解釈するため、全解除を伝えられるよう空配列に倒す。
+  tagIds: z.array(z.string()).default([]),
 });
 
 /** 空状態のプロジェクト簡易作成フォームの検証スキーマ。 */

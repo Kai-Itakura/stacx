@@ -74,6 +74,20 @@
 
 ---
 
+## 実装の決めごと
+
+コードを読んでも意図が分からない、明示的に下した判断を書く。
+
+### `handleAction` は同一 action 内の intent 分岐にのみ使う
+
+`app/lib/action-dispatcher.server.ts` の `handleAction` は、1 つの action に責務の違う処理が同居している場合（例: 編集と削除が同じ画面から飛ぶ）の分岐に使う。**URL が分かれている resource route を 1 つの intent 付き action にまとめない**。
+
+まとめると戻り値の union がその action の全分岐の和になり、`useFetcher<typeof action>()` の消費側で自分が送った intent の結果に絞れなくなる。実行時には起きない分岐を型のために書く羽目になる。
+
+責務が 1 つの action は `handleAction` を使わず素の `parseWithZod` で書く。
+
+---
+
 ## 関連ドキュメント
 
 - `docs/01-product-vision.md` - プロダクトビジョン・ユーザーストーリー
@@ -83,3 +97,6 @@
 - `docs/05-auth.md` - OIDC 認証設計
 - `docs/06-development.md` - 開発フロー・コマンド一覧
 - `docs/07-testing.md` - テスト方針（TDD / Vitest + workers-pool）
+- `docs/08-deploy.md` - 初期構築・手動デプロイ手順
+- `docs/db-schema.md` - 全テーブルの ER 図と設計意図
+- `docs/adr/` - 個別の設計判断の記録（採用理由・不採用理由・結果）
