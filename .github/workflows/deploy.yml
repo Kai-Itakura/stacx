@@ -1,6 +1,6 @@
 name: Deploy
 
-# CI（Biome / typecheck / test）が main または stg で成功したときに発火する。
+# CI（Biome / typecheck / test）が main または stg への push で成功したときに発火する。
 # - stg ブランチ → staging のみデプロイ
 # - main ブランチ → production のみデプロイ
 # 2 つのジョブは独立しており、staging の成否が production をブロックしない。
@@ -21,6 +21,7 @@ jobs:
   staging:
     if: |
       github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push' &&
       github.event.workflow_run.head_branch == 'stg'
     runs-on: ubuntu-latest
     environment: staging
@@ -78,6 +79,7 @@ jobs:
   production:
     if: |
       github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push' &&
       github.event.workflow_run.head_branch == 'main'
     runs-on: ubuntu-latest
     # GitHub の Settings → Environments で production に承認者を設定すれば、
