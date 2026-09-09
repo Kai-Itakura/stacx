@@ -3,19 +3,19 @@
 ## 初期セットアップ
 
     # リポジトリクローン後
-    pnpm install
+    pnpm install            # prepare で lefthook（pre-commit の Biome）も有効化される
 
     # Cloudflare 認証
-    npx wrangler login
+    pnpm dlx wrangler login
 
-    # D1 データベース作成
-    cd packages/api
-    npx wrangler d1 create stacx-db
-    # 表示された database_id を wrangler.toml に記録
+    # ローカル D1 にマイグレーション適用（.wrangler/state の SQLite）
+    pnpm --filter @stacx/api db:migrate:local
 
-    # マイグレーション生成・適用
-    pnpm drizzle-kit generate
-    npx wrangler d1 migrations apply stacx-db --local
+    # api の secret（Git 管理外）
+    cp packages/api/.dev.vars.example packages/api/.dev.vars
+    # GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET / APP_BASE_URL=http://localhost:5173 を記入
+
+リモート D1 の作成や secret 登録など環境の構築は `docs/08-deploy.md`。
 
 ---
 
@@ -45,35 +45,11 @@
 
 ---
 
-## DB マイグレーション
-
-    # スキーマ変更後、マイグレーションファイル生成
-    pnpm --filter @stacx/api db:generate
-
-    # ローカル D1 に適用
-    pnpm --filter @stacx/api db:migrate:local
-
-    # staging / production の D1 に適用（対象を取り違えないよう環境を名前に含めている）
-    pnpm --filter @stacx/api db:migrate:staging
-    pnpm --filter @stacx/api db:migrate:production
-
-    # DB を直接クエリ（デバッグ用）
-    cd packages/api && npx wrangler d1 execute stacx-db --local --command="SELECT * FROM users"
-
----
-
 ## デプロイ
 
 api / web とも **Cloudflare Workers**（web も Pages ではなく Workers。`packages/web/workers/app.ts` がエントリ）。
 
-### 環境
-
-| 環境 | api worker | web worker | D1 | URL |
-|---|---|---|---|---|
-| staging | `stacx-api-staging` | `stacx-staging` | `stacx-db-staging` | https://stacx-staging.itakai199969-e42.workers.dev |
-| production | `stacx-api` | `stacx` | `stacx-db` | https://stacx.itakai199969-e42.workers.dev |
-
-D1 は**環境ごとに別データベース**。ここを共有すると staging の意味が消える。
+環境は staging / production の 2 つ。worker 名・D1・URL の一覧は `docs/08-deploy.md`「環境は 2 つ」。
 
 ### 自動デプロイ（既定）
 
@@ -111,51 +87,31 @@ Settings → Environments で承認者を設定すれば、ワークフローを
 
 ### 手動デプロイ
 
-    # staging
-    pnpm --filter @stacx/api run deploy:staging
-    pnpm --filter @stacx/web run deploy:staging
-
-    # production
-    pnpm --filter @stacx/api run deploy:production
-    pnpm --filter @stacx/web run deploy
-
-`pnpm --filter <pkg> deploy` は pnpm 組み込みの `deploy` コマンドとして解釈されるため、
-スクリプトを呼ぶときは **`run` を挟む**こと。
-
-#### web の環境はビルド時に決まる（要注意）
-
-api は `wrangler deploy --env staging` で環境が切り替わるが、**web は切り替わらない**。
-`react-router build`（`@cloudflare/vite-plugin`）が `wrangler.jsonc` を解決して
-`build/server/wrangler.json` を生成し、`wrangler deploy` はそちらを使うため、
-デプロイ時に `--env` を付けても **top-level（＝本番）の設定のまま出てしまう**。
-
-環境はビルド時に `CLOUDFLARE_ENV` で指定する。
-
-    CLOUDFLARE_ENV=staging pnpm --filter @stacx/web run build
-
-`deploy:staging` スクリプトはこれを含んでいる。手でビルドしてから deploy する場合も忘れないこと。
-忘れると `stacx-staging` ではなく **本番の `stacx` を上書きデプロイする**ので影響が大きい。
-確認は生成物を見るのが確実。
-
-    node -e "const c=require('./packages/web/build/server/wrangler.json'); console.log(c.name, JSON.stringify(c.services))"
-    # staging なら → stacx-staging [{"binding":"API","service":"stacx-api-staging"}]
+手順は `docs/08-deploy.md`「api → web の順で本番デプロイ」。**web の環境はビルド時に `CLOUDFLARE_ENV` で決まる**点に注意（同ページに詳細）。
 
 ---
 
 ## D1 マイグレーション
 
-CD がデプロイ先の環境に対して自動適用する（`stg` → staging / `main` → production）。
+    # スキーマ（packages/api/src/db/schema.ts）変更後、マイグレーションファイル生成
+    pnpm --filter @stacx/api db:generate
+
+    # ローカル D1 に適用（.wrangler/state の SQLite）
+    pnpm --filter @stacx/api db:migrate:local
+
+    # ローカル D1 を直接クエリ（デバッグ用）
+    pnpm --filter @stacx/api exec wrangler d1 execute stacx-db --local --command="SELECT * FROM users"
+
+リモートは CD がデプロイ先の環境に対して自動適用する（`stg` → staging / `main` → production）。
 **ワークフロー側に「staging を先に通す」強制は無い**ため、`stg` → `main` の順で流すこと自体が
 リハーサルを保証している。手で流す場合も同じ順序で行う。
 
     # 未適用の一覧を確認
     pnpm --filter @stacx/api exec wrangler d1 migrations list stacx-db-staging --remote --env staging
 
-    # staging へ適用してから production
+    # staging へ適用してから production（対象を取り違えないよう環境を名前に含めている）
     pnpm --filter @stacx/api run db:migrate:staging
     pnpm --filter @stacx/api run db:migrate:production
-
-ローカルは `pnpm --filter @stacx/api run db:migrate:local`（`.wrangler/state` の SQLite）。
 
 なお **D1 の中身はロールバックできない**。破壊的な変更（カラム削除・型変更など）を含む場合は、
 staging で通ったことをもって安全とみなさず、本番データのバックアップ方針を先に決めること。
@@ -170,32 +126,16 @@ staging / production のどちらからも参照できない。
     cd packages/api
 
     # staging
-    npx wrangler secret put GOOGLE_CLIENT_ID --env staging
-    npx wrangler secret put GOOGLE_CLIENT_SECRET --env staging
+    pnpm dlx wrangler secret put GOOGLE_CLIENT_ID --env staging
+    pnpm dlx wrangler secret put GOOGLE_CLIENT_SECRET --env staging
 
     # production
-    npx wrangler secret put GOOGLE_CLIENT_ID --env production
-    npx wrangler secret put GOOGLE_CLIENT_SECRET --env production
+    pnpm dlx wrangler secret put GOOGLE_CLIENT_ID --env production
+    pnpm dlx wrangler secret put GOOGLE_CLIENT_SECRET --env production
 
 ローカルは `packages/api/.dev.vars` に記述（Git 管理外）。
 
-### Google OIDC のリダイレクト URI
-
-redirect_uri は `${APP_BASE_URL}/api/auth/callback/google` として組み立てられる
-（`packages/api/src/auth/providers/google.ts`）。`APP_BASE_URL` は環境ごとに違うため、
-**Google Cloud Console の「承認済みのリダイレクト URI」に環境の数だけ登録が必要**。
-
-| 環境 | 登録する URI |
-|---|---|
-| ローカル | `http://localhost:5173/api/auth/callback/google` |
-| staging | `https://stacx-staging.itakai199969-e42.workers.dev/api/auth/callback/google` |
-| production | `https://stacx.itakai199969-e42.workers.dev/api/auth/callback/google` |
-
-登録を忘れると、その環境だけログインが `redirect_uri_mismatch` で失敗する。
-デプロイ自体は成功するので気づきにくい。
-
-なお `APP_BASE_URL` はセッション Cookie 名の切り替えにも使われる
-（http なら `stacx_session` / https なら `__Host-stacx_session`。`auth/cookie.ts`）。
+Google Cloud Console へのリダイレクト URI 登録は環境ごとに必要。一覧は `docs/08-deploy.md`「Google コンソールにリダイレクト URI を登録」。
 
 ---
 
