@@ -3,7 +3,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useState } from "react";
 import { createRoutesStub } from "react-router";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { TagList, type TagListItem } from "./tag-list";
 
 const withMemos: TagListItem = {
@@ -17,15 +17,26 @@ const withMemos: TagListItem = {
 
 const unused: TagListItem = { id: "t2", name: "学び", memos: [] };
 
-function renderList(tags: TagListItem[], error?: string | null) {
+type StubAction = Parameters<typeof createRoutesStub>[0][number]["action"];
+
+function renderList(tags: TagListItem[], action?: StubAction) {
   const Stub = createRoutesStub([
     {
       path: "/tags",
-      Component: () => <TagList tags={tags} error={error} />,
-      action: () => ({ error: null }),
+      Component: () => <TagList tags={tags} />,
+      action: action ?? (() => null),
     },
   ]);
   return render(<Stub initialEntries={["/tags"]} />);
+}
+
+/** action が返す失敗結果。Conform は initialValue から送信元のフォームを引く。 */
+function failure(intent: string, id: string, message: string) {
+  return () => ({
+    status: "error",
+    initialValue: { intent, id },
+    error: { "": [message] },
+  });
 }
 
 describe("TagList", () => {
@@ -63,9 +74,44 @@ describe("TagList", () => {
     expect(screen.getByRole("button", { name: "保存" })).toBeInTheDocument();
   });
 
-  it("action のエラーを表示する", async () => {
-    renderList([withMemos], "同名のタグが既にあります");
+  it("空の名前では送信せずエラーを出す", async () => {
+    const user = userEvent.setup();
+    const action = vi.fn(() => null);
+    renderList([withMemos], action);
+
+    await user.click(await screen.findByRole("button", { name: "名前を変更" }));
+    await user.clear(screen.getByLabelText("トラブル の新しい名前"));
+    await user.click(screen.getByRole("button", { name: "保存" }));
+
+    expect(await screen.findByText("タグ名を入力してください")).toBeInTheDocument();
+    expect(action).not.toHaveBeenCalled();
+  });
+
+  it("リネームの失敗はリネームフォーム上に出す", async () => {
+    const user = userEvent.setup();
+    renderList([withMemos], failure("rename", "t1", "同名のタグが既にあります"));
+
+    await user.click(await screen.findByRole("button", { name: "名前を変更" }));
+    await user.click(screen.getByRole("button", { name: "保存" }));
+
     expect(await screen.findByText("同名のタグが既にあります")).toBeInTheDocument();
+  });
+
+  // action の結果は画面で 1 つしか無いため、行を絞らないと無関係な行にエラーが出る。
+  it("失敗した行以外にはエラーを出さない", async () => {
+    const user = userEvent.setup();
+    vi.stubGlobal(
+      "confirm",
+      vi.fn(() => true),
+    );
+    renderList([withMemos, unused], failure("delete", "t1", "タグの削除に失敗しました"));
+
+    const [firstDelete] = await screen.findAllByRole("button", { name: "削除" });
+    await user.click(firstDelete);
+
+    expect(await screen.findByText("タグの削除に失敗しました")).toBeInTheDocument();
+    expect(screen.getAllByText("タグの削除に失敗しました")).toHaveLength(1);
+    vi.unstubAllGlobals();
   });
 
   it("リネーム成功（name が変わる）と編集フォームが閉じる", async () => {
