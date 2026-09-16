@@ -63,7 +63,7 @@ export function StarEditor({ memo, values, status }: StarEditorProps) {
 
   return (
     <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-      <section className="border-border h-fit rounded-lg border p-4">
+      <section className="glass h-fit p-4">
         <div className="flex items-center justify-between gap-2">
           <span className="text-muted-foreground text-xs">メモ</span>
           <ProjectBadge id={memo.projectId} name={memo.projectName} active={memo.projectActive} />

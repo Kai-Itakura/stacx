@@ -40,7 +40,7 @@ export function MemoList({ memos }: { memos: MemoListItem[] }) {
   return (
     <ul className="flex flex-col gap-3">
       {memos.map((m) => (
-        <li key={m.id} className="border-border rounded-lg border p-4">
+        <li key={m.id} className="glass p-4">
           <div className="flex items-center justify-between gap-2">
             <ProjectBadge id={m.projectId} name={m.projectName} active={m.projectActive} />
             <time className="text-muted-foreground shrink-0 text-xs">

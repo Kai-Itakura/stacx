@@ -109,10 +109,10 @@ export function QuickIntake({ projects, tags }: QuickIntakeProps) {
 
       {/* 枠が二重にならないよう、枠線・リング・エラー表示は外側だけが持つ。 */}
       <div
-        className={`bg-background flex items-end gap-2 rounded-2xl border py-1.5 pr-1.5 pl-3 transition-colors focus-within:ring-3 ${
+        className={`well flex items-end gap-2 rounded-2xl py-1.5 pr-1.5 pl-3 transition-colors focus-within:ring-3 ${
           invalid
             ? "border-destructive focus-within:border-destructive focus-within:ring-destructive/20"
-            : "border-input focus-within:border-ring focus-within:ring-ring/50"
+            : "focus-within:border-ring focus-within:ring-ring/50"
         }`}
       >
         <Textarea
