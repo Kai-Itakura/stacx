@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { useFetcher } from "react-router";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
-import { tagToneOutlineClass, tagToneSelectedClass } from "~/lib/tag-color";
 import type { action } from "~/resources/create-tag";
 import { type IntakeTag, tagFormSchema } from "./schema";
 
@@ -80,8 +79,8 @@ const TagField = ({ tags, formStatus, initialSelected }: TagFieldProps) => {
               aria-pressed={selected}
               className={`inline-flex items-center gap-1 rounded-full border px-3 py-1 text-sm transition-colors ${
                 selected
-                  ? `${tagToneSelectedClass(tag.name)} border-transparent`
-                  : `${tagToneOutlineClass(tag.name)} hover:bg-muted`
+                  ? "bg-secondary text-secondary-foreground border-transparent"
+                  : "text-muted-foreground hover:bg-muted"
               }`}
             >
               {selected ? <Check className="h-3.5 w-3.5" /> : <Tag className="h-3.5 w-3.5" />}

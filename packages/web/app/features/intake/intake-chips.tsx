@@ -10,7 +10,6 @@ import {
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
 import { Input } from "~/components/ui/input";
-import { tagToneSelectedClass } from "~/lib/tag-color";
 import type { action } from "~/resources/create-tag";
 import { type IntakeProject, type IntakeTag, tagFormSchema } from "./schema";
 
@@ -102,7 +101,7 @@ export function IntakeChips({
       {selected.map((tag) => (
         <span
           key={tag.id}
-          className={`${CHIP} border-transparent ${tagToneSelectedClass(tag.name)}`}
+          className={`${CHIP} bg-secondary text-secondary-foreground border-transparent`}
         >
           <Tag className="size-3.5 shrink-0" />
           <span className="max-w-[8rem] truncate">{tag.name}</span>

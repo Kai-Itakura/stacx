@@ -16,11 +16,9 @@ const badgeVariants = cva(
         outline: "border-border text-foreground [a]:hover:bg-muted [a]:hover:text-muted-foreground",
         ghost: "hover:bg-muted hover:text-muted-foreground dark:hover:bg-muted/50",
         link: "text-primary underline-offset-4 hover:underline",
-        success: "bg-success-subtle text-success",
-        warning: "bg-warning-subtle text-warning",
-        info: "bg-info-subtle text-info",
-        // 配色はタグ名から決まるため className（tagToneClass）で受ける。
-        tag: "",
+        // 状態は 2 つだけ。増やすときは色でなく形で区別する（docs/design/README.md）。
+        open: "bg-open-subtle text-open",
+        complete: "bg-complete-subtle text-complete",
       },
     },
     defaultVariants: {
