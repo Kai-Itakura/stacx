@@ -50,10 +50,22 @@ APP_BASE_URL = "https://stacx.itakai199969-e42.workers.dev"
 
 ## 2. Google コンソールにリダイレクト URI を登録
 
-作成した OAuth クライアントに以下を登録する（api のコールバックは `packages/api/src/auth/providers/google.ts` が `${APP_BASE_URL}/api/auth/callback/google` を組み立てる）。
+redirect_uri は `${APP_BASE_URL}/api/auth/callback/google` として組み立てられる
+（`packages/api/src/auth/providers/google.ts`）。`APP_BASE_URL` は環境ごとに違うため、
+**「承認済みのリダイレクト URI」に環境の数だけ登録が必要**。
 
-- **承認済みのリダイレクト URI**: `https://stacx.itakai199969-e42.workers.dev/api/auth/callback/google`
-- **承認済みの JavaScript 生成元**: `https://stacx.itakai199969-e42.workers.dev`
+| 環境 | 登録する URI |
+|---|---|
+| ローカル | `http://localhost:5173/api/auth/callback/google` |
+| staging | `https://stacx-staging.itakai199969-e42.workers.dev/api/auth/callback/google` |
+| production | `https://stacx.itakai199969-e42.workers.dev/api/auth/callback/google` |
+
+「承認済みの JavaScript 生成元」にも各環境のオリジンを登録する。
+
+登録を忘れると、その環境だけログインが `redirect_uri_mismatch` で失敗する。デプロイ自体は成功するので気づきにくい。
+
+なお `APP_BASE_URL` はセッション Cookie 名の切り替えにも使われる
+（http なら `stacx_session` / https なら `__Host-stacx_session`。`auth/cookie.ts`）。
 
 ---
 
@@ -89,8 +101,11 @@ pnpm deploy:production      # = wrangler deploy --env production
 
 # web（stacx）
 cd ../web
-pnpm deploy
+pnpm run deploy
 ```
+
+`pnpm --filter <pkg> deploy` は pnpm 組み込みの `deploy` コマンドとして解釈されるため、
+スクリプトを呼ぶときは **`run` を挟む**。
 
 > 補足: `deploy:production` は `wrangler deploy --env production`。`wrangler.toml` の `[env.production]` で `name = "stacx-api"` を明示しているため、worker 名は `stacx-api` のまま（未指定だと `stacx-api-production` になり web の binding が壊れる）。
 

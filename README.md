@@ -18,7 +18,7 @@
 - **フロントエンド**: React Router v7 + TypeScript + shadcn/ui + Tailwind CSS
 - **バックエンド**: Hono on Cloudflare Workers
 - **データベース**: Cloudflare D1 + Drizzle ORM
-- **認証**: OIDC / OAuth2 (Google, GitHub) + 自前セッション管理
+- **認証**: Google OIDC（Phase 1）+ 自前セッション管理。Phase 2 で IdP を追加
 - **モノレポ**: pnpm workspace
 
 ## クイックスタート
@@ -29,17 +29,11 @@
     # Cloudflare 認証
     pnpm dlx wrangler login
 
-    # D1 データベース作成
-    cd packages/api
-    pnpm dlx wrangler d1 create stacx-db
+    # ローカル D1 にマイグレーション適用
+    pnpm --filter @stacx/api db:migrate:local
 
-    # マイグレーション適用
-    pnpm db:generate
-    pnpm db:migrate:local
-
-    # 開発サーバー起動（全パッケージ並列）
-    cd ../..
-    pnpm -r dev
+    # 開発サーバー起動（web + api を並列）
+    pnpm dev
 
 詳細は `docs/06-development.md` を参照してください。
 
@@ -56,7 +50,7 @@
 
 ## AI エージェント利用
 
-このプロジェクトは AI エージェント（Claude Code, Cursor 等）と協働して開発します。エージェント向けの情報は [`CLAUDE.md`](CLAUDE.md) に集約されています。
+このプロジェクトは AI エージェント（Claude Code, Cursor 等）と協働して開発します。エージェント向けの入口は [`CLAUDE.md`](CLAUDE.md)、ドメイン用語の定義は [`CONTEXT.md`](CONTEXT.md) です。
 
 ## ライセンス
 

@@ -1,68 +1,14 @@
 # CLAUDE.md - StacX
 
-このファイルは AI エージェント（Claude Code, Cursor 等）が StacX プロジェクトの全体像を素早く把握するためのものです。詳細は `docs/` 配下の各ドキュメントを参照してください。
+守るルール・どこを見るか、だけを書く。説明と判断の記録は `docs/` に置く。
 
----
+**StacX**: 業務の学びを「1 分メモ」として蓄積し、職務経歴書として出力する個人向けアプリ。用語（User / Identity / Memo / Tag / 技術スタック）の正典は **`CONTEXT.md`**。
 
-## プロジェクト概要
+pnpm workspace。`packages/web`（React Router v7 + shadcn/ui + Conform）と `packages/api`（Hono on Workers + Drizzle + D1）。web は `/api/*` を Service Binding で api に中継する同一オリジン構成。認証は **Google OIDC のみ**（Phase 1）。
 
-**StacX** は、フルスタックエンジニアが日々の業務での学び・成果・技術的判断を「1 分メモ」として素早く蓄積し、転職活動時に職務経歴書として出力できる個人向けアプリケーションです。
+**Phase 1（MVP）**。画面 1〜3（インテーク `/`、プロジェクト `/projects`、STAR `/memos`）とタグ管理 `/tags` は実装済み、画面 4（レジュメ `/resume`）は未着手。マルチテナントを意識しつつ過剰実装はしない。
 
-### コア価値
-業務中の「あ、これ経歴書に使えるかも」という瞬間を逃さず、後から経歴書として再利用できる形に昇華させる。
-
-### ターゲットユーザー
-- 第一フェーズ: 開発者本人（自社開発企業への転職を目指すフルスタックエンジニア）
-- 第二フェーズ: 同様の課題を持つエンジニア向け SaaS
-
-詳細: `docs/01-product-vision.md`
-
----
-
-## 技術スタック
-
-### フロントエンド
-- **React Router v7**（フレームワークモード）
-- **TypeScript**
-- **shadcn/ui** + **Tailwind CSS**
-
-### バックエンド
-- **Hono** on **Cloudflare Workers**
-- **Hono RPC**（フロントエンドとの型共有）
-
-### データベース
-- **Cloudflare D1**（SQLite）
-- **Drizzle ORM**
-
-### 認証
-- **OIDC/OAuth2** (Google, GitHub)
-- **arctic** ライブラリ + 自前セッション管理 (D1 保存)
-- プロバイダ非依存な抽象化レイア (`Provider` インターフェース)
-- セッショントークンは httpOnly Cookie で管理
-- CSRF 対策は SameSite=Lax、OIDC は PKCE を使用
-- すべての保護されたルートで認証ミドルウェアを通す
-
-詳細: `docs/06-development.md`
-
----
-
-## 開発フェーズ
-
-### Phase 1: MVP（個人利用）
-- 4 画面すべてを実装
-- 認証は Google OIDC のみ
-- 自分専用のシングルテナント想定
-
-### Phase 2: SaaS 化
-- マルチテナント対応
-- 複数 IdP 対応
-- 課金フロー追加
-
-現在は **Phase 1**。マルチテナント前提の設計を意識しつつ、過剰実装は避ける。
-
----
-
-## エージェント向け作業ガイドライン
+## 作業ガイドライン
 
 1. **不明な点があれば必ず質問する**。推測でコードを書かない
 2. **設計判断が必要な変更は事前にユーザーに確認**
@@ -72,31 +18,21 @@
 6. **TDD で進める**（Red → Green → Refactor）。ドメインロジック・分岐・境界にテストを集中させ、型で保証される部分や単純な通過コードは追わない（過剰実装は避ける）。詳細は `docs/07-testing.md`
 7. **コメントはコードから読み取れないことの説明に限る**。JSDoc のような機能の説明か、コードを見ても分からない理由・制約の説明にとどめる。過去の経緯やバグ修正の背景など、コードから読み取れる内容の言い換えは書かない
 
----
+## 作業前に読むもの
 
-## 実装の決めごと
+| これをするとき | 読む |
+|---|---|
+| コミット・PR を出す | `docs/06-development.md`「ブランチ戦略」「コミットメッセージ規約」— `feat/*` → `stg` → `main`。**`main` への PR は `stg` からのみ** |
+| action を書く | `docs/adr/0008-handle-action-scope.md` — `handleAction` は同一 action 内の intent 分岐にのみ使う |
+| web から API を呼ぶ | `docs/06-development.md`「ローカル開発の同一オリジン化」— 相対パス `/api/...` のみ |
+| ディレクトリやパッケージを増やす | `docs/03-architecture.md` — api はドメイン単位、`packages/shared` は作らない |
+| web のテストを書く | `docs/07-testing.md`「packages/web のコンポーネントテスト」— `createRoutesStub` に resource route も登録、`encType` 明示、など落とし穴がある |
+| api のテストを書く | `docs/07-testing.md`「実行環境の理解」— すべて workerd 内で動き、Node API は使えない |
+| スキーマを変える | `docs/db-schema.md` → `docs/06-development.md`「D1 マイグレーション」— D1 は不可逆、必ず `stg` で先に流す |
+| CI / デプロイを触る | `docs/06-development.md`「自動デプロイ」— `deploy.yml` は `workflow_run` なので `main` にマージされるまで新しいファイルで動かない |
+| 手動デプロイ・環境構築 | `docs/08-deploy.md` — web の環境はビルド時に `CLOUDFLARE_ENV` で決まる |
+| 認証を触る | `docs/05-auth.md`、ADR 0002 / 0003 / 0004 |
+| なぜこの設計か | `docs/adr/` |
+| 画面の見た目を確認する | `.claude/skills/design-review` |
 
-コードを読んでも意図が分からない、明示的に下した判断を書く。
-
-### `handleAction` は同一 action 内の intent 分岐にのみ使う
-
-`app/lib/action-dispatcher.server.ts` の `handleAction` は、1 つの action に責務の違う処理が同居している場合（例: 編集と削除が同じ画面から飛ぶ）の分岐に使う。**URL が分かれている resource route を 1 つの intent 付き action にまとめない**。
-
-まとめると戻り値の union がその action の全分岐の和になり、`useFetcher<typeof action>()` の消費側で自分が送った intent の結果に絞れなくなる。実行時には起きない分岐を型のために書く羽目になる。
-
-責務が 1 つの action は `handleAction` を使わず素の `parseWithZod` で書く。
-
----
-
-## 関連ドキュメント
-
-- `docs/01-product-vision.md` - プロダクトビジョン・ユーザーストーリー
-- `docs/02-tech-stack.md` - 技術選定の詳細と理由
-- `docs/03-architecture.md` - システム構成・データフロー
-- `docs/04-screens.md` - 4 つの主要画面の仕様
-- `docs/05-auth.md` - OIDC 認証設計
-- `docs/06-development.md` - 開発フロー・コマンド一覧
-- `docs/07-testing.md` - テスト方針（TDD / Vitest + workers-pool）
-- `docs/08-deploy.md` - 初期構築・手動デプロイ手順
-- `docs/db-schema.md` - 全テーブルの ER 図と設計意図
-- `docs/adr/` - 個別の設計判断の記録（採用理由・不採用理由・結果）
+その他: `01-product-vision`（スコープ）、`02-tech-stack`（選定理由）、`04-screens`（画面仕様）。

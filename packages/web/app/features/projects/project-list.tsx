@@ -32,9 +32,7 @@ export function ProjectList({ projects }: { projects: ProjectSummary[] }) {
           <li key={p.id}>
             <Link
               to={`/projects/${p.id}`}
-              className={`hover:bg-muted block rounded-lg border p-4 transition-colors ${
-                active ? "border-primary" : "border-border"
-              }`}
+              className={`glass block p-4 transition-colors ${active ? "border-primary" : ""}`}
             >
               <div className="flex items-center gap-1.5">
                 <ProjectStatusIcon active={active} />

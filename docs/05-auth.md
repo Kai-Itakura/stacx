@@ -23,42 +23,21 @@ StacX は将来的に複数の IdP（Google / GitHub / Microsoft 等）に対応
 
 ## 対応 IdP
 
-### Phase 1（実装対象）
+### Phase 1（実装済み）
 
 | IdP | 種別 | スコープ |
 |---|---|---|
 | Google | OIDC | `openid email profile` |
 
-### Phase 2 で追加候補
-
-| IdP | 種別 | スコープ |
-|---|---|---|
-| GitHub | OAuth2 + Email API | `read:user user:email` |
-| Microsoft（Entra ID） | OIDC | `openid email profile` |
-| Apple | OIDC | `name email` |
-| GitLab | OIDC | `openid email profile` |
-
 ---
 
 ## Link 戦略
 
-### Phase 1（個人利用）: 手動 Link のみ
+### Phase 1: 手動 Link のみ
 
 - 初回ログイン: 新規 User 作成
 - 既存 User が別 IdP を追加したい場合: ログイン状態で設定画面から「連携する」操作
 - メール一致による **Auto-link は行わない**
-
-### Phase 2（SaaS 化）: 業界標準ハイブリッド
-
-- **検証済みメール**が既存 User と一致した場合: Auto-link（実行前に User に通知・確認画面表示）
-- メール不一致 or 未検証メール: 新規 User 作成、設定画面から手動 Link 可能
-- メール詐称対策のため、**信頼できる IdP（Google, GitHub 等）に限定**して Auto-link を発動
-
-### Auto-link を発動しない（Phase 1 で除外する）ケース
-
-- IdP がメールを返さない場合
-- IdP がメールを `email_verified = false` で返した場合
-- GitHub の `noreply` メール（`xxx@users.noreply.github.com`）
 
 ---
 
@@ -165,7 +144,7 @@ type IdentityProfile = {
 }
 ```
 
-#### User 判定ロジック（Phase 1）
+#### User 判定ロジック
 
 ```
 1. user_identities で (provider, provider_sub) を検索
@@ -174,19 +153,6 @@ type IdentityProfile = {
 ```
 
 Phase 1 は IdP が 1 つ (Google) なので、UI から「別 IdP を追加する」フローが発火しない。callback で「ログイン中なら Link 追加」分岐は Phase 2 で導入する。
-
-#### User 判定ロジック（Phase 2 で追加）
-
-```
-1.5. ログイン中（既存 Session あり）の場合:
-   既存 User に Identity を追加 (Link)
-
-2. 未ログイン かつ メール検証済み かつ 信頼 IdP の場合:
-   user_identities.email で既存 User 検索
-   ├─ ヒット → 「既存 User を発見しました。連携しますか？」確認画面 (Auto-link 提案)
-   │              └─ User 承認 → Identity 追加
-   └─ ヒットせず → 新規 User 作成
-```
 
 ### 3. セッション発行
 
@@ -252,7 +218,7 @@ POST /api/auth/logout
 - セッションを D1 から削除
 - Cookie を即時失効
 
-Link / Unlink エンドポイントは Phase 2 で導入する。詳細は本ドキュメント末尾「Phase 1 → Phase 2 移行時の追加実装」を参照。
+Link / Unlink エンドポイントは Phase 2 で導入する。詳細は本ドキュメント末尾「Phase 2（SaaS 化）で追加するもの」を参照。
 
 ---
 
@@ -327,7 +293,7 @@ GOOGLE_CLIENT_ID=...
 GOOGLE_CLIENT_SECRET=...
 
 # 共通
-APP_BASE_URL=https://stacx.dev     # コールバック URL の基点
+APP_BASE_URL=https://stacx.itakai199969-e42.workers.dev   # コールバック URL と Cookie 名の基点（環境ごとに異なる）
 ```
 
 Session ID は Workers の CSPRNG (`crypto.getRandomValues`) から 32 バイトの乱数を直接引くため、`SESSION_SECRET` のようなシード値は不要。
@@ -338,42 +304,12 @@ Session ID は Workers の CSPRNG (`crypto.getRandomValues`) から 32 バイト
 {APP_BASE_URL}/api/auth/callback/google
 ```
 
-### Phase 2 で追加（GitHub 例）
-
-```
-GITHUB_CLIENT_ID=...
-GITHUB_CLIENT_SECRET=...
-```
-
-```
-{APP_BASE_URL}/api/auth/callback/github
-```
-
-ローカル開発: `packages/api/.dev.vars` に記述（Git 管理外）
-本番: `wrangler secret put` で登録
-
----
-
 ## IdP 別の注意点
 
 ### Google
 - OIDC 準拠なので `arctic` の `Google` を使う
 - `email_verified` を返してくれる
 - スコープ: `openid email profile`
-
-### GitHub
-- 純粋な OAuth2（OIDC ではない）
-- メール取得には別途 `GET https://api.github.com/user/emails` を呼ぶ必要あり
-- ユーザーがメール非公開設定の場合、`noreply` メールが返る
-  - Phase 2 の Auto-link 対象から除外する
-- スコープ: `read:user user:email`
-
-### 将来追加時のチェックリスト
-- [ ] OIDC か OAuth2 か
-- [ ] PKCE 必須か
-- [ ] メールを返すか、検証済みフラグを返すか
-- [ ] アクセストークンの有効期限とリフレッシュ可否
-- [ ] レート制限
 
 ---
 
@@ -390,9 +326,43 @@ GITHUB_CLIENT_SECRET=...
 
 ---
 
-## Phase 1 → Phase 2 移行時の追加実装
+## Phase 2（SaaS 化）で追加するもの
 
-DB スキーマは変更不要。以下のロジック・エンドポイント・UI を追加するだけで Phase 2 に移行可能。
+以下は **Phase 1 では実装しない**。DB スキーマは変更不要で、ロジック・エンドポイント・UI の追加だけで移行できる設計になっている。
+
+### 追加候補の IdP
+
+| IdP | 種別 | スコープ |
+|---|---|---|
+| GitHub | OAuth2 + Email API | `read:user user:email` |
+| Microsoft（Entra ID） | OIDC | `openid email profile` |
+| Apple | OIDC | `name email` |
+| GitLab | OIDC | `openid email profile` |
+
+### Link 戦略: 業界標準ハイブリッド
+
+- **検証済みメール**が既存 User と一致した場合: Auto-link（実行前に User に通知・確認画面表示）
+- メール不一致 or 未検証メール: 新規 User 作成、設定画面から手動 Link 可能
+- メール詐称対策のため、**信頼できる IdP（Google, GitHub 等）に限定**して Auto-link を発動
+
+### Auto-link を発動しないケース
+
+- IdP がメールを返さない場合
+- IdP がメールを `email_verified = false` で返した場合
+- GitHub の `noreply` メール（`xxx@users.noreply.github.com`）
+
+### User 判定ロジックへの追加分岐
+
+```
+1.5. ログイン中（既存 Session あり）の場合:
+   既存 User に Identity を追加 (Link)
+
+2. 未ログイン かつ メール検証済み かつ 信頼 IdP の場合:
+   user_identities.email で既存 User 検索
+   ├─ ヒット → 「既存 User を発見しました。連携しますか？」確認画面 (Auto-link 提案)
+   │              └─ User 承認 → Identity 追加
+   └─ ヒットせず → 新規 User 作成
+```
 
 ### Link / Unlink エンドポイント
 
@@ -419,6 +389,35 @@ DELETE /api/auth/link/:provider   # ログイン必須、最後の Identity は�
 
 ---
 
+### 環境変数（GitHub 例）
+
+```
+GITHUB_CLIENT_ID=...
+GITHUB_CLIENT_SECRET=...
+```
+
+```
+{APP_BASE_URL}/api/auth/callback/github
+```
+
+ローカル開発: `packages/api/.dev.vars` に記述（Git 管理外）
+本番: `wrangler secret put` で登録
+
+### GitHub の注意点
+- 純粋な OAuth2（OIDC ではない）
+- メール取得には別途 `GET https://api.github.com/user/emails` を呼ぶ必要あり
+- ユーザーがメール非公開設定の場合、`noreply` メールが返る
+  - Phase 2 の Auto-link 対象から除外する
+- スコープ: `read:user user:email`
+
+### 将来追加時のチェックリスト
+- [ ] OIDC か OAuth2 か
+- [ ] PKCE 必須か
+- [ ] メールを返すか、検証済みフラグを返すか
+- [ ] アクセストークンの有効期限とリフレッシュ可否
+- [ ] レート制限
+
+---
 ## 関連ドキュメント
 
 - `docs/03-architecture.md` - 全体構成・データフロー

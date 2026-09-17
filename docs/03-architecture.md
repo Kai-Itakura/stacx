@@ -27,7 +27,7 @@ stacx/
 │       │   ├── auth/            # 認証（providers/ routes/ session / cookie / account）
 │       │   ├── memo/            # ドメインごとに index.ts / <domain>.ts / request-schema.ts
 │       │   ├── project/
-│       │   ├── star/
+│       │   ├── star/            # index.ts を持たない（/memos/:id/star として memo/index.ts に載る）
 │       │   ├── tag/
 │       │   ├── db/
 │       │   │   ├── schema.ts
@@ -43,6 +43,7 @@ stacx/
 
 api は URL ではなく**ドメイン単位**でディレクトリを切る（`routes/` や `middleware/` は置かない）。
 各ドメインは `index.ts`（Hono サブアプリ）/ `<domain>.ts`（ロジック）/ `request-schema.ts`（Zod）の 3 点構成。
+`star` は Memo の下位リソース（`/api/memos/:id/star`）なので `index.ts` を持たず、`memo/index.ts` がルートを持つ。
 
 ---
 
@@ -89,11 +90,11 @@ Cloudflare Workers ⇄ Google IdP (OIDC)
 
 ### 2. 認証フロー（OIDC/OAuth2）
 
-1. ユーザーがログインボタン（Google/GitHub等）を押す
-2. RR v7 が `/login/:provider` へ遷移
-3. Hono Workers が `state` 生成し、プロバイダへリダイレクト
+1. ユーザーがログインボタン（Phase 1 は Google のみ）を押す
+2. ブラウザが `/api/auth/login/:provider` へ遷移
+3. Hono Workers が `state` / `code_verifier` を生成し、プロバイダへリダイレクト
 4. ユーザーが IdP で認証
-5. IdP が `/auth/callback/:provider` へリダイレクト
+5. IdP が `/api/auth/callback/:provider` へリダイレクト
 6. Hono Workers が `code` をトークンに交換し、ユーザー情報を取得
 7. `user_identities` を確認し、ユーザー特定または新規作成
 8. `sessions` テーブルにセッションを保存
@@ -144,15 +145,6 @@ Cloudflare Workers ⇄ Google IdP (OIDC)
 
 ### packages/web
 
-web からの API 呼び出しはすべて相対パス (`/api/...`) で行う。本番ではブラウザからの `/api/*` を web worker (`stacx`) が受け、Service Binding 経由で api worker (`stacx-api`) へ中継するため単一オリジンで完結する（ADR 0006）。ローカル開発時は Vite の dev proxy で `/api/*` を wrangler dev (`http://localhost:8787`) に転送し、同じ同一オリジン挙動を再現する。
-
-    // packages/web/vite.config.ts
-    export default defineConfig({
-      server: {
-        proxy: {
-          '/api': 'http://localhost:8787',
-        },
-      },
-    });
+web からの API 呼び出しはすべて相対パス (`/api/...`) で行う。本番ではブラウザからの `/api/*` を web worker (`stacx`) が受け、Service Binding 経由で api worker (`stacx-api`) へ中継するため単一オリジンで完結する（ADR 0006）。ローカル開発時は Vite の dev proxy で同じ同一オリジン挙動を再現する（設定は `docs/06-development.md`「ローカル開発の同一オリジン化」）。
 
 これにより `VITE_API_BASE_URL` のような環境変数は不要、CORS / cross-origin Cookie 設定も発生しない。
