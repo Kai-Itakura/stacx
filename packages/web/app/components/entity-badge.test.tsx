@@ -47,17 +47,15 @@ describe("entity badges", () => {
     expect(container.querySelectorAll("svg")).toHaveLength(3);
   });
 
-  it("タグ名ごとに配色クラスが変わる", () => {
+  it("タグは名前で配色を変えない", () => {
     render(
       <>
         <TagBadge name="トラブル" />
         <TagBadge name="学び" />
       </>,
     );
-    const a = badgeOf("トラブル")?.className ?? "";
-    const b = badgeOf("学び")?.className ?? "";
-    expect(a).toMatch(/tag-\d/);
-    expect(a).not.toBe(b);
+    // 色を持つのは STAR の状態だけ。区別は塗り／枠線とアイコンで行う。
+    expect(badgeOf("トラブル")?.className).toBe(badgeOf("学び")?.className);
   });
 
   it("id を渡すと下線付きのプロジェクト詳細リンクになる", () => {

@@ -16,35 +16,22 @@
   --color-sidebar-primary: var(--sidebar-primary);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar: var(--sidebar);
-  --color-chart-5: var(--chart-5);
-  --color-chart-4: var(--chart-4);
-  --color-chart-3: var(--chart-3);
-  --color-chart-2: var(--chart-2);
-  --color-chart-1: var(--chart-1);
   --color-ring: var(--ring);
   --color-input: var(--input);
   --color-border: var(--border);
   --color-destructive: var(--destructive);
-  --color-success: var(--success);
-  --color-success-subtle: var(--success-subtle);
-  --color-warning: var(--warning);
-  --color-warning-subtle: var(--warning-subtle);
-  --color-info: var(--info);
-  --color-info-subtle: var(--info-subtle);
-  --color-tag-1: var(--tag-1);
-  --color-tag-1-subtle: var(--tag-1-subtle);
-  --color-tag-2: var(--tag-2);
-  --color-tag-2-subtle: var(--tag-2-subtle);
-  --color-tag-3: var(--tag-3);
-  --color-tag-3-subtle: var(--tag-3-subtle);
-  --color-tag-4: var(--tag-4);
-  --color-tag-4-subtle: var(--tag-4-subtle);
-  --color-tag-5: var(--tag-5);
-  --color-tag-5-subtle: var(--tag-5-subtle);
-  --color-tag-6: var(--tag-6);
-  --color-tag-6-subtle: var(--tag-6-subtle);
+  /*
+   * 状態は 2 つだけ。open=未解決 / complete=完成。
+   * 新しい状態を足すときは色を増やさず、形（リングの弧・チェック）で区別する。
+   */
+  --color-open: var(--open);
+  --color-open-subtle: var(--open-subtle);
+  --color-complete: var(--complete);
+  --color-complete-subtle: var(--complete-subtle);
   --color-accent-foreground: var(--accent-foreground);
   --color-accent: var(--accent);
+  /* 文字は 3 段。subtle はラベルとプレースホルダ用で、これ以上薄い段は作らない。 */
+  --color-subtle-foreground: var(--subtle-foreground);
   --color-muted-foreground: var(--muted-foreground);
   --color-muted: var(--muted);
   --color-secondary-foreground: var(--secondary-foreground);
@@ -57,6 +44,7 @@
   --color-card: var(--card);
   --color-foreground: var(--foreground);
   --color-background: var(--background);
+  /* 14px を基準にすると lg=入力欄、xl=パネルが設計値どおりになる。 */
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -66,135 +54,195 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
+/*
+ * ライト。地は無彩色のグラデーションで、面は白を重ねて作る。
+ * 明るい地では塗りの差が 1.15:1 しか出ない（実測）ため、パネルの分離は
+ * 枠線と影が担う。上辺の白いハイライトは見えないので、下辺を濃くして
+ * 「光は上から」を表す。
+ */
 :root {
   color-scheme: light;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.52 0.2 280);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0.01 280);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.22 27.325);
-  /* 枠線は WCAG 1.4.11（UI 部品の境界）の 3:1 を満たす濃さにする。 */
-  --border: oklch(0.66 0 0);
-  --input: oklch(0.66 0 0);
-  --ring: oklch(0.52 0.2 280);
+  --ground: linear-gradient(
+    160deg,
+    oklch(0.955 0 0) 0%,
+    oklch(0.94 0 0) 50%,
+    oklch(0.93 0 0) 100%
+  );
+  --ground-light: radial-gradient(
+    70% 45% at 50% -5%,
+    rgb(255 255 255 / 0.9) 0%,
+    transparent 70%
+  );
+  --background: oklch(0.94 0 0);
+  --foreground: rgb(0 0 0 / 0.88);
+  --muted-foreground: rgb(0 0 0 / 0.68);
+  --subtle-foreground: rgb(0 0 0 / 0.55);
+
+  /* ガラス。白を重ねた面。 */
+  --card: rgb(255 255 255 / 0.8);
+  --card-foreground: var(--foreground);
+  --popover: oklch(0.99 0 0);
+  --popover-foreground: var(--foreground);
+  --glass-blur: blur(32px) saturate(1.3);
+  --glass-border: rgb(0 0 0 / 0.07);
+  --glass-edge: inset 0 -1px 0 rgb(0 0 0 / 0.05);
+  --glass-shadow: 0 1px 2px rgb(0 0 0 / 0.04), 0 20px 40px rgb(0 0 0 / 0.08);
+  --glass-noise-blend: multiply;
+  --glass-noise-opacity: 0.02;
+
+  /* 沈む面（入力欄・セグメントの溝）。 */
+  --input: rgb(0 0 0 / 0.035);
+  --input-border: rgb(0 0 0 / 0.09);
+  --input-inset: inset 0 1px 2px rgb(0 0 0 / 0.06);
+
+  --secondary: rgb(0 0 0 / 0.045);
+  --secondary-foreground: var(--foreground);
+  --muted: rgb(0 0 0 / 0.045);
+  --accent: rgb(0 0 0 / 0.07);
+  --accent-foreground: var(--foreground);
+  --border: rgb(0 0 0 / 0.09);
 
   /*
-   * 状態色。バッジは subtle 背景 + 同系の濃い前景の対で組む。
-   * chroma は sRGB 色域内に収める。はみ出すと sRGB 画面と P3 画面で色相がずれる。
+   * 状態色。明度 0.545・彩度 0.11 を共有し、色相だけ 80°/150° で分ける。
+   * ダークの 0.82/0.14 のままでは明るい地で 1.4:1 しか出ない。彩度も
+   * 落としているのは、L を下げるだけでは琥珀が sRGB の色域から外れるため。
    */
-  --success: oklch(0.45 0.12 150);
-  --success-subtle: oklch(0.93 0.05 150);
-  --warning: oklch(0.48 0.1 70);
-  --warning-subtle: oklch(0.93 0.045 70);
-  --info: oklch(0.5 0.11 240);
-  --info-subtle: oklch(0.93 0.033 240);
+  --open: oklch(0.545 0.11 80);
+  --open-subtle: oklch(0.545 0.11 80 / 0.12);
+  --complete: oklch(0.545 0.11 150);
+  --complete-subtle: oklch(0.545 0.11 150 / 0.12);
+  --primary: var(--open);
+  --primary-foreground: oklch(0.99 0 0);
+  --ring: var(--open);
+  --destructive: oklch(0.52 0.16 25);
 
-  /*
-   * タグ用パレット。状態色（success 150 / warning 70 / info 240）・destructive 27・
-   * primary 280 から色相を 30 度以上離す。近いとバッジの意味が見分けられなくなる。
-   */
-  --tag-1: oklch(0.47 0.09 110);
-  --tag-1-subtle: oklch(0.93 0.05 110);
-  --tag-2: oklch(0.47 0.07 190);
-  --tag-2-subtle: oklch(0.93 0.05 190);
-  --tag-3: oklch(0.47 0.07 210);
-  --tag-3-subtle: oklch(0.93 0.05 210);
-  --tag-4: oklch(0.47 0.18 310);
-  --tag-4-subtle: oklch(0.93 0.04 310);
-  --tag-5: oklch(0.47 0.18 330);
-  --tag-5-subtle: oklch(0.93 0.05 330);
-  --tag-6: oklch(0.47 0.17 350);
-  --tag-6-subtle: oklch(0.93 0.03 350);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --radius: 0.875rem;
+  --sidebar: oklch(0.955 0 0);
+  --sidebar-foreground: var(--foreground);
+  --sidebar-primary: var(--open);
+  --sidebar-primary-foreground: oklch(0.99 0 0);
+  --sidebar-accent: rgb(0 0 0 / 0.045);
+  --sidebar-accent-foreground: var(--foreground);
+  --sidebar-border: rgb(0 0 0 / 0.09);
+  --sidebar-ring: var(--open);
 }
 
+/*
+ * ダーク。こちらが設計の基準。面は暗い地に白を薄く重ねて作り、
+ * 上辺の白い反射で縁を見せる。
+ */
 .dark {
   color-scheme: dark;
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.72 0.14 285);
-  --primary-foreground: oklch(0.18 0.03 285);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.28 0.02 285);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.178 22.216);
-  /* 暗い地では半透明白を合成した実効色で 3:1 を満たす不透明度にする。 */
-  --border: oklch(1 0 0 / 40%);
-  --input: oklch(1 0 0 / 40%);
-  --ring: oklch(0.6 0.16 285);
+  --ground: linear-gradient(
+    160deg,
+    oklch(0.16 0 0) 0%,
+    oklch(0.13 0 0) 50%,
+    oklch(0.12 0 0) 100%
+  );
+  --ground-light: radial-gradient(
+    70% 45% at 50% -5%,
+    rgb(255 255 255 / 0.06) 0%,
+    transparent 70%
+  );
+  --background: oklch(0.13 0 0);
+  --foreground: rgb(255 255 255 / 0.92);
+  --muted-foreground: rgb(255 255 255 / 0.62);
+  /* 40% では黒ガラス上で 3.83:1 しか出ないため 45%（4.51:1）を下限にする。 */
+  --subtle-foreground: rgb(255 255 255 / 0.45);
 
-  --success: oklch(0.8 0.15 150);
-  --success-subtle: oklch(0.3 0.06 150);
-  --warning: oklch(0.82 0.13 75);
-  --warning-subtle: oklch(0.3 0.05 75);
-  --info: oklch(0.78 0.12 240);
-  --info-subtle: oklch(0.3 0.06 240);
+  --card: rgb(255 255 255 / 0.06);
+  --card-foreground: var(--foreground);
+  --popover: oklch(0.2 0 0);
+  --popover-foreground: var(--foreground);
+  --glass-blur: blur(32px) saturate(1.2);
+  --glass-border: rgb(255 255 255 / 0.12);
+  --glass-edge:
+    inset 0 1px 0 rgb(255 255 255 / 0.25), inset 1px 0 0 rgb(255 255 255 / 0.08);
+  --glass-shadow: 0 28px 56px rgb(0 0 0 / 0.55);
+  --glass-noise-blend: screen;
+  --glass-noise-opacity: 0.035;
 
-  --tag-1: oklch(0.79 0.15 110);
-  --tag-1-subtle: oklch(0.3 0.05 110);
-  --tag-2: oklch(0.79 0.12 190);
-  --tag-2-subtle: oklch(0.3 0.04 190);
-  --tag-3: oklch(0.79 0.12 210);
-  --tag-3-subtle: oklch(0.3 0.04 210);
-  --tag-4: oklch(0.79 0.12 310);
-  --tag-4-subtle: oklch(0.3 0.06 310);
-  --tag-5: oklch(0.79 0.15 330);
-  --tag-5-subtle: oklch(0.3 0.06 330);
-  --tag-6: oklch(0.79 0.13 350);
-  --tag-6-subtle: oklch(0.3 0.06 350);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --input: rgb(0 0 0 / 0.32);
+  --input-border: rgb(255 255 255 / 0.1);
+  --input-inset: inset 0 1px 2px rgb(0 0 0 / 0.5);
+
+  --secondary: rgb(255 255 255 / 0.06);
+  --secondary-foreground: var(--foreground);
+  --muted: rgb(255 255 255 / 0.06);
+  --accent: rgb(255 255 255 / 0.1);
+  --accent-foreground: var(--foreground);
+  --border: rgb(255 255 255 / 0.12);
+
+  --open: oklch(0.82 0.14 80);
+  --open-subtle: oklch(0.82 0.14 80 / 0.12);
+  --complete: oklch(0.82 0.14 150);
+  --complete-subtle: oklch(0.82 0.14 150 / 0.12);
+  --primary: var(--open);
+  --primary-foreground: oklch(0.18 0.03 80);
+  --ring: var(--open);
+  --destructive: oklch(0.72 0.16 25);
+
+  --sidebar: oklch(0.16 0 0);
+  --sidebar-foreground: var(--foreground);
+  --sidebar-primary: var(--open);
+  --sidebar-primary-foreground: oklch(0.18 0.03 80);
+  --sidebar-accent: rgb(255 255 255 / 0.06);
+  --sidebar-accent-foreground: var(--foreground);
+  --sidebar-border: rgb(255 255 255 / 0.12);
+  --sidebar-ring: var(--open);
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
-  body {
-    @apply bg-background text-foreground;
-  }
   html {
     @apply font-sans;
   }
+  body {
+    @apply text-foreground;
+    background: var(--ground) fixed;
+  }
+  /* 上から差す光。地の一部なので本文より後ろに置く。 */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background: var(--ground-light);
+  }
+}
+
+@utility glass {
+  position: relative;
+  background: var(--card);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow), var(--glass-edge);
+  border-radius: var(--radius-xl);
+
+  /*
+   * 素材のノイズ。ダークは screen で光を散らし、ライトは multiply で沈める。
+   * 解像度に依存しないよう SVG の feTurbulence を使う。
+   */
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    opacity: var(--glass-noise-opacity);
+    mix-blend-mode: var(--glass-noise-blend);
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='160' height='160' filter='url(%23n)'/></svg>");
+  }
+}
+
+/* 入力欄など、面に沈めて見せる部分。 */
+@utility well {
+  background: var(--input);
+  border: 1px solid var(--input-border);
+  box-shadow: var(--input-inset);
+  border-radius: var(--radius-lg);
 }

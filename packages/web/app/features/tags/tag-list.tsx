@@ -58,7 +58,7 @@ function TagRow({ tag }: { tag: TagListItem }) {
   });
 
   return (
-    <li className="border-border rounded-lg border p-4">
+    <li className="glass p-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         {renaming ? (
           <Form

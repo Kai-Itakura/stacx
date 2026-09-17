@@ -40,7 +40,7 @@ export function MemoList({ memos }: { memos: MemoListItem[] }) {
   return (
     <ul className="flex flex-col gap-3">
       {memos.map((m) => (
-        <li key={m.id} className="border-border rounded-lg border p-4">
+        <li key={m.id} className="glass p-4">
           <div className="flex items-center justify-between gap-2">
             <ProjectBadge id={m.projectId} name={m.projectName} active={m.projectActive} />
             <time className="text-muted-foreground shrink-0 text-xs">
@@ -59,8 +59,8 @@ export function MemoList({ memos }: { memos: MemoListItem[] }) {
             </div>
           )}
           <div className="mt-3 flex items-center justify-end gap-2 border-t pt-3">
-            {m.starStatus === "complete" && <Badge variant="success">完成</Badge>}
-            {m.starStatus === "draft" && <Badge variant="warning">下書き</Badge>}
+            {m.starStatus === "complete" && <Badge variant="complete">完成</Badge>}
+            {m.starStatus === "draft" && <Badge variant="open">下書き</Badge>}
             <a
               href={`/memos/${m.id}/edit`}
               className="text-primary text-sm underline-offset-4 hover:underline"
