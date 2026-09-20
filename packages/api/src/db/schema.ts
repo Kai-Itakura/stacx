@@ -24,12 +24,7 @@ export const userIdentities = sqliteTable(
     createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
     updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull(),
   },
-  (t) => ({
-    providerSubUnique: uniqueIndex("user_identities_provider_sub_unique").on(
-      t.provider,
-      t.providerSub,
-    ),
-  }),
+  (t) => [uniqueIndex("user_identities_provider_sub_unique").on(t.provider, t.providerSub)],
 );
 
 export const sessions = sqliteTable("sessions", {
@@ -73,9 +68,7 @@ export const tags = sqliteTable(
     name: text("name").notNull(),
     createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
   },
-  (t) => ({
-    userNameUnique: uniqueIndex("tags_user_name_unique").on(t.userId, t.name),
-  }),
+  (t) => [uniqueIndex("tags_user_name_unique").on(t.userId, t.name)],
 );
 
 /** 1 分メモ。生成時に 1 つの Project へ固定的に属する（ADR 0005: 親削除で連鎖削除）。 */
@@ -115,9 +108,7 @@ export const starLogs = sqliteTable(
     createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
     updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull(),
   },
-  (t) => ({
-    memoUnique: uniqueIndex("star_logs_memo_unique").on(t.memoId),
-  }),
+  (t) => [uniqueIndex("star_logs_memo_unique").on(t.memoId)],
 );
 
 /** Memo と Tag の多対多。両親の削除で連鎖して掃除される。 */
@@ -131,9 +122,7 @@ export const memoTags = sqliteTable(
       .notNull()
       .references(() => tags.id, { onDelete: "cascade" }),
   },
-  (t) => ({
-    pk: primaryKey({ columns: [t.memoId, t.tagId] }),
-  }),
+  (t) => [primaryKey({ columns: [t.memoId, t.tagId] })],
 );
 
 export const usersRelations = relations(users, ({ many }) => ({
