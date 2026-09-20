@@ -52,7 +52,7 @@ jobs:
           echo ""
           echo "対応:"
           echo "  1. この PR の base を stg に変更する"
-          echo "  2. stg へマージし、staging (https://stacx-staging.itakai199969-e42.workers.dev) で動作確認する"
+          echo "  2. stg へマージし、staging (https://stacx-staging.s-ita.workers.dev) で動作確認する"
           echo "  3. stg から main へ PR を出す"
           echo ""
           echo "緊急時に staging を飛ばす必要がある場合は、この PR に hotfix ラベルを付ける。"
