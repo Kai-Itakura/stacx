@@ -293,7 +293,7 @@ GOOGLE_CLIENT_ID=...
 GOOGLE_CLIENT_SECRET=...
 
 # 共通
-APP_BASE_URL=https://stacx.itakai199969-e42.workers.dev   # コールバック URL と Cookie 名の基点（環境ごとに異なる）
+APP_BASE_URL=https://stacx.s-ita.workers.dev   # コールバック URL と Cookie 名の基点（環境ごとに異なる）
 ```
 
 Session ID は Workers の CSPRNG (`crypto.getRandomValues`) から 32 バイトの乱数を直接引くため、`SESSION_SECRET` のようなシード値は不要。

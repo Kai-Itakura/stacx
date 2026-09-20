@@ -12,8 +12,8 @@ StacX を Cloudflare Workers に最小構成でデプロイする手順。まず
 
 | 環境 | api worker | web worker | D1 | URL |
 |---|---|---|---|---|
-| staging | `stacx-api-staging` | `stacx-staging` | `stacx-db-staging` | https://stacx-staging.itakai199969-e42.workers.dev |
-| production | `stacx-api` | `stacx` | `stacx-db` | https://stacx.itakai199969-e42.workers.dev |
+| staging | `stacx-api-staging` | `stacx-staging` | `stacx-db-staging` | https://stacx-staging.s-ita.workers.dev |
+| production | `stacx-api` | `stacx` | `stacx-db` | https://stacx.s-ita.workers.dev |
 
 **D1・secret・Google のリダイレクト URI はすべて環境ごとに独立**している。
 両環境とも構築済み。以下の手順は production を例に書いているが、環境を作り直す場合は
@@ -31,17 +31,17 @@ StacX を Cloudflare Workers に最小構成でデプロイする手順。まず
 
 ## 1. 公開 URL（APP_BASE_URL）
 
-web worker（`stacx`）の公開 URL は、アカウント固定の workers.dev サブドメイン `itakai199969-e42` から決まる（サブドメインは変更不可）。
+web worker（`stacx`）の公開 URL は、アカウントの workers.dev サブドメイン `s-ita` から決まる。サブドメインは Cloudflare ダッシュボードで変更でき、変更すると旧 URL は失効する。
 
 ```
-https://stacx.itakai199969-e42.workers.dev
+https://stacx.s-ita.workers.dev
 ```
 
 これが `APP_BASE_URL`（Cookie とリダイレクトの基点）。`packages/api/wrangler.toml` の `[env.production.vars]` に設定済みなので、通常は編集不要。
 
 ```toml
 [env.production.vars]
-APP_BASE_URL = "https://stacx.itakai199969-e42.workers.dev"
+APP_BASE_URL = "https://stacx.s-ita.workers.dev"
 ```
 
 > 独自ドメインへ移行する場合のみ、この値と Google 設定（手順2）・`packages/web/wrangler.jsonc` を新ドメインに更新する。
@@ -57,8 +57,8 @@ redirect_uri は `${APP_BASE_URL}/api/auth/callback/google` として組み立�
 | 環境 | 登録する URI |
 |---|---|
 | ローカル | `http://localhost:5173/api/auth/callback/google` |
-| staging | `https://stacx-staging.itakai199969-e42.workers.dev/api/auth/callback/google` |
-| production | `https://stacx.itakai199969-e42.workers.dev/api/auth/callback/google` |
+| staging | `https://stacx-staging.s-ita.workers.dev/api/auth/callback/google` |
+| production | `https://stacx.s-ita.workers.dev/api/auth/callback/google` |
 
 「承認済みの JavaScript 生成元」にも各環境のオリジンを登録する。
 
@@ -139,7 +139,7 @@ pnpm deploy:staging
 
 ## 5. 動作確認
 
-1. `https://stacx.itakai199969-e42.workers.dev` を開く
+1. `https://stacx.s-ita.workers.dev` を開く
 2. Google でログイン
 3. メモを作成（`/`）
 4. `/memos` で作成したメモが表示される
