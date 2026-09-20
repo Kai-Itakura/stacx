@@ -25,7 +25,7 @@ port = 8787
 name = "stacx-api-staging"
 
 [env.staging.vars]
-APP_BASE_URL = "https://stacx-staging.itakai199969-e42.workers.dev"
+APP_BASE_URL = "https://stacx-staging.s-ita.workers.dev"
 
 [[env.staging.d1_databases]]
 binding = "DB"
@@ -40,14 +40,15 @@ migrations_dir = "src/db/migrations"
 # env セクションは top-level のバインディング/名前を継承しないため再掲する。
 # name を明示して worker 名を stacx-api に固定する（web の service binding が名前参照するため、
 # 未指定だと stacx-api-production になり binding が壊れる）。
-# APP_BASE_URL は web worker（stacx）の公開 URL。アカウント固定の workers.dev
-# サブドメイン itakai199969-e42 を使用（変更不可のため確定値）。独自ドメイン化する際に更新する。
+# APP_BASE_URL は web worker（stacx）の公開 URL。アカウントの workers.dev サブドメイン
+# s-ita から決まる。サブドメインを変えたり独自ドメイン化する際は、ここと Google の
+# 承認済みリダイレクト URI の両方を更新しないとログインできなくなる。
 # GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET は secret（`wrangler secret put ... --env production`）。
 [env.production]
 name = "stacx-api"
 
 [env.production.vars]
-APP_BASE_URL = "https://stacx.itakai199969-e42.workers.dev"
+APP_BASE_URL = "https://stacx.s-ita.workers.dev"
 
 [[env.production.d1_databases]]
 binding = "DB"
