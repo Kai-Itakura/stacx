@@ -15,7 +15,7 @@
 
 ## 技術スタック
 
-- **フロントエンド**: React Router v7 + TypeScript + shadcn/ui + Tailwind CSS
+- **フロントエンド**: React Router v8 + TypeScript + shadcn/ui + Tailwind CSS
 - **バックエンド**: Hono on Cloudflare Workers
 - **データベース**: Cloudflare D1 + Drizzle ORM
 - **認証**: Google OIDC（Phase 1）+ 自前セッション管理。Phase 2 で IdP を追加
