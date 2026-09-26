@@ -379,7 +379,7 @@ DELETE /api/auth/link/:provider   # ログイン必須、最後の Identity は�
 
 1. **コールバック時の Auto-link ロジック**
    - メール検証済み + 信頼 IdP の場合に `user_identities.email` を検索 → Auto-link 確認画面
-2. **Auto-link 確認画面の UI**（RR v7 側）
+2. **Auto-link 確認画面の UI**（web 側）
 3. **Auto-link 実行 API**（Identity 追加 + 通知メール）
 4. **メール通知機能**（SES や Resend 等を採用検討）
 

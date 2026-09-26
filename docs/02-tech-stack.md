@@ -8,7 +8,7 @@
 
 | レイヤー | 技術 |
 |---|---|
-| フロントエンド | React Router v7（フレームワークモード）+ TypeScript |
+| フロントエンド | React Router v8（フレームワークモード）+ TypeScript |
 | UI ライブラリ | shadcn/ui + Tailwind CSS |
 | バックエンド | Hono on Cloudflare Workers |
 | 型共有 | Hono RPC |
@@ -22,7 +22,7 @@
 
 ## 選定理由
 
-### React Router v7 を選んだ理由
+### React Router を選んだ理由
 
 **判断軸**: 業務で使用している RR v7 の理解を深掘りし、Hono との思想的一貫性を保つ。
 

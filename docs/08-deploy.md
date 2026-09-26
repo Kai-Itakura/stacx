@@ -82,11 +82,8 @@ pnpm dlx wrangler secret put GOOGLE_CLIENT_SECRET --env production
 pnpm db:migrate:production
 ```
 
-> **D1 は環境ごとに別インスタンス。** staging を用意した際に production と別 DB
-> （`stacx-db-staging`）へ分けたため、マイグレーションは環境ごとに実行する必要がある。
-> スクリプトは対象を取り違えないよう `db:migrate:production` / `db:migrate:staging` と
-> 環境を名前に含めている（`--env` を省いた `db:migrate:remote` は「どちらの D1 か」が
-> 名前から読み取れないため削除した）。
+> D1 は環境ごとに別インスタンス（`stacx-db` / `stacx-db-staging`）なので、マイグレーションも
+> 環境ごとに流す。スクリプト名に環境を含めているのは対象の取り違えを防ぐため。
 
 ---
 
