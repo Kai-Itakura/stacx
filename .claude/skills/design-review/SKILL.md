@@ -1,6 +1,6 @@
 ---
 name: design-review
-description: StacX の実際の画面を Playwright で起動・撮影し、PC / SP 両方のレイアウト崩れとアクセシビリティを実測値付きでレビューする。「デザインレビューして」「スマホで崩れてる」「横スクロールが出る」「UI 見て」「レスポンシブ確認」「PC と SP でチェック」「画面のスクショ撮って」「visual review」「design review」などと言われたら必ずこのスキルを使う。実機スクショを見せられて原因を聞かれた場合、UI を変更した後に見た目を確認したい場合、#58 / #59 のようなレイアウト崩れ issue を調査・修正する場合も対象。推測でCSSを語らず、必ず実測してから結論を出すためのスキル。
+description: StacX を実際に起動して PC / SP で撮影し、レイアウト崩れ・タップ領域・コントラストを実測値付きでレビューする。デザインレビューやレスポンシブ確認を頼まれたとき、UI を変えた後に見た目を確かめるとき、レイアウト崩れの原因を調べるときに使う。
 ---
 
 # StacX デザインレビュー（PC / SP 実測）
@@ -45,7 +45,7 @@ bash .claude/skills/design-review/scripts/prepare.sh
 pnpm dev            # ルートで実行（api:8787 + web:5173 を並列起動）
 ```
 
-ログに `Local: http://localhost:5173/` が出れば ready。`Unable to fetch the 'Request.cf' object` や `Request was cancelled` はプロキシ環境由来の警告で無害。
+ログに `Local: http://localhost:5173/` が出れば ready。`Unable to fetch the 'Request.cf' object` や `Request was cancelled` は無害な警告。
 
 ### 3. 疎通確認（ここを飛ばさない）
 
@@ -57,7 +57,7 @@ curl -s -o /dev/null -w "認証あり=%{http_code}\n" -H "Cookie: stacx_session=
 curl -s -o /dev/null -w "認証なし=%{http_code}\n" http://localhost:5173/ --noproxy '*'
 ```
 
-期待値は **認証あり=200 / 認証なし=302**。`--noproxy '*'` はこの環境の HTTPS プロキシを迂回するために必要。
+期待値は **認証あり=200 / 認証なし=302**。`--noproxy '*'` は、プロキシの環境変数が設定されていても localhost に直接届くようにするため。
 
 ### 4. 撮影と計測
 
@@ -77,7 +77,7 @@ node .claude/skills/design-review/scripts/review.mjs --session "$SID"
 
 出力は `<out>/shots/*.png` と `<out>/report.json`、それに標準出力の要約。狭い幅（375 / 320）も既定で回すのは、**390px で無事でも 320px で崩れる**ことがあるため。
 
-Chromium はこの環境にプリインストール済み（`/opt/pw-browsers/chromium-*`）で、スクリプトが自動検出する。**`playwright install` は実行しない**（環境で禁止されている）。`playwright` npm パッケージが無い場合はスクリプトが scratchpad 側に入れる（リポジトリの `package.json` は汚さない）。
+Chromium はシステムのものを使う。スクリプトが `/opt/pw-browsers/chromium-*` → `/usr/bin/chromium` → `/usr/bin/chromium-browser` の順に探す。`playwright install` でブラウザを落とさない。`playwright` npm パッケージが無い場合はスクリプトが scratchpad 側に入れる（リポジトリの `package.json` は汚さない）。
 
 ### 5. 結果を読んでレビューを書く
 

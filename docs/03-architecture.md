@@ -8,7 +8,7 @@ stacx/
 ├── README.md
 ├── docs/
 ├── packages/
-│   ├── web/             # React Router v7 フロントエンド
+│   ├── web/             # React Router v8 フロントエンド
 │   │   ├── app/
 │   │   │   ├── routes.ts        # ルート定義（routes/ と resources/ を登録）
 │   │   │   ├── routes/          # 画面ルート（loader + action + コンポーネント）
@@ -51,7 +51,7 @@ api は URL ではなく**ドメイン単位**でディレクトリを切る（`
 
 ユーザー (PC / スマホ)
 　↓ HTTPS
-web worker "stacx" (Cloudflare Workers / React Router v7 SSR/CSR)
+web worker "stacx" (Cloudflare Workers / React Router v8 SSR/CSR)
 　↓ Service Binding (env.API) — 公開網を経由しない worker 間の直接呼び出し
 api worker "stacx-api" (Cloudflare Workers / Hono API)
 　├─ 認証ミドルウェア
@@ -78,7 +78,7 @@ Cloudflare Workers ⇄ Google IdP (OIDC)
 ### 1. メモ作成のフロー
 
 1. ユーザー入力
-2. RR v7 Form → action
+2. `fetcher.Form` → resource route `/resources/memos/create` の action
 3. Hono RPC client 経由で API 呼び出し
 4. Hono Workers `/api/memos POST`
 5. 認証ミドルウェアでセッション検証
@@ -86,7 +86,7 @@ Cloudflare Workers ⇄ Google IdP (OIDC)
 7. Drizzle で `INSERT INTO memos`
 8. D1 に保存
 9. レスポンス（メモオブジェクト）を返却
-10. RR v7 が revalidate して一覧を更新
+10. React Router が loader を revalidate して一覧を更新
 
 ### 2. 認証フロー（OIDC/OAuth2）
 
@@ -99,7 +99,7 @@ Cloudflare Workers ⇄ Google IdP (OIDC)
 7. `user_identities` を確認し、ユーザー特定または新規作成
 8. `sessions` テーブルにセッションを保存
 9. httpOnly Cookie を発行
-10. RR v7 が `/` へリダイレクト
+10. `/` へリダイレクト
 
 詳細: `docs/05-auth.md`
 

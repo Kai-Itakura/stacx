@@ -182,10 +182,13 @@ D1 のマイグレーションは**不可逆**（ロールバックできない�
 `main` への PR は `stg` からのみ許可される（`.github/workflows/restrict-pr-source.yml`）。
 それ以外の head ブランチから `main` へ PR を出すと `check-source-branch` が落ちる。
 
-> **このチェックは required status check に指定して初めて強制力を持つ。**
-> Settings → Branches → `main` のブランチ保護ルールで、`check-source-branch` を
-> 必須チェックに追加すること。指定しないと「赤くなるがマージはできる」状態にしかならない。
-> あわせて `main` への直接 push も禁止する。
+`main` は GitHub の ruleset で保護している（classic のブランチ保護ではないので、
+`branches/main/protection` API は 404 を返す）。
+
+- PR 必須（直接 push 不可）、削除・force push 不可
+- `check-source-branch` と `ci` が必須チェック
+
+`stg` には ruleset が無い。
 
 ### 例外を通す場合（hotfix ラベル）
 
@@ -197,9 +200,7 @@ D1 マイグレーションを含む変更では使わないこと。スキー�
 本番で初めてその SQL を実行することになる。
 
 ドキュメントや CI の修正など Worker の挙動に影響しない変更でも、迷ったら `stg` を通す。
-**判断コストより事故のコストの方が高い。**
-
-PR を切らず直接 push でも技術的には動くが、後で経歴書に書く時に PR 履歴があると説明しやすい。
+判断コストより事故のコストの方が高い。
 
 ---
 

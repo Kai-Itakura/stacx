@@ -2,7 +2,7 @@
 
 Supersedes [ADR 0001](./0001-pages-and-workers-split-deployment.md)。
 
-web（React Router v7 SSR）を Cloudflare Pages ではなく **Workers** にデプロイし、web worker（`stacx`）が受けた `/api/*` を **Service Binding** 経由で api worker（`stacx-api`）へ中継する構成にする。ブラウザから見ると単一オリジン（web worker の URL）で完結し、api worker は公開ルートを持たない。
+web（React Router SSR）を Cloudflare Pages ではなく **Workers** にデプロイし、web worker（`stacx`）が受けた `/api/*` を **Service Binding** 経由で api worker（`stacx-api`）へ中継する構成にする。ブラウザから見ると単一オリジン（web worker の URL）で完結し、api worker は公開ルートを持たない。
 
 ADR 0001 は「web は Pages、api は Workers、カスタムドメインの path 分割で同一オリジン」としていたが、実装はこの構成に変更された。0001 の目的（同一オリジンで Cookie / CORS の煩雑さを回避しつつ、web と api を独立してデプロイする）は維持している。**変わったのは同一オリジンの実現手段**で、DNS/ルーティング層の path 分割から、web worker 内での中継に移した。
 
@@ -10,7 +10,7 @@ ADR 0001 は「web は Pages、api は Workers、カスタムドメインの pat
 
 - **Pages + Workers の path 分割（ADR 0001 の当初案）**: 同一オリジンは実現できるが、**カスタムドメインの取得と Workers Routes 設定が本番デプロイの前提条件**になる。workers.dev サブドメインだけで動かし始められない。またビルド設定が Pages 側の GUI 設定と `wrangler.toml` の 2 系統に分かれ、リポジトリから構成が読み取れない。
 - **Workers + Workers を Service Binding で接続（採用）**: web/api とも `wrangler.toml` / `wrangler.jsonc` で構成が完結し、リポジトリだけを見れば分かる。api への呼び出しが**公開網を経由しない worker 間の直接呼び出し**になるためレイテンシと露出面で有利。カスタムドメインなしで workers.dev のまま動かせるので、個人利用フェーズを最短で始められる。
-- **シングル Worker（RR v7 SSR + Hono 同居）**: デプロイ単位が 1 つで最もシンプルだが、web/api を独立にロールバックできない。ADR 0001 の判断（分離）を踏襲して採らない。
+- **シングル Worker（React Router SSR + Hono 同居）**: デプロイ単位が 1 つで最もシンプルだが、web/api を独立にロールバックできない。ADR 0001 の判断（分離）を踏襲して採らない。
 
 ## Consequences
 
