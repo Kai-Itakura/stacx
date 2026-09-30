@@ -2,98 +2,11 @@
 
 StacX（Cloudflare D1 / SQLite）の全テーブルと関係。Drizzle スキーマ
 （`packages/api/src/db/schema.ts`）が正典で、本図はその俯瞰用。
+注記の無いカラムは NOT NULL。
 
-```mermaid
-erDiagram
-  users ||--o{ user_identities : "has"
-  users ||--o{ sessions : "has"
-  users ||--o{ projects : "owns"
-  users ||--o{ tags : "owns"
-  users ||--o{ memos : "owns"
-  users ||--o{ star_logs : "owns"
-  projects ||--o{ memos : "contains"
-  memos ||--o{ memo_tags : "tagged by"
-  memos ||--o| star_logs : "elaborated as"
-  tags ||--o{ memo_tags : "applied to"
+図のソース（Mermaid）: [`docs/diagrams/er.mmd`](./diagrams/er.mmd)
 
-  users {
-    text id PK
-    integer created_at
-    integer updated_at
-    integer last_login_at
-  }
-
-  user_identities {
-    text id PK
-    text user_id FK "→ users.id (cascade)"
-    text provider "UQ(provider, provider_sub)"
-    text provider_sub "UQ(provider, provider_sub)"
-    text email
-    integer email_verified
-    text name
-    text picture_url
-    integer created_at
-    integer updated_at
-  }
-
-  sessions {
-    text id PK
-    text user_id FK "→ users.id (cascade)"
-    integer expires_at
-    integer created_at
-    text user_agent
-    text ip_address
-  }
-
-  projects {
-    text id PK
-    text user_id FK "→ users.id (cascade)"
-    text name
-    integer start_date "null=進行中の開始"
-    integer end_date "null なら進行中"
-    text summary
-    integer team_size
-    text role
-    text work_style
-    text tech_stack "JSON 配列 default '[]'"
-    integer created_at
-    integer updated_at
-  }
-
-  tags {
-    text id PK
-    text user_id FK "→ users.id (cascade)"
-    text name "UQ(user_id, name)"
-    integer created_at
-  }
-
-  memos {
-    text id PK
-    text user_id FK "→ users.id (cascade)"
-    text project_id FK "→ projects.id (cascade)"
-    text body
-    integer created_at
-    integer updated_at
-  }
-
-  star_logs {
-    text id PK
-    text user_id FK "→ users.id (cascade)"
-    text memo_id FK "→ memos.id (cascade), UQ"
-    text situation "null 可"
-    text task "null 可"
-    text action "null 可"
-    text result "null 可"
-    text status "draft | complete, default draft"
-    integer created_at
-    integer updated_at
-  }
-
-  memo_tags {
-    text memo_id PK, FK "→ memos.id (cascade)"
-    text tag_id PK, FK "→ tags.id (cascade)"
-  }
-```
+![ER 図](./diagrams/er.png)
 
 ## 補足（grill / ADR で確定した設計意図）
 

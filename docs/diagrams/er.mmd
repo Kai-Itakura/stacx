@@ -1,0 +1,89 @@
+erDiagram
+  users ||--o{ user_identities : "has"
+  users ||--o{ sessions : "has"
+  users ||--o{ projects : "owns"
+  users ||--o{ tags : "owns"
+  users ||--o{ memos : "owns"
+  users ||--o{ star_logs : "owns"
+  projects ||--o{ memos : "contains"
+  memos ||--o{ memo_tags : "tagged by"
+  tags ||--o{ memo_tags : "applied to"
+  memos ||--o| star_logs : "elaborated as"
+
+  users {
+    text id PK
+    integer created_at
+    integer updated_at
+    integer last_login_at
+  }
+
+  user_identities {
+    text id PK
+    text user_id FK "users.id cascade"
+    text provider UK "UQ(provider, provider_sub)"
+    text provider_sub UK "UQ(provider, provider_sub)"
+    text email "NULL 可"
+    integer email_verified "boolean, default false"
+    text name "NULL 可"
+    text picture_url "NULL 可"
+    integer created_at
+    integer updated_at
+  }
+
+  sessions {
+    text id PK
+    text user_id FK "users.id cascade"
+    integer expires_at
+    integer created_at
+    text user_agent "NULL 可"
+    text ip_address "NULL 可"
+  }
+
+  projects {
+    text id PK
+    text user_id FK "users.id cascade"
+    text name
+    integer start_date
+    integer end_date "NULL なら進行中"
+    text summary "NULL 可"
+    integer team_size "NULL 可"
+    text role "NULL 可"
+    text work_style "NULL 可"
+    text tech_stack "JSON 配列, default '[]'"
+    integer created_at
+    integer updated_at
+  }
+
+  tags {
+    text id PK
+    text user_id FK,UK "users.id cascade / UQ(user_id, name)"
+    text name UK "UQ(user_id, name)"
+    integer created_at
+  }
+
+  memos {
+    text id PK
+    text user_id FK "users.id cascade"
+    text project_id FK "projects.id cascade"
+    text body
+    integer created_at
+    integer updated_at
+  }
+
+  star_logs {
+    text id PK
+    text user_id FK "users.id cascade"
+    text memo_id FK,UK "memos.id cascade / 1 Memo : 1 STAR"
+    text situation "NULL 可"
+    text task "NULL 可"
+    text action "NULL 可"
+    text result "NULL 可"
+    text status "draft | complete, default draft"
+    integer created_at
+    integer updated_at
+  }
+
+  memo_tags {
+    text memo_id PK,FK "memos.id cascade"
+    text tag_id PK,FK "tags.id cascade"
+  }
