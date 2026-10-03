@@ -2,7 +2,7 @@
 
 守るルール・どこを見るか、だけを書く。説明と判断の記録は `docs/` に置く。
 
-**StacX**: 業務の学びを「1 分メモ」として蓄積し、職務経歴書として出力する個人向けアプリ。用語（User / Identity / Memo / Tag / 技術スタック）の正典は `CONTEXT.md`。
+**StacX**: 業務の学びを「1 分メモ」として蓄積し、職務経歴書として出力する個人向けアプリ。用語（User / Identity / Project / STAR / Tag / 技術スタック）の正典は `CONTEXT.md`。
 
 pnpm workspace。`packages/web`（React Router v8 + shadcn/ui + Conform）と `packages/api`（Hono on Workers + Drizzle + D1）。web は `/api/*` を Service Binding で api に中継する同一オリジン構成。認証は Google OIDC のみ（Phase 1）。
 
