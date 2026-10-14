@@ -13,6 +13,9 @@ export default defineWorkersConfig(async () => {
           singleWorker: true,
           wrangler: { configPath: "./wrangler.toml" },
           miniflare: {
+            // マイグレーションのテスト専用。setup で全マイグレーションを当てる DB とは別に、
+            // 途中のバージョンまで当ててからデータを入れるために使う。
+            d1Databases: { MIGRATION_DB: { id: "migration-test" } },
             bindings: {
               // setup でマイグレーション適用に使う。
               TEST_MIGRATIONS: migrations,

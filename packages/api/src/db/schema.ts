@@ -125,12 +125,48 @@ export const memoTags = sqliteTable(
   (t) => [primaryKey({ columns: [t.memoId, t.tagId] })],
 );
 
+/** STAR。記録の唯一の単位（ADR 0009）。生成時に 1 つの Project へ固定的に属する。 */
+export const stars = sqliteTable("stars", {
+  id: text("id").primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  projectId: text("project_id")
+    .notNull()
+    .references(() => projects.id, { onDelete: "cascade" }),
+  // 4 項目のうち少なくとも 1 つが必須。どれが埋まるかは決まっていないため列は NULL を許し、
+  // リクエスト検証側で担保する。
+  situation: text("situation"),
+  task: text("task"),
+  action: text("action"),
+  result: text("result"),
+  // 作業ログ。解決までの試行錯誤を残す自由記述で、経歴書には出さない。
+  notes: text("notes"),
+  createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
+  updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull(),
+});
+
+/** STAR と Tag の多対多。両親の削除で連鎖して掃除される。 */
+export const starTags = sqliteTable(
+  "star_tags",
+  {
+    starId: text("star_id")
+      .notNull()
+      .references(() => stars.id, { onDelete: "cascade" }),
+    tagId: text("tag_id")
+      .notNull()
+      .references(() => tags.id, { onDelete: "cascade" }),
+  },
+  (t) => [primaryKey({ columns: [t.starId, t.tagId] })],
+);
+
 export const usersRelations = relations(users, ({ many }) => ({
   identities: many(userIdentities),
   sessions: many(sessions),
   projects: many(projects),
   tags: many(tags),
   memos: many(memos),
+  stars: many(stars),
 }));
 
 export const projectsRelations = relations(projects, ({ one, many }) => ({
@@ -139,6 +175,7 @@ export const projectsRelations = relations(projects, ({ one, many }) => ({
     references: [users.id],
   }),
   memos: many(memos),
+  stars: many(stars),
 }));
 
 export const tagsRelations = relations(tags, ({ one, many }) => ({
@@ -147,6 +184,7 @@ export const tagsRelations = relations(tags, ({ one, many }) => ({
     references: [users.id],
   }),
   memoTags: many(memoTags),
+  starTags: many(starTags),
 }));
 
 export const memosRelations = relations(memos, ({ one, many }) => ({
@@ -209,3 +247,26 @@ export type Tag = typeof tags.$inferSelect;
 export type Memo = typeof memos.$inferSelect;
 export type MemoTag = typeof memoTags.$inferSelect;
 export type StarLog = typeof starLogs.$inferSelect;
+
+export const starsRelations = relations(stars, ({ one, many }) => ({
+  user: one(users, {
+    fields: [stars.userId],
+    references: [users.id],
+  }),
+  project: one(projects, {
+    fields: [stars.projectId],
+    references: [projects.id],
+  }),
+  starTags: many(starTags),
+}));
+
+export const starTagsRelations = relations(starTags, ({ one }) => ({
+  star: one(stars, {
+    fields: [starTags.starId],
+    references: [stars.id],
+  }),
+  tag: one(tags, {
+    fields: [starTags.tagId],
+    references: [tags.id],
+  }),
+}));
