@@ -9,6 +9,7 @@ import {
 
 import type { Route } from "./+types/root";
 import "./app.css";
+import { scrollRestorationKey } from "./lib/scroll-restoration";
 import { themeInitScript } from "./lib/theme";
 
 /** ファビコン。SVG に対応するブラウザは favicon.svg を、それ以外は favicon.ico を使う。 */
@@ -32,7 +33,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
       </head>
       <body>
         {children}
-        <ScrollRestoration />
+        <ScrollRestoration getKey={scrollRestorationKey} />
         <Scripts />
       </body>
     </html>
