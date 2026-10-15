@@ -9,7 +9,6 @@ import {
 
 import type { Route } from "./+types/root";
 import "./app.css";
-import { scrollRestorationKey } from "./lib/scroll-restoration";
 import { themeInitScript } from "./lib/theme";
 
 /** ファビコン。SVG に対応するブラウザは favicon.svg を、それ以外は favicon.ico を使う。 */
@@ -33,7 +32,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
       </head>
       <body>
         {children}
-        <ScrollRestoration getKey={scrollRestorationKey} />
+        {/* 既定のキーは履歴エントリごとで、キャンセルの Link や保存後の redirect で戻ると先頭になる。URL ごとに覚える。 */}
+        <ScrollRestoration getKey={(location) => location.pathname} />
         <Scripts />
       </body>
     </html>
