@@ -32,7 +32,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
       </head>
       <body>
         {children}
-        {/* 既定のキーは履歴エントリごとで、キャンセルの Link や保存後の redirect で戻ると先頭になる。URL ごとに覚える。 */}
         <ScrollRestoration getKey={(location) => location.pathname} />
         <Scripts />
       </body>
