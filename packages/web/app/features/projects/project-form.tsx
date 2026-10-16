@@ -9,7 +9,8 @@ import { getZodConstraint, parseWithZod } from "@conform-to/zod/v4";
 import { Code } from "lucide-react";
 import type * as React from "react";
 import { useState } from "react";
-import { Form, Link, useActionData, useNavigation } from "react-router";
+import { Form, useActionData, useNavigation } from "react-router";
+import { BackLink } from "~/components/back-link";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
@@ -152,7 +153,7 @@ export function ProjectForm({ project, submitLabel, intent }: ProjectFormProps) 
       <div className="flex items-center justify-end gap-3">
         {form.errors && <p className="text-destructive mr-auto text-sm">{form.errors[0]}</p>}
         <Button asChild variant="ghost" type="button">
-          <Link to="/projects">キャンセル</Link>
+          <BackLink fallback="/projects">キャンセル</BackLink>
         </Button>
         <Button type="submit" disabled={submitting}>
           {submitLabel}

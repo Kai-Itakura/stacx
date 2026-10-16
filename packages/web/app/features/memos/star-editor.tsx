@@ -1,7 +1,8 @@
 import { getFormProps, getTextareaProps, type SubmissionResult, useForm } from "@conform-to/react";
 import { getZodConstraint, parseWithZod } from "@conform-to/zod/v4";
 import type { ReactNode } from "react";
-import { Form, Link, useActionData, useNavigation } from "react-router";
+import { Form, useActionData, useNavigation } from "react-router";
+import { BackLink } from "~/components/back-link";
 import { ProjectBadge, TagBadge } from "~/components/entity-badge";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
@@ -100,7 +101,7 @@ export function StarEditor({ memo, values, status }: StarEditorProps) {
             <p className="text-destructive mr-auto w-full text-sm sm:w-auto">{form.errors[0]}</p>
           )}
           <Button asChild variant="ghost" type="button">
-            <Link to="/memos">キャンセル</Link>
+            <BackLink fallback="/memos">キャンセル</BackLink>
           </Button>
           <Button type="submit" name="mode" value="draft" variant="outline" disabled={submitting}>
             下書き保存
