@@ -1,3 +1,4 @@
+import { Link } from "react-router";
 import { ProjectBadge, TagBadge } from "~/components/entity-badge";
 import { Badge } from "~/components/ui/badge";
 import { toLocalDay } from "~/lib/format-date";
@@ -30,9 +31,9 @@ export function MemoList({ memos }: { memos: MemoListItem[] }) {
     return (
       <div className="text-center">
         <p className="text-muted-foreground">まだメモがありません。</p>
-        <a href="/" className="text-primary mt-2 inline-block underline-offset-4 hover:underline">
+        <Link to="/" className="text-primary mt-2 inline-block underline-offset-4 hover:underline">
           最初のメモを書く
-        </a>
+        </Link>
       </div>
     );
   }
@@ -61,18 +62,18 @@ export function MemoList({ memos }: { memos: MemoListItem[] }) {
           <div className="mt-3 flex items-center justify-end gap-2 border-t pt-3">
             {m.starStatus === "complete" && <Badge variant="complete">完成</Badge>}
             {m.starStatus === "draft" && <Badge variant="open">下書き</Badge>}
-            <a
-              href={`/memos/${m.id}/edit`}
+            <Link
+              to={`/memos/${m.id}/edit`}
               className="text-primary text-sm underline-offset-4 hover:underline"
             >
               編集
-            </a>
-            <a
-              href={`/memos/${m.id}/star`}
+            </Link>
+            <Link
+              to={`/memos/${m.id}/star`}
               className="text-primary text-sm underline-offset-4 hover:underline"
             >
               {STAR_LINK_LABEL[m.starStatus]}
-            </a>
+            </Link>
           </div>
         </li>
       ))}

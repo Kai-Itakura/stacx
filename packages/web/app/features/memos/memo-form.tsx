@@ -6,7 +6,8 @@ import {
   useForm,
 } from "@conform-to/react";
 import { getZodConstraint, parseWithZod } from "@conform-to/zod/v4";
-import { Form, Link, useActionData, useNavigation } from "react-router";
+import { Form, useActionData, useNavigation } from "react-router";
+import { BackLink } from "~/components/back-link";
 import { Button } from "~/components/ui/button";
 import { Textarea } from "~/components/ui/textarea";
 import { type IntakeProject, type IntakeTag, memoFormSchema } from "~/features/intake/schema";
@@ -72,7 +73,7 @@ export function MemoForm({ memo, projects, tags }: MemoFormProps) {
       <div className="flex items-center justify-end gap-3">
         {form.errors && <p className="text-destructive mr-auto text-sm">{form.errors[0]}</p>}
         <Button asChild variant="ghost" type="button">
-          <Link to="/memos">キャンセル</Link>
+          <BackLink fallback="/memos">キャンセル</BackLink>
         </Button>
         <input type="hidden" name="intent" value="edit" />
         <Button type="submit" disabled={submitting}>
