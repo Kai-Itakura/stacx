@@ -1,34 +1,43 @@
 import { z } from "zod";
+import { hasAnyField } from "./state";
 
-// STAR ログの upsert 検証スキーマ。`.brand()` で出力型を branded にし、
+// STAR のリクエスト検証スキーマ。`.brand()` で出力型を branded にし、
 // safeParse / parse を通した値しかドメイン層へ渡せないことを型で保証する。
 
-const optionalText = z.string().optional();
-const nonEmpty = (s: string | undefined): boolean => (s?.trim().length ?? 0) > 0;
+const starFields = {
+  situation: z.string().optional(),
+  task: z.string().optional(),
+  action: z.string().optional(),
+  result: z.string().optional(),
+  notes: z.string().optional(),
+};
+
+const invariant = { message: "at least one of situation/task/action/result is required" };
+
+/** POST /stars 用。tagIds 未指定は空配列に正規化。 */
+export const createStarSchema = z
+  .object({
+    projectId: z.string().min(1),
+    ...starFields,
+    tagIds: z.array(z.string().min(1)).default([]),
+  })
+  .refine(hasAnyField, invariant)
+  .brand<"CreateStarInput">();
+
+/** 検証済みの STAR 作成入力。createStarSchema.parse の出力としてのみ得られる。 */
+export type CreateStarInput = z.infer<typeof createStarSchema>;
 
 /**
- * PUT /memos/:id/star 用。status で保存モードを切り替える。
- * - draft: 書きかけ。S/T/A/R は最低 1 項目に非空文字（空 STAR の保存は無意味）。
- * - complete: 経歴書に使える完成状態。S/T/A/R を全項目必須にする。
+ * PUT /stars/:id 用。S/T/A/R は毎回 4 項目を置き換える（未指定は空になる）。
+ * notes / tagIds は present なら置き換え、absent なら変更しない。Project は変えられない。
  */
-export const upsertStarSchema = z
+export const updateStarSchema = z
   .object({
-    situation: optionalText,
-    task: optionalText,
-    action: optionalText,
-    result: optionalText,
-    status: z.enum(["draft", "complete"]).default("draft"),
+    ...starFields,
+    tagIds: z.array(z.string().min(1)).optional(),
   })
-  .refine(
-    (v) => {
-      const fields = [v.situation, v.task, v.action, v.result];
-      return v.status === "complete" ? fields.every(nonEmpty) : fields.some(nonEmpty);
-    },
-    {
-      message: "at least one field is required",
-    },
-  )
-  .brand<"UpsertStarInput">();
+  .refine(hasAnyField, invariant)
+  .brand<"UpdateStarInput">();
 
-/** 検証済みの STAR upsert 入力。upsertStarSchema.parse の出力としてのみ得られる。 */
-export type UpsertStarInput = z.infer<typeof upsertStarSchema>;
+/** 検証済みの STAR 更新入力。updateStarSchema.parse の出力としてのみ得られる。 */
+export type UpdateStarInput = z.infer<typeof updateStarSchema>;

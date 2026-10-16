@@ -244,9 +244,7 @@ export type UserIdentity = typeof userIdentities.$inferSelect;
 export type Session = typeof sessions.$inferSelect;
 export type Project = typeof projects.$inferSelect;
 export type Tag = typeof tags.$inferSelect;
-export type Memo = typeof memos.$inferSelect;
-export type MemoTag = typeof memoTags.$inferSelect;
-export type StarLog = typeof starLogs.$inferSelect;
+export type Star = typeof stars.$inferSelect;
 
 export const starsRelations = relations(stars, ({ one, many }) => ({
   user: one(users, {
