@@ -30,8 +30,8 @@ S/T と A/R の両方に書かれていて 4 項目が揃っていなければ�
 ## Consequences
 
 - 「完成」「未解決の問題」「解決中」「背景未記入」は列ではなく 4 項目から導出する。経歴書出力の対象は完成した STAR だけ。
-- Project を削除すると配下の STAR が連鎖削除される（ADR 0005 の対象が Memo から STAR に移る）。
-- 技術選定の理由も STAR として書く（ADR 0007 の経路が変わる）。
+- Project を削除すると配下の STAR が連鎖削除される（[ADR 0005](./0005-project-deletion-cascades-stars.md) の対象が Memo から STAR に移る）。
+- 技術選定の理由も STAR として書く（[ADR 0007](./0007-tech-decision-as-star.md) の経路が変わる）。
 - 既存データは Expand / Contract の 2 段階で移行する。まず `stars` / `star_tags` を作って写し、
   古いテーブルは残す。production で移行結果を確かめてから、別のマイグレーションで古いテーブルを消す。
   D1 は取り消せないため、写し間違いがあっても元データから写し直せる状態を保つ。

@@ -25,9 +25,8 @@ stacx/
 │       ├── src/
 │       │   ├── index.ts         # Hono アプリ組み立て・AppType export
 │       │   ├── auth/            # 認証（providers/ routes/ session / cookie / account）
-│       │   ├── memo/            # ドメインごとに index.ts / <domain>.ts / request-schema.ts
-│       │   ├── project/
-│       │   ├── star/            # index.ts を持たない（/memos/:id/star として memo/index.ts に載る）
+│       │   ├── project/         # ドメインごとに index.ts / <domain>.ts / request-schema.ts
+│       │   ├── star/            # 上の 3 点に加え、4 項目からの状態導出（state.ts）
 │       │   ├── tag/
 │       │   ├── db/
 │       │   │   ├── schema.ts
@@ -43,7 +42,6 @@ stacx/
 
 api は URL ではなく**ドメイン単位**でディレクトリを切る（`routes/` や `middleware/` は置かない）。
 各ドメインは `index.ts`（Hono サブアプリ）/ `<domain>.ts`（ロジック）/ `request-schema.ts`（Zod）の 3 点構成。
-`star` は Memo の下位リソース（`/api/memos/:id/star`）なので `index.ts` を持たず、`memo/index.ts` がルートを持つ。
 
 ---
 
@@ -63,10 +61,9 @@ Cloudflare D1 (SQLite)
 　├─ user_identities
 　├─ sessions
 　├─ projects
-　├─ memos
-　├─ star_logs
+　├─ stars
 　├─ tags
-　└─ memo_tags
+　└─ star_tags
 
 別経路:
 Cloudflare Workers ⇄ Google IdP (OIDC)
