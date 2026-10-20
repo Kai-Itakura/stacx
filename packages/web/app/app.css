@@ -89,6 +89,7 @@
   --glass-shadow: 0 1px 2px rgb(0 0 0 / 0.04), 0 20px 40px rgb(0 0 0 / 0.08);
   --glass-noise-blend: multiply;
   --glass-noise-opacity: 0.02;
+  --bar: rgb(255 255 255 / 0.96);
 
   /* 沈む面（入力欄・セグメントの溝）。 */
   --input: rgb(0 0 0 / 0.035);
@@ -161,6 +162,7 @@
   --glass-shadow: 0 28px 56px rgb(0 0 0 / 0.55);
   --glass-noise-blend: screen;
   --glass-noise-opacity: 0.035;
+  --bar: oklch(0.2 0 0 / 0.96);
 
   --input: rgb(0 0 0 / 0.32);
   --input-border: rgb(255 255 255 / 0.1);
@@ -237,6 +239,10 @@
     mix-blend-mode: var(--glass-noise-blend);
     background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='160' height='160' filter='url(%23n)'/></svg>");
   }
+}
+
+@utility glass-bar {
+  --card: var(--bar);
 }
 
 /* 入力欄など、面に沈めて見せる部分。 */

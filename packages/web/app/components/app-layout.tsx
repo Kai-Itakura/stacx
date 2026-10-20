@@ -142,7 +142,7 @@ export function AppLayout({ user, children }: { user: User; children: ReactNode 
         className="fixed inset-x-4 z-30 md:hidden"
         style={{ bottom: "calc(0.75rem + env(safe-area-inset-bottom))" }}
       >
-        <div className="glass flex h-14 items-center justify-around rounded-full px-2">
+        <div className="glass glass-bar flex h-14 items-center justify-around rounded-full px-2">
           {NAV_ITEMS.map(({ to, tabLabel, icon: Icon, end }) => (
             <NavLink key={to} to={to} end={end} className="flex items-center justify-center">
               {({ isActive }) => (
