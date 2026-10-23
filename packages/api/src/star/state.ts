@@ -5,18 +5,12 @@ type StarFields = {
   result?: string | null;
 };
 
-/** 空白だけの値は書かれていないものとして扱う。 */
 const isFilled = (s: string | null | undefined): boolean => (s?.trim().length ?? 0) > 0;
 
-/** S/T/A/R のうち少なくとも 1 項目が書かれているか（STAR の不変条件）。 */
 export function hasAnyField(f: StarFields): boolean {
   return [f.situation, f.task, f.action, f.result].some(isFilled);
 }
 
-/**
- * 4 項目から STAR の状態を導出する。定義は CONTEXT.md の 完成 / 未解決の問題 / 解決中 / 背景未記入。
- * 不変条件を満たす STAR は必ずこのどれか 1 つに当たる。
- */
 export function starState(
   f: StarFields,
 ): "complete" | "unresolved" | "in_progress" | "missing_context" {

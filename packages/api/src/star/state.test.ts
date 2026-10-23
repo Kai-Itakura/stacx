@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { hasAnyField, starState } from "./state";
 
-// [S, T, A, R] の埋まり方 15 通りと導出状態（CONTEXT.md）。
 const cases: Array<[boolean, boolean, boolean, boolean, ReturnType<typeof starState>]> = [
   [true, true, true, true, "complete"],
   [true, false, false, false, "unresolved"],

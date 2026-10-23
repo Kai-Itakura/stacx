@@ -125,7 +125,6 @@ export const memoTags = sqliteTable(
   (t) => [primaryKey({ columns: [t.memoId, t.tagId] })],
 );
 
-/** STAR。記録の唯一の単位（ADR 0009）。生成時に 1 つの Project へ固定的に属する。 */
 export const stars = sqliteTable("stars", {
   id: text("id").primaryKey(),
   userId: text("user_id")
@@ -134,19 +133,15 @@ export const stars = sqliteTable("stars", {
   projectId: text("project_id")
     .notNull()
     .references(() => projects.id, { onDelete: "cascade" }),
-  // 4 項目のうち少なくとも 1 つが必須。どれが埋まるかは決まっていないため列は NULL を許し、
-  // リクエスト検証側で担保する。
   situation: text("situation"),
   task: text("task"),
   action: text("action"),
   result: text("result"),
-  // 作業ログ。解決までの試行錯誤を残す自由記述で、経歴書には出さない。
   notes: text("notes"),
   createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
   updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull(),
 });
 
-/** STAR と Tag の多対多。両親の削除で連鎖して掃除される。 */
 export const starTags = sqliteTable(
   "star_tags",
   {

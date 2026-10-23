@@ -21,10 +21,7 @@ CREATE TABLE `stars` (
 	FOREIGN KEY (`project_id`) REFERENCES `projects`(`id`) ON UPDATE no action ON DELETE cascade
 );
 --> statement-breakpoint
--- ここから手書き。Memo を STAR へ写す（ADR 0009 の Expand）。古いテーブルは Contract まで残す。
--- STAR 化済みの Memo は S/T/A/R を star_logs から取り、本文を作業ログ（notes）へ入れる。
--- 未 STAR 化の Memo は本文を result へ入れる。situation に入れると全件が「未解決の問題」になるため。
--- star_logs があっても 4 項目とも空なら未 STAR 化と同じに扱い、STAR の不変条件（少なくとも 1 項目）を守る。
+-- ここから手書きのデータ移行（ADR 0009）。
 INSERT INTO `stars` (`id`, `user_id`, `project_id`, `situation`, `task`, `action`, `result`, `notes`, `created_at`, `updated_at`)
 SELECT
 	`id`,

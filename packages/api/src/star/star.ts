@@ -6,7 +6,6 @@ import type { CreateStarInput, UpdateStarInput } from "./request-schema";
 import { starState } from "./state";
 
 /**
- * STAR + 紐づくタグ ID + 4 項目から導出した状態（API のレスポンス形）。
  * state の union は named type にすると RPC の推論型が内部パスを参照して TS2742（非可搬）に
  * なるため、ここでインラインで持つ。
  */
@@ -23,7 +22,6 @@ export type UpdateStarResult =
   | { ok: true; id: string }
   | { ok: false; reason: "not_found" | "tag_not_found" };
 
-/** 空文字・空白のみは null（未入力）に正規化する。 */
 const norm = (s: string | undefined): string | null => (s && s.trim().length > 0 ? s : null);
 
 const toView = (star: Star, tagIds: string[]): StarView => ({
@@ -32,7 +30,6 @@ const toView = (star: Star, tagIds: string[]): StarView => ({
   state: starState(star),
 });
 
-/** 呼び出し User が当該 Project を所有しているか。 */
 async function ownsProject(db: DB, userId: string, projectId: string): Promise<boolean> {
   const rows = await db
     .select({ id: projects.id })
@@ -52,10 +49,6 @@ async function ownsAllTags(db: DB, userId: string, tagIds: string[]): Promise<bo
   return owned.length === tagIds.length;
 }
 
-/**
- * STAR を作成する。Project は所有必須、tagIds も所有必須（暗黙作成しない）。
- * stars + star_tags は db.batch で原子化する（ADR 0004）。
- */
 export async function createStar(
   db: DB,
   userId: string,
@@ -94,7 +87,6 @@ export async function createStar(
   return { ok: true, star: toView(row, tagIds) };
 }
 
-/** 呼び出し User の STAR を作成日の新しい順で返す。projectId 指定で絞り込み。 */
 export async function listStars(
   db: DB,
   userId: string,
@@ -131,7 +123,6 @@ export async function getStar(db: DB, userId: string, id: string): Promise<StarV
 }
 
 /**
- * 呼び出し User の STAR を更新する。所有していなければ not_found。
  * S/T/A/R は 4 項目とも置き換える。notes / tagIds は present なら置き換え、absent なら変更しない。
  */
 export async function updateStar(
@@ -167,7 +158,6 @@ export async function updateStar(
     return { ok: false, reason: "tag_not_found" };
   }
 
-  // 更新・タグ全削除・タグ再挿入を 1 batch で原子化する（ADR 0004）。
   const results =
     tagIds.length === 0
       ? await db.batch([
@@ -186,7 +176,6 @@ export async function updateStar(
   return updatedId ? { ok: true, id: updatedId } : { ok: false, reason: "not_found" };
 }
 
-/** 呼び出し User の STAR を削除する。star_tags は FK cascade で掃除される。 */
 export async function deleteStar(db: DB, userId: string, id: string): Promise<boolean> {
   const rows = await db
     .delete(stars)

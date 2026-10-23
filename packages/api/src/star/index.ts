@@ -5,11 +5,6 @@ import { jsonValidator } from "../validation";
 import { createStarSchema, updateStarSchema } from "./request-schema";
 import { createStar, deleteStar, getStar, listStars, updateStar } from "./star";
 
-/**
- * STAR の CRUD ルート。/api/stars 配下にマウントする。
- * 全ルートで認証必須・操作は c.var.user.id 所有のものに限定される。
- * projectId / tagIds が他人・不在を指す場合は 400（reason 付き）で弾く。
- */
 export const starApp = new Hono<AppEnv>()
   .use("*", authMiddleware)
   .post("/", jsonValidator(createStarSchema), async (c) => {
