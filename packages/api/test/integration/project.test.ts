@@ -3,9 +3,7 @@ import { drizzle } from "drizzle-orm/d1";
 import { ulid } from "ulid";
 import { assert, beforeEach, describe, expect, it } from "vitest";
 import * as schema from "../../src/db/schema";
-import { memos, memoTags, projects, tags, users } from "../../src/db/schema";
-import { createMemo } from "../../src/memo/memo";
-import { createMemoSchema } from "../../src/memo/request-schema";
+import { projects, stars, starTags, tags, users } from "../../src/db/schema";
 import {
   createProject,
   deleteProject,
@@ -14,6 +12,8 @@ import {
   updateProject,
 } from "../../src/project/project";
 import { createProjectSchema, updateProjectSchema } from "../../src/project/request-schema";
+import { createStarSchema } from "../../src/star/request-schema";
+import { createStar } from "../../src/star/star";
 
 const db = drizzle(env.DB, { schema });
 
@@ -163,9 +163,9 @@ describe("updateProject", () => {
 
 describe("deleteProject", () => {
   beforeEach(async () => {
-    // 子テーブルから順に掃除する（カスケード検証で memo / memo_tags / tag も使うため）。
-    await db.delete(memoTags);
-    await db.delete(memos);
+    // 子テーブルから順に掃除する（カスケード検証で star / star_tags / tag も使うため）。
+    await db.delete(starTags);
+    await db.delete(stars);
     await db.delete(tags);
     await db.delete(projects);
     await db.delete(users);
@@ -188,31 +188,31 @@ describe("deleteProject", () => {
     expect(await db.select().from(projects)).toHaveLength(1);
   });
 
-  it("Project 削除で配下の Memo と memo_tags が連鎖削除される（ADR 0005）", async () => {
+  it("Project 削除で配下の STAR と star_tags が連鎖削除される（ADR 0005）", async () => {
     const me = await seedUser();
     const target = (await createProject(db, me, createInput())).id;
     const survivor = (await createProject(db, me, createInput({ name: "残る案件" }))).id;
     const tagId = await seedTag(me, "トラブル");
 
-    // 削除対象 Project 配下に tag 付き Memo、別 Project にも Memo を 1 件ずつ。
-    const doomed = await createMemo(
+    // 削除対象 Project 配下に tag 付き STAR、別 Project にも STAR を 1 件ずつ。
+    const doomed = await createStar(
       db,
       me,
-      createMemoSchema.parse({ projectId: target, body: "本文", tagIds: [tagId] }),
+      createStarSchema.parse({ projectId: target, situation: "S", tagIds: [tagId] }),
     );
-    const kept = await createMemo(
+    const kept = await createStar(
       db,
       me,
-      createMemoSchema.parse({ projectId: survivor, body: "本文" }),
+      createStarSchema.parse({ projectId: survivor, situation: "S" }),
     );
-    assert(doomed.ok && kept.ok, "Memo のシード作成失敗");
+    assert(doomed.ok && kept.ok, "STAR のシード作成失敗");
 
     await deleteProject(db, me, target);
 
-    // 配下 Memo は消え、別 Project の Memo は残る（無差別削除でないこと）。
-    expect((await db.select().from(memos)).map((m) => m.id)).toEqual([kept.memo.id]);
-    // 配下 Memo に紐づく memo_tags も連鎖で消える。
-    expect(await db.select().from(memoTags)).toHaveLength(0);
+    // 配下 STAR は消え、別 Project の STAR は残る（無差別削除でないこと）。
+    expect((await db.select().from(stars)).map((s) => s.id)).toEqual([kept.star.id]);
+    // 配下 STAR に紐づく star_tags も連鎖で消える。
+    expect(await db.select().from(starTags)).toHaveLength(0);
     // Tag 自体は User 所有で、Project 削除では連鎖しない（連鎖範囲の境界）。
     expect(await db.select().from(tags)).toHaveLength(1);
   });

@@ -7,10 +7,10 @@ import { sessionCookieName } from "../../src/auth/cookie";
 import type { IdentityProfile } from "../../src/auth/providers/types";
 import * as schema from "../../src/db/schema";
 import {
-  memos,
-  memoTags,
   projects,
   sessions,
+  stars,
+  starTags,
   tags,
   userIdentities,
   users,
@@ -54,27 +54,27 @@ async function putTag(cookie: string, id: string, body: unknown) {
   });
 }
 
-/** 指定タグを付けたメモを API 経由で作り、memo_id を返す。 */
-async function seedMemoWithTag(cookie: string, tagId: string): Promise<string> {
+/** 指定タグを付けた STAR を API 経由で作り、star_id を返す。 */
+async function seedStarWithTag(cookie: string, tagId: string): Promise<string> {
   const project = await SELF.fetch(`${BASE}/api/projects`, {
     method: "POST",
     headers: { cookie, "content-type": "application/json" },
     body: JSON.stringify({ name: "案件", startDate: "2024-01-01" }),
   });
   const { id: projectId } = (await project.json()) as { id: string };
-  const memo = await SELF.fetch(`${BASE}/api/memos`, {
+  const star = await SELF.fetch(`${BASE}/api/stars`, {
     method: "POST",
     headers: { cookie, "content-type": "application/json" },
-    body: JSON.stringify({ projectId, body: "b", tagIds: [tagId] }),
+    body: JSON.stringify({ projectId, situation: "S", tagIds: [tagId] }),
   });
-  const { id } = (await memo.json()) as { id: string };
+  const { id } = (await star.json()) as { id: string };
   return id;
 }
 
 describe("tag routes", () => {
   beforeEach(async () => {
-    await db.delete(memoTags);
-    await db.delete(memos);
+    await db.delete(starTags);
+    await db.delete(stars);
     await db.delete(projects);
     await db.delete(tags);
     await db.delete(sessions);
@@ -153,19 +153,19 @@ describe("tag routes", () => {
     expect((await putTag(bob, id, { name: "乗っ取り" })).status).toBe(404);
   });
 
-  it("リネームしてもメモとの紐付けは維持される（削除と異なる）", async () => {
+  it("リネームしても STAR との紐付けは維持される（削除と異なる）", async () => {
     const cookie = await loginAs("alice");
     const { id: tagId } = (await (await postTag(cookie, { name: "トラブル" })).json()) as {
       id: string;
     };
-    const memoId = await seedMemoWithTag(cookie, tagId);
+    const starId = await seedStarWithTag(cookie, tagId);
 
     await putTag(cookie, tagId, { name: "障害対応" });
-    expect(await db.select().from(memoTags).where(eq(memoTags.memoId, memoId))).toHaveLength(1);
+    expect(await db.select().from(starTags).where(eq(starTags.starId, starId))).toHaveLength(1);
 
-    // 対比: 削除すると memo_tags は cascade で消える
+    // 対比: 削除すると star_tags は cascade で消える
     await SELF.fetch(`${BASE}/api/tags/${tagId}`, { method: "DELETE", headers: { cookie } });
-    expect(await db.select().from(memoTags).where(eq(memoTags.memoId, memoId))).toHaveLength(0);
+    expect(await db.select().from(starTags).where(eq(starTags.starId, starId))).toHaveLength(0);
   });
 
   it("DELETE 自分のタグ → 204、他人のタグ → 404", async () => {

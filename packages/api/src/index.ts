@@ -3,8 +3,8 @@ import { Hono } from "hono";
 import { authApp, authMiddleware } from "./auth/index";
 import * as schema from "./db/schema";
 import { onError } from "./error";
-import { memoApp } from "./memo/index";
 import { projectApp } from "./project/index";
+import { starApp } from "./star/index";
 import { tagApp } from "./tag/index";
 import type { AppEnv } from "./types";
 
@@ -24,7 +24,7 @@ const routes = app
   .get("/me", authMiddleware, (c) => c.json({ user: c.var.user }))
   .route("/projects", projectApp)
   .route("/tags", tagApp)
-  .route("/memos", memoApp);
+  .route("/stars", starApp);
 
 export type AppType = typeof routes;
 export default app;

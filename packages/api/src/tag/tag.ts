@@ -44,7 +44,7 @@ export type UpdateTagResult =
 
 /**
  * 呼び出し User が所有するタグをリネームする。
- * 削除→再作成と違い memo_tags は変わらないため、メモとの紐付けは維持される。
+ * 削除→再作成と違い star_tags は変わらないため、STAR との紐付けは維持される。
  * 重複判定は createTag と同じく UNIQUE(userId, name) 制約に委ねる。
  */
 export async function updateTag(
@@ -74,7 +74,7 @@ export async function listTags(db: DB, userId: string): Promise<Tag[]> {
 
 /**
  * 呼び出し User が所有するタグを削除する。削除できたら true、
- * 対象が無い／他人のタグなら false。memo_tags は FK cascade で掃除される。
+ * 対象が無い／他人のタグなら false。star_tags は FK cascade で掃除される。
  */
 export async function deleteTag(db: DB, userId: string, id: string): Promise<boolean> {
   const rows = await db
