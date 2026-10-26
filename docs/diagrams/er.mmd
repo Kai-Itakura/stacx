@@ -3,12 +3,10 @@ erDiagram
   users ||--o{ sessions : "has"
   users ||--o{ projects : "owns"
   users ||--o{ tags : "owns"
-  users ||--o{ memos : "owns"
-  users ||--o{ star_logs : "owns"
-  projects ||--o{ memos : "contains"
-  memos ||--o{ memo_tags : "tagged by"
-  tags ||--o{ memo_tags : "applied to"
-  memos ||--o| star_logs : "elaborated as"
+  users ||--o{ stars : "owns"
+  projects ||--o{ stars : "contains"
+  stars ||--o{ star_tags : "tagged by"
+  tags ||--o{ star_tags : "applied to"
 
   users {
     text id PK
@@ -61,29 +59,20 @@ erDiagram
     integer created_at
   }
 
-  memos {
+  stars {
     text id PK
     text user_id FK "users.id cascade"
     text project_id FK "projects.id cascade"
-    text body
-    integer created_at
-    integer updated_at
-  }
-
-  star_logs {
-    text id PK
-    text user_id FK "users.id cascade"
-    text memo_id FK,UK "memos.id cascade / 1 Memo : 1 STAR"
     text situation "NULL 可"
     text task "NULL 可"
     text action "NULL 可"
     text result "NULL 可"
-    text status "draft | complete, default draft"
+    text notes "NULL 可 / 作業ログ"
     integer created_at
     integer updated_at
   }
 
-  memo_tags {
-    text memo_id PK,FK "memos.id cascade"
+  star_tags {
+    text star_id PK,FK "stars.id cascade"
     text tag_id PK,FK "tags.id cascade"
   }
