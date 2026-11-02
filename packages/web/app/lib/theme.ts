@@ -11,17 +11,9 @@ export function resolveTheme(theme: Theme): "light" | "dark" {
   return theme;
 }
 
-/**
- * ブラウザ UI（インストール時のタイトルバー等）の色。app.css の --background と揃える。
- * manifest.webmanifest の theme_color はライト固定で、ページ読み込み後はこちらが優先される。
- */
 export const THEME_COLORS = { light: "#ebebeb", dark: "#070707" } as const;
 
-/**
- * 実効テーマを <html> の .dark クラスと theme-color の meta に反映する。
- * meta は React ではなくここで生成する。描画前のスクリプトが値を書き換えるため、
- * JSX に置くとハイドレーション時に属性が食い違う。
- */
+/** 実効テーマを <html> の .dark クラスと theme-color の meta に反映する。 */
 export function applyTheme(theme: Theme): void {
   const resolved = resolveTheme(theme);
   document.documentElement.classList.toggle("dark", resolved === "dark");
