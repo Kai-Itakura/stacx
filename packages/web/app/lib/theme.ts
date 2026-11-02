@@ -13,7 +13,7 @@ export function resolveTheme(theme: Theme): "light" | "dark" {
 
 export const THEME_COLORS = { light: "#ebebeb", dark: "#070707" } as const;
 
-/** 実効テーマを <html> の .dark クラスと theme-color の meta に反映する。 */
+/** 実効テーマを <html> の .dark クラスに反映する。 */
 export function applyTheme(theme: Theme): void {
   const resolved = resolveTheme(theme);
   document.documentElement.classList.toggle("dark", resolved === "dark");
@@ -28,6 +28,6 @@ export function applyTheme(theme: Theme): void {
 
 /**
  * 描画前(ハイドレーション前)に <head> で実行し、チラつきを防ぐインラインスクリプト。
- * localStorage の保存値と OS 設定から .dark と theme-color を先に確定させる。applyTheme と等価。
+ * localStorage の保存値と OS 設定から .dark を先に確定させる。theme.ts のロジックと等価。
  */
 export const themeInitScript = `(function(){try{var t=localStorage.getItem('${THEME_STORAGE_KEY}')||'system';var d=t==='dark'||(t!=='light'&&matchMedia('(prefers-color-scheme: dark)').matches);document.documentElement.classList.toggle('dark',d);var m=document.querySelector('meta[name="theme-color"]');if(!m){m=document.createElement('meta');m.name='theme-color';document.head.appendChild(m);}m.content=d?'${THEME_COLORS.dark}':'${THEME_COLORS.light}';}catch(e){}})();`;
