@@ -11,10 +11,6 @@ import type { Route } from "./+types/root";
 import "./app.css";
 import { themeInitScript } from "./lib/theme";
 
-/**
- * ファビコンと PWA マニフェスト。SVG に対応するブラウザは favicon.svg を、それ以外は favicon.ico を使う。
- * ホーム画面に追加したときのアイコンは iOS が apple-touch-icon、それ以外がマニフェストの icons を使う。
- */
 export const links: Route.LinksFunction = () => [
   { rel: "icon", href: "/favicon.ico", sizes: "48x48" },
   { rel: "icon", href: "/favicon.svg", type: "image/svg+xml" },
