@@ -16,6 +16,7 @@ export const links: Route.LinksFunction = () => [
   { rel: "icon", href: "/favicon.ico", sizes: "48x48" },
   { rel: "icon", href: "/favicon.svg", type: "image/svg+xml" },
   { rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
+  { rel: "manifest", href: "/manifest.webmanifest" },
 ];
 
 export function Layout({ children }: { children: React.ReactNode }) {
@@ -23,8 +24,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
     <html lang="ja" suppressHydrationWarning>
       <head>
         <meta charSet="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        {/* 描画前にテーマを確定してチラつきを防ぐ。内容は固定の自前文字列で外部入力を含まない。 */}
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
         {/* biome-ignore lint/security/noDangerouslySetInnerHtml: ハイドレーション前に実行する静的スクリプトで XSS のリスクはない */}
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
         <Meta />
